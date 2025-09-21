@@ -1,12 +1,142 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { Header } from '@/components/Header';
+import { TabNavigation } from '@/components/TabNavigation';
+import { SkillChips } from '@/components/SkillChips';
+import { JobFeed } from '@/components/JobFeed';
+import { WorkerFeed } from '@/components/WorkerFeed';
+import { BottomNavigation } from '@/components/BottomNavigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search, Plus, MapPin } from 'lucide-react';
+import heroImage from '@/assets/hero-marketplace.jpg';
 
 const Index = () => {
+  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const [activeTab, setActiveTab] = useState<'employers' | 'workers'>('employers');
+  const [selectedSkill, setSelectedSkill] = useState('All');
+  const [currentPage, setCurrentPage] = useState('home');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const texts = {
+    en: {
+      searchPlaceholder: 'Search jobs, skills, or names...',
+      nearbyJobs: 'Find nearby jobs',
+      heroTitle: 'Connect. Work. Grow.',
+      heroSubtitle: 'Your local marketplace for skilled services',
+      postJob: 'Post a Job',
+      offerService: 'Offer Service'
+    },
+    hi: {
+      searchPlaceholder: 'काम, कौशल या नाम खोजें...',
+      nearbyJobs: 'आस-पास के काम खोजें',
+      heroTitle: 'जुड़ें। काम करें। बढ़ें।',
+      heroSubtitle: 'कुशल सेवाओं के लिए आपका स्थानीय बाज़ार',
+      postJob: 'काम पोस्ट करें',
+      offerService: 'सेवा दें'
+    }
+  };
+
+  const renderCurrentPage = () => {
+    if (currentPage !== 'home') {
+      return (
+        <div className="min-h-screen bg-background pt-20 pb-20">
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-4">
+                {currentPage === 'schemes' && (language === 'en' ? 'Government Schemes' : 'सरकारी योजनाएं')}
+                {currentPage === 'trending' && (language === 'en' ? 'Trending Cards' : 'ट्रेंडिंग कार्ड')}
+                {currentPage === 'profile' && (language === 'en' ? 'My Profile' : 'मेरी प्रोफ़ाइल')}
+                {currentPage === 'settings' && (language === 'en' ? 'Settings' : 'सेटिंग्स')}
+              </h2>
+              <p className="text-muted-foreground">
+                {language === 'en' ? 'Coming soon...' : 'जल्द आ रहा है...'}
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {/* Hero Section */}
+        <div className="relative overflow-hidden bg-gradient-hero">
+          <div className="absolute inset-0">
+            <img 
+              src={heroImage} 
+              alt="Rojgar Mela Marketplace" 
+              className="w-full h-full object-cover opacity-20"
+            />
+          </div>
+          <div className="relative container mx-auto px-4 py-8">
+            <div className="text-center text-primary-foreground">
+              <h1 className="text-3xl font-bold mb-2">{texts[language].heroTitle}</h1>
+              <p className="text-lg opacity-90 mb-6">{texts[language].heroSubtitle}</p>
+              
+              {/* Search Bar */}
+              <div className="relative max-w-md mx-auto mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder={texts[language].searchPlaceholder}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-background/90 backdrop-blur-sm border-primary-foreground/20"
+                />
+              </div>
+              
+              {/* Nearby Jobs Button */}
+              <Button variant="secondary" size="sm" className="mb-4">
+                <MapPin className="w-4 h-4 mr-2" />
+                {texts[language].nearbyJobs}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <TabNavigation 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          language={language}
+        />
+
+        {/* Skill Chips */}
+        <SkillChips 
+          language={language}
+          selectedSkill={selectedSkill}
+          onSkillSelect={setSelectedSkill}
+        />
+
+        {/* Content Feed */}
+        <div className="container mx-auto px-4">
+          {activeTab === 'employers' ? (
+            <JobFeed language={language} selectedSkill={selectedSkill} />
+          ) : (
+            <WorkerFeed language={language} selectedSkill={selectedSkill} />
+          )}
+        </div>
+
+        {/* Floating Action Button */}
+        <Button
+          variant="hero"
+          size="lg"
+          className="fixed bottom-20 right-4 rounded-full w-14 h-14 shadow-lg z-40"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
+      </>
+    );
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      {renderCurrentPage()}
+      <BottomNavigation 
+        activeTab={currentPage}
+        onTabChange={setCurrentPage}
+        language={language}
+      />
     </div>
   );
 };

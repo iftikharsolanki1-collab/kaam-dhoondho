@@ -1,0 +1,76 @@
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Home, FileText, TrendingUp, User, Settings } from 'lucide-react';
+
+interface BottomNavigationProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+  language: 'en' | 'hi';
+}
+
+export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNavigationProps) => {
+  const texts = {
+    en: {
+      home: 'Home',
+      schemes: 'Schemes',
+      trending: 'Trending', 
+      profile: 'Profile',
+      settings: 'Settings'
+    },
+    hi: {
+      home: 'होम',
+      schemes: 'योजनाएं',
+      trending: 'ट्रेंडिंग',
+      profile: 'प्रोफ़ाइल',
+      settings: 'सेटिंग्स'
+    }
+  };
+
+  const navItems = [
+    { id: 'home', icon: Home, label: texts[language].home, hasNotification: false },
+    { id: 'schemes', icon: FileText, label: texts[language].schemes, hasNotification: true },
+    { id: 'trending', icon: TrendingUp, label: texts[language].trending, hasNotification: false },
+    { id: 'profile', icon: User, label: texts[language].profile, hasNotification: false },
+    { id: 'settings', icon: Settings, label: texts[language].settings, hasNotification: false },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+      <div className="flex justify-around items-center py-2">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          
+          return (
+            <Button
+              key={item.id}
+              variant="ghost"
+              size="sm"
+              onClick={() => onTabChange(item.id)}
+              className={`flex flex-col items-center py-2 px-3 h-auto min-w-0 relative ${
+                isActive 
+                  ? 'text-primary bg-primary/5' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <div className="relative">
+                <Icon className={`w-5 h-5 mb-1 ${isActive ? 'text-primary' : ''}`} />
+                {item.hasNotification && (
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute -top-2 -right-2 w-4 h-4 p-0 text-xs bg-urgent text-urgent-foreground"
+                  >
+                    •
+                  </Badge>
+                )}
+              </div>
+              <span className={`text-xs font-medium truncate ${isActive ? 'text-primary' : ''}`}>
+                {item.label}
+              </span>
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
