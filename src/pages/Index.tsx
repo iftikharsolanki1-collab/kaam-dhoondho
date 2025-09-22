@@ -11,6 +11,7 @@ import { GovernmentSchemes } from '@/components/GovernmentSchemes';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
 import { TrendingPage } from '@/components/TrendingPage';
+import { ChatPage } from '@/components/ChatPage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, MapPin } from 'lucide-react';
@@ -120,6 +121,18 @@ const Index = () => {
           <div className="min-h-screen bg-background pt-20 pb-20">
             <div className="container mx-auto px-4 py-4">
               <GovernmentSchemes language={language} />
+            </div>
+          </div>
+        );
+      
+      case 'chat':
+        return (
+          <div className="min-h-screen bg-background pt-20 pb-20">
+            <div className="container mx-auto px-4 py-4">
+              <ChatPage 
+                language={language}
+                onBack={() => setCurrentPage('home')}
+              />
             </div>
           </div>
         );

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Home, FileText, TrendingUp, User, Settings } from 'lucide-react';
+import { Home, FileText, TrendingUp, User, Settings, MessageCircle } from 'lucide-react';
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -13,6 +13,7 @@ export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNav
     en: {
       home: 'Home',
       schemes: 'Schemes',
+      chat: 'Chat',
       trending: 'Trending', 
       profile: 'Profile',
       settings: 'Settings'
@@ -20,6 +21,7 @@ export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNav
     hi: {
       home: 'होम',
       schemes: 'योजनाएं',
+      chat: 'चैट',
       trending: 'ट्रेंडिंग',
       profile: 'प्रोफ़ाइल',
       settings: 'सेटिंग्स'
@@ -29,6 +31,7 @@ export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNav
   const navItems = [
     { id: 'home', icon: Home, label: texts[language].home, hasNotification: false },
     { id: 'schemes', icon: FileText, label: texts[language].schemes, hasNotification: true },
+    { id: 'chat', icon: MessageCircle, label: texts[language].chat, hasNotification: true },
     { id: 'trending', icon: TrendingUp, label: texts[language].trending, hasNotification: false },
     { id: 'profile', icon: User, label: texts[language].profile, hasNotification: false },
     { id: 'settings', icon: Settings, label: texts[language].settings, hasNotification: false },
