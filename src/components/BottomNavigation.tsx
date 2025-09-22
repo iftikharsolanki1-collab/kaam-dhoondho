@@ -35,7 +35,7 @@ export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNav
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 animate-slide-up">
       <div className="flex justify-around items-center py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -47,24 +47,24 @@ export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNav
               variant="ghost"
               size="sm"
               onClick={() => onTabChange(item.id)}
-              className={`flex flex-col items-center py-2 px-3 h-auto min-w-0 relative ${
+              className={`flex flex-col items-center py-2 px-3 h-auto min-w-0 relative transition-all duration-300 hover:scale-110 ${
                 isActive 
-                  ? 'text-primary bg-primary/5' 
+                  ? 'text-primary bg-primary/5 transform scale-110' 
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <div className="relative">
-                <Icon className={`w-5 h-5 mb-1 ${isActive ? 'text-primary' : ''}`} />
+                <Icon className={`w-5 h-5 mb-1 transition-all duration-200 ${isActive ? 'text-primary animate-bounce-gentle' : ''}`} />
                 {item.hasNotification && (
                   <Badge 
                     variant="secondary" 
-                    className="absolute -top-2 -right-2 w-4 h-4 p-0 text-xs bg-urgent text-urgent-foreground"
+                    className="absolute -top-2 -right-2 w-4 h-4 p-0 text-xs bg-urgent text-urgent-foreground animate-pulse"
                   >
                     •
                   </Badge>
                 )}
               </div>
-              <span className={`text-xs font-medium truncate ${isActive ? 'text-primary' : ''}`}>
+              <span className={`text-xs font-medium truncate transition-all duration-200 ${isActive ? 'text-primary' : ''}`}>
                 {item.label}
               </span>
             </Button>

@@ -86,8 +86,15 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
     console.log('Logging out...');
   };
 
+  const handleEditProfile = () => {
+    // Navigate to profile editing
+    console.log('Opening profile editor...');
+  };
+
   const handleLiveChat = () => {
     // Implement live chat functionality
+    const whatsappUrl = `https://wa.me/919876543210?text=Hello, I need help with the Rojgar Mela app.`;
+    window.open(whatsappUrl, '_blank');
     console.log('Opening live chat...');
   };
 
@@ -108,7 +115,11 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button variant="outline" className="w-full justify-start">
+          <Button 
+            variant="outline" 
+            className="w-full justify-start transition-all duration-200 hover:scale-[1.02]"
+            onClick={handleEditProfile}
+          >
             <User className="w-4 h-4 mr-3" />
             {texts[language].profile}
           </Button>
@@ -236,24 +247,13 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button variant="outline" className="w-full justify-start" onClick={handleLiveChat}>
+          <Button 
+            variant="outline" 
+            className="w-full justify-start transition-all duration-200 hover:scale-[1.02]" 
+            onClick={handleLiveChat}
+          >
             <MessageSquare className="w-4 h-4 mr-3" />
             {texts[language].liveChat}
-          </Button>
-          
-          <Button variant="outline" className="w-full justify-start">
-            <HelpCircle className="w-4 h-4 mr-3" />
-            {texts[language].help}
-          </Button>
-          
-          <Button variant="outline" className="w-full justify-start">
-            <Shield className="w-4 h-4 mr-3" />
-            {texts[language].privacy}
-          </Button>
-          
-          <Button variant="outline" className="w-full justify-start">
-            <Shield className="w-4 h-4 mr-3" />
-            {texts[language].terms}
           </Button>
         </CardContent>
       </Card>
@@ -263,8 +263,16 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
         <CardContent className="p-4">
           <Button 
             variant="destructive" 
-            className="w-full"
-            onClick={handleLogout}
+            className="w-full transition-all duration-200 hover:scale-[1.02]"
+            onClick={() => {
+              if (confirm(language === 'en' ? 'Are you sure you want to log out?' : 'क्या आप वाकई लॉग आउट करना चाहते हैं?')) {
+                handleLogout();
+                // Clear localStorage
+                localStorage.clear();
+                // Redirect or show success message
+                console.log('User logged out');
+              }
+            }}
           >
             <LogOut className="w-4 h-4 mr-2" />
             {texts[language].logout}

@@ -120,6 +120,11 @@ export const TrendingPage = ({ language }: TrendingPageProps) => {
     ]
   };
 
+  const handleCustomize = (cardId: string) => {
+    console.log('Customizing:', cardId);
+    // Here you would open a customization modal/page
+  };
+
   const handleDownload = (cardId: string, isPremium: boolean) => {
     if (isPremium) {
       // Show premium upgrade modal
@@ -130,6 +135,11 @@ export const TrendingPage = ({ language }: TrendingPageProps) => {
     if (downloads > 0) {
       setDownloads(prev => prev - 1);
       console.log('Downloaded:', cardId);
+      // Simulate download
+      const link = document.createElement('a');
+      link.href = 'data:text/plain;charset=utf-8,Sample Card Content';
+      link.download = `card-${cardId}.txt`;
+      link.click();
     } else {
       // Show watch ad modal
       console.log('Watch ad to download:', cardId);
@@ -137,7 +147,7 @@ export const TrendingPage = ({ language }: TrendingPageProps) => {
   };
 
   const renderCardTemplate = (card: any) => (
-    <Card key={card.id} className="shadow-card hover:shadow-md transition-all duration-200">
+    <Card key={card.id} className="shadow-card hover:shadow-lg transition-all duration-300 bg-gradient-card animate-fade-in hover:scale-[1.02]">
       <CardContent className="p-4">
         <div className="relative">
           {card.isPremium && (
@@ -161,7 +171,12 @@ export const TrendingPage = ({ language }: TrendingPageProps) => {
           </h3>
           
           <div className="flex space-x-2">
-            <Button variant="outline" size="sm" className="flex-1">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 transition-all duration-200 hover:scale-105"
+              onClick={() => handleCustomize(card.id)}
+            >
               <Edit className="w-4 h-4 mr-1" />
               {texts[language].customize}
             </Button>
@@ -169,7 +184,7 @@ export const TrendingPage = ({ language }: TrendingPageProps) => {
             <Button 
               variant="default" 
               size="sm" 
-              className="flex-1"
+              className="flex-1 transition-all duration-200 hover:scale-105"
               onClick={() => handleDownload(card.id, card.isPremium)}
             >
               <Download className="w-4 h-4 mr-1" />

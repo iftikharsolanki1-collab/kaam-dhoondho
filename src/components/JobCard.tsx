@@ -53,15 +53,30 @@ export const JobCard = ({
 
   const handleSave = () => {
     setIsSaved(!isSaved);
+    // Save to localStorage for persistence
+    const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    if (!isSaved) {
+      savedJobs.push({ id, name, work, location, rate, details, photo, isUrgent, isVerified });
+      localStorage.setItem('savedJobs', JSON.stringify(savedJobs));
+    } else {
+      const filteredJobs = savedJobs.filter((job: any) => job.id !== id);
+      localStorage.setItem('savedJobs', JSON.stringify(filteredJobs));
+    }
   };
 
   const handleCall = () => {
-    // Implement call functionality
+    // Extract phone number from details or use a mock number
+    const phoneNumber = '9876543210'; // This would come from the job data in real app
+    window.open(`tel:+91${phoneNumber}`, '_self');
     console.log('Calling...', id);
   };
 
   const handleChat = () => {
-    // Implement chat functionality
+    // Open WhatsApp chat
+    const phoneNumber = '9876543210'; // This would come from the job data in real app
+    const message = `Hi ${name}, I'm interested in your ${work} services in ${location}.`;
+    const whatsappUrl = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
     console.log('Opening chat...', id);
   };
 
@@ -73,7 +88,7 @@ export const JobCard = ({
   };
 
   return (
-    <Card className="shadow-card hover:shadow-md transition-all duration-200 bg-gradient-card">
+    <Card className="shadow-card hover:shadow-lg transition-all duration-300 bg-gradient-card hover:scale-[1.02] animate-fade-in">
       <CardContent className="p-4">
         {/* Header with badges */}
         <div className="flex justify-between items-start mb-3">
@@ -126,7 +141,7 @@ export const JobCard = ({
             variant="default"
             size="sm"
             onClick={handleChat}
-            className="flex-1 bg-primary hover:bg-primary-dark"
+            className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
           >
             <MessageCircle className="w-4 h-4 mr-1" />
             {texts[language].chat}
@@ -136,7 +151,7 @@ export const JobCard = ({
             variant="secondary"
             size="sm"
             onClick={handleCall}
-            className="flex-1"
+            className="flex-1 transition-all duration-200 hover:scale-105"
           >
             <Phone className="w-4 h-4 mr-1" />
             {texts[language].call}
@@ -146,16 +161,16 @@ export const JobCard = ({
             variant="outline"
             size="sm"
             onClick={handleSave}
-            className={`${isSaved ? 'bg-secondary text-secondary-foreground' : ''}`}
+            className={`transition-all duration-200 hover:scale-105 ${isSaved ? 'bg-secondary text-secondary-foreground' : ''}`}
           >
-            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+            <Bookmark className={`w-4 h-4 transition-all duration-200 ${isSaved ? 'fill-current' : ''}`} />
           </Button>
           
           <Button
             variant="outline"
             size="sm"
             onClick={handleShare}
-            className="text-green-600 border-green-200 hover:bg-green-50"
+            className="text-green-600 border-green-200 hover:bg-green-50 transition-all duration-200 hover:scale-105"
           >
             <Share className="w-4 h-4" />
           </Button>

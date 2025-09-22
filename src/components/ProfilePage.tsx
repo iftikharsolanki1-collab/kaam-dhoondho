@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { User, Mail, Phone, MapPin, Edit, Bookmark, Calendar } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit, Bookmark, Calendar, Camera } from 'lucide-react';
 
 interface ProfilePageProps {
   language: 'en' | 'hi';
@@ -14,6 +14,7 @@ interface ProfilePageProps {
 
 export const ProfilePage = ({ language }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
   const [profile, setProfile] = useState({
     name: 'Rajesh Kumar',
     email: 'rajesh.kumar@email.com',
@@ -22,6 +23,12 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
     joinDate: '2024-01-15',
     profilePhoto: ''
   });
+
+  // Load saved jobs from localStorage
+  useEffect(() => {
+    const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    setSavedJobsList(savedJobs);
+  }, []);
 
   const texts = {
     en: {
@@ -37,7 +44,8 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
       save: 'Save Changes',
       cancel: 'Cancel',
       noSavedJobs: 'No saved jobs yet',
-      viewAll: 'View All'
+      viewAll: 'View All',
+      uploadPhoto: 'Upload Photo'
     },
     hi: {
       title: 'मेरी प्रोफ़ाइल',
@@ -52,29 +60,21 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
       save: 'बदलाव सेव करें',
       cancel: 'रद्द करें',
       noSavedJobs: 'अभी तक कोई काम सेव नहीं किया',
-      viewAll: 'सभी देखें'
+      viewAll: 'सभी देखें',
+      uploadPhoto: 'फोटो अपलोड करें'
     }
   };
 
-  // Mock saved jobs data
-  const savedJobs = [
-    {
-      id: '1',
-      name: 'Amit Electricals',
-      work: 'Electrician',
-      location: 'Bangalore',
-      rate: '₹400/day',
-      isUrgent: false
-    },
-    {
-      id: '2',
-      name: 'Sunita Devi',
-      work: 'Cook',
-      location: 'Noida',
-      rate: '₹8000/month',
-      isUrgent: true
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfile(prev => ({ ...prev, profilePhoto: e.target?.result as string }));
+      };
+      reader.readAsDataURL(file);
     }
-  ];
+  };
 
   const handleSave = () => {
     setIsEditing(false);
@@ -94,12 +94,29 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
       <Card className="shadow-card">
         <CardContent className="p-6">
           <div className="flex items-center space-x-4">
-            <Avatar className="w-20 h-20">
-              <AvatarImage src={profile.profilePhoto} alt={profile.name} />
-              <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                {profile.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="w-20 h-20">
+                <AvatarImage src={profile.profilePhoto} alt={profile.name} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
+                  {profile.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                size="sm"
+                variant="outline"
+                className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full p-0"
+                onClick={() => document.getElementById('photo-upload')?.click()}
+              >
+                <Camera className="w-4 h-4" />
+              </Button>
+              <input
+                id="photo-upload"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </div>
             
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-foreground mb-1">
@@ -213,7 +230,7 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
               <Bookmark className="w-5 h-5 mr-2 text-primary" />
               {texts[language].savedJobs}
             </CardTitle>
-            {savedJobs.length > 0 && (
+            {savedJobsList.length > 0 && (
               <Button variant="outline" size="sm">
                 {texts[language].viewAll}
               </Button>
@@ -221,7 +238,7 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          {savedJobs.length === 0 ? (
+          {savedJobsList.length === 0 ? (
             <div className="text-center py-8">
               <Bookmark className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
@@ -230,7 +247,7 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
             </div>
           ) : (
             <div className="space-y-3">
-              {savedJobs.map((job, index) => (
+              {savedJobsList.map((job, index) => (
                 <div key={job.id}>
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -251,7 +268,7 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
                       View
                     </Button>
                   </div>
-                  {index < savedJobs.length - 1 && <Separator className="mt-3" />}
+                  {index < savedJobsList.length - 1 && <Separator className="mt-3" />}
                 </div>
               ))}
             </div>

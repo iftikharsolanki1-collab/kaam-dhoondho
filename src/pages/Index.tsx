@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { TabNavigation } from '@/components/TabNavigation';
 import { SkillChips } from '@/components/SkillChips';
@@ -24,7 +24,15 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [showPostForm, setShowPostForm] = useState(false);
+  const [locationEnabled, setLocationEnabled] = useState(false);
+  const [posts, setPosts] = useState<any[]>([]);
   const { toast } = useToast();
+
+  // Load saved jobs from localStorage
+  useEffect(() => {
+    const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    console.log('Saved jobs loaded:', savedJobs);
+  }, []);
 
   const texts = {
     en: {
@@ -50,7 +58,13 @@ const Index = () => {
   };
 
   const handlePostSubmit = (data: any) => {
-    console.log('Posted:', data);
+    const newPost = {
+      ...data,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString()
+    };
+    setPosts(prev => [newPost, ...prev]);
+    console.log('Posted:', newPost);
     setShowPostForm(false);
     toast({
       title: language === 'en' ? 'Success!' : 'सफलता!',
@@ -58,6 +72,41 @@ const Index = () => {
         ? 'Your post has been published successfully.' 
         : 'आपकी पोस्ट सफलतापूर्वक प्रकाशित हो गई है।',
     });
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      toast({
+        title: language === 'en' ? 'Searching...' : 'खोज रहे हैं...',
+        description: language === 'en' ? `Looking for: ${query}` : `खोज रहे हैं: ${query}`,
+      });
+    }
+  };
+
+  const handleNearbyJobs = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocationEnabled(true);
+          toast({
+            title: language === 'en' ? 'Location Found' : 'स्थान मिल गया',
+            description: language === 'en' ? 'Showing nearby jobs' : 'आस-पास के काम दिखा रहे हैं',
+          });
+        },
+        (error) => {
+          toast({
+            title: language === 'en' ? 'Location Error' : 'स्थान त्रुटि',
+            description: language === 'en' ? 'Please enable location access' : 'कृपया स्थान पहुंच सक्षम करें',
+          });
+        }
+      );
+    } else {
+      toast({
+        title: language === 'en' ? 'Not Supported' : 'समर्थित नहीं',
+        description: language === 'en' ? 'Location not supported' : 'स्थान समर्थित नहीं है',
+      });
+    }
   };
 
   const handleFloatingActionClick = () => {
@@ -128,14 +177,24 @@ const Index = () => {
                     <Input
                       placeholder={texts[language].searchPlaceholder}
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 bg-background/90 backdrop-blur-sm border-primary-foreground/20"
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="pl-10 bg-background/90 backdrop-blur-sm border-primary-foreground/20 transition-all duration-200 focus:scale-105"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && searchQuery.trim()) {
+                          handleSearch(searchQuery);
+                        }
+                      }}
                     />
                   </div>
                   
                   {/* Nearby Jobs Button */}
-                  <Button variant="secondary" size="sm" className="mb-4">
-                    <MapPin className="w-4 h-4 mr-2" />
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="mb-4 transition-all duration-200 hover:scale-105"
+                    onClick={handleNearbyJobs}
+                  >
+                    <MapPin className={`w-4 h-4 mr-2 ${locationEnabled ? 'text-green-500' : ''}`} />
                     {texts[language].nearbyJobs}
                   </Button>
                 </div>
@@ -169,7 +228,7 @@ const Index = () => {
             <Button
               variant="hero"
               size="lg"
-              className="fixed bottom-20 right-4 rounded-full w-14 h-14 shadow-lg z-40"
+              className="fixed bottom-20 right-4 rounded-full w-14 h-14 shadow-lg z-40 transition-all duration-300 hover:scale-110 animate-bounce-gentle"
               onClick={handleFloatingActionClick}
             >
               <Plus className="w-6 h-6" />
@@ -181,7 +240,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header 
+        language={language}
+        onLanguageChange={setLanguage}
+        onProfileClick={() => setCurrentPage('profile')}
+        onNotificationClick={() => toast({
+          title: language === 'en' ? 'Notifications' : 'सूचनाएं',
+          description: language === 'en' ? 'No new notifications' : 'कोई नई सूचना नहीं',
+        })}
+      />
       {renderCurrentPage()}
       <BottomNavigation 
         activeTab={currentPage}

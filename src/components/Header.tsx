@@ -1,13 +1,42 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Globe, Bell, User } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import logoImage from '@/assets/rojgar-mela-logo.png';
 
-export const Header = () => {
-  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+interface HeaderProps {
+  language: 'en' | 'hi';
+  onLanguageChange: (lang: 'en' | 'hi') => void;
+  onProfileClick: () => void;
+  onNotificationClick: () => void;
+}
 
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'hi' : 'en');
+export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick }: HeaderProps) => {
+  const { toast } = useToast();
+
+  const handleLanguageToggle = () => {
+    const newLang = language === 'en' ? 'hi' : 'en';
+    onLanguageChange(newLang);
+    toast({
+      title: language === 'en' ? 'Language Changed' : 'भाषा बदली गई',
+      description: language === 'en' ? 'Switched to Hindi' : 'अंग्रेजी में बदला गया',
+    });
+  };
+
+  const handleNotificationClick = () => {
+    onNotificationClick();
+    toast({
+      title: language === 'en' ? 'Notifications' : 'सूचनाएं',
+      description: language === 'en' ? 'You have 3 new notifications' : 'आपके पास 3 नई सूचनाएं हैं',
+    });
+  };
+
+  const handleProfileClick = () => {
+    onProfileClick();
+    toast({
+      title: language === 'en' ? 'Profile' : 'प्रोफ़ाइल',
+      description: language === 'en' ? 'Opening your profile' : 'आपकी प्रोफ़ाइल खोली जा रही है',
+    });
   };
 
   const texts = {
@@ -31,8 +60,12 @@ export const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary-foreground rounded-full flex items-center justify-center shadow-sm">
-              <span className="text-primary font-bold text-lg">र</span>
+            <div className="w-10 h-10 bg-primary-foreground rounded-full flex items-center justify-center shadow-sm overflow-hidden">
+              <img 
+                src={logoImage} 
+                alt="Rojgar Mela Logo" 
+                className="w-8 h-8 object-contain"
+              />
             </div>
             <div>
               <h1 className="text-primary-foreground font-bold text-xl">
@@ -50,8 +83,8 @@ export const Header = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={toggleLanguage}
-              className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={handleLanguageToggle}
+              className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200 hover:scale-105"
             >
               <Globe className="w-4 h-4 mr-1" />
               {language === 'en' ? 'हिंदी' : 'Eng'}
@@ -61,12 +94,13 @@ export const Header = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="text-primary-foreground hover:bg-primary-foreground/10 relative"
+              onClick={handleNotificationClick}
+              className="text-primary-foreground hover:bg-primary-foreground/10 relative transition-all duration-200 hover:scale-105"
             >
               <Bell className="w-5 h-5" />
               <Badge 
                 variant="secondary" 
-                className="absolute -top-1 -right-1 w-5 h-5 p-0 text-xs bg-urgent text-urgent-foreground"
+                className="absolute -top-1 -right-1 w-5 h-5 p-0 text-xs bg-urgent text-urgent-foreground animate-pulse"
               >
                 3
               </Badge>
@@ -76,7 +110,8 @@ export const Header = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={handleProfileClick}
+              className="text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200 hover:scale-105"
             >
               <User className="w-5 h-5" />
             </Button>
