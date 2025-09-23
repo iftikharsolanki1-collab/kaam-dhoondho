@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getCurrentLocation, type Coordinates } from '@/lib/location';
 import heroImage from '@/assets/hero-marketplace.jpg';
 
 const Index = () => {
@@ -26,6 +27,8 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showPostForm, setShowPostForm] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
+  const [locationRadius, setLocationRadius] = useState(25); // Default 25km radius
   const [posts, setPosts] = useState<any[]>([]);
   const { toast } = useToast();
 
@@ -79,27 +82,24 @@ const Index = () => {
     setSearchQuery(query);
   };
 
-  const handleNearbyJobs = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocationEnabled(true);
-          toast({
-            title: language === 'en' ? 'Location Found' : 'स्थान मिल गया',
-            description: language === 'en' ? 'Showing nearby jobs' : 'आस-पास के काम दिखा रहे हैं',
-          });
-        },
-        (error) => {
-          toast({
-            title: language === 'en' ? 'Location Error' : 'स्थान त्रुटि',
-            description: language === 'en' ? 'Please enable location access' : 'कृपया स्थान पहुंच सक्षम करें',
-          });
-        }
-      );
-    } else {
+  const handleNearbyJobs = async () => {
+    try {
+      const location = await getCurrentLocation();
+      setUserLocation(location);
+      setLocationEnabled(true);
       toast({
-        title: language === 'en' ? 'Not Supported' : 'समर्थित नहीं',
-        description: language === 'en' ? 'Location not supported' : 'स्थान समर्थित नहीं है',
+        title: language === 'en' ? 'Location Found' : 'स्थान मिल गया',
+        description: language === 'en' 
+          ? `Showing jobs within ${locationRadius}km` 
+          : `${locationRadius}किमी के भीतर के काम दिखा रहे हैं`,
+      });
+    } catch (error) {
+      console.error('Location error:', error);
+      toast({
+        title: language === 'en' ? 'Location Error' : 'स्थान त्रुटि',
+        description: language === 'en' 
+          ? 'Please enable location access in your browser' 
+          : 'कृपया अपने ब्राउज़र में स्थान पहुंच सक्षम करें',
       });
     }
   };
@@ -224,10 +224,34 @@ const Index = () => {
 
             {/* Content Feed */}
             <div className="container mx-auto px-4">
+              {locationEnabled && (
+                <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                  <div className="flex items-center gap-2 text-sm text-primary">
+                    <MapPin className="w-4 h-4" />
+                    <span>
+                      {language === 'en' 
+                        ? `Showing nearby results within ${locationRadius}km` 
+                        : `${locationRadius}किमी के भीतर के परिणाम दिखा रहे हैं`}
+                    </span>
+                  </div>
+                </div>
+              )}
               {activeTab === 'employers' ? (
-                <JobFeed language={language} selectedSkill={selectedSkill} searchQuery={searchQuery} />
+                <JobFeed 
+                  language={language} 
+                  selectedSkill={selectedSkill} 
+                  searchQuery={searchQuery}
+                  userLocation={userLocation}
+                  locationRadius={locationRadius}
+                />
               ) : (
-                <WorkerFeed language={language} selectedSkill={selectedSkill} searchQuery={searchQuery} />
+                <WorkerFeed 
+                  language={language} 
+                  selectedSkill={selectedSkill} 
+                  searchQuery={searchQuery}
+                  userLocation={userLocation}
+                  locationRadius={locationRadius}
+                />
               )}
             </div>
 

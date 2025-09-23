@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { MapPin, Phone, MessageCircle, Bookmark, Share, CheckCircle } from 'lucide-react';
+import { formatDistance } from '@/lib/location';
 
 interface JobCardProps {
   id: string;
@@ -16,19 +17,21 @@ interface JobCardProps {
   isUrgent?: boolean;
   isVerified?: boolean;
   language: 'en' | 'hi';
+  distance?: number | null;
 }
 
-export const JobCard = ({ 
-  id, 
-  name, 
-  work, 
-  location, 
-  rate, 
-  details, 
-  photo, 
-  isUrgent, 
-  isVerified, 
-  language 
+export const JobCard = ({
+  id,
+  name,
+  work,
+  location,
+  rate,
+  details,
+  photo,
+  isUrgent,
+  isVerified,
+  language,
+  distance
 }: JobCardProps) => {
   const [isSaved, setIsSaved] = useState(false);
 
@@ -122,6 +125,14 @@ export const JobCard = ({
             <div className="flex items-center text-muted-foreground text-sm mt-1">
               <MapPin className="w-3 h-3 mr-1" />
               <span className="truncate">{location}</span>
+              {distance && (
+                <>
+                  <span className="mx-1">•</span>
+                  <span className="text-primary font-medium">
+                    {formatDistance(distance, language)}
+                  </span>
+                </>
+              )}
             </div>
           </div>
           

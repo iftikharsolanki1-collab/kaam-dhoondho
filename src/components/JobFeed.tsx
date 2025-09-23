@@ -1,12 +1,15 @@
 import { JobCard } from './JobCard';
+import { calculateDistance, CITY_COORDINATES, type Coordinates } from '@/lib/location';
 
 interface JobFeedProps {
   language: 'en' | 'hi';
   selectedSkill: string;
   searchQuery: string;
+  userLocation?: Coordinates | null;
+  locationRadius?: number;
 }
 
-export const JobFeed = ({ language, selectedSkill, searchQuery }: JobFeedProps) => {
+export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, locationRadius = 25 }: JobFeedProps) => {
   // Mock data - in real app this would come from API
   const jobs = [
     {
@@ -14,6 +17,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery }: JobFeedProps) 
       name: 'Rajesh Kumar',
       work: 'Plumber',
       location: 'Connaught Place, Delhi',
+      coordinates: CITY_COORDINATES['Connaught Place, Delhi'],
       rate: '₹500/day',
       details: 'Need experienced plumber for bathroom renovation. Tile work and pipe fitting required.',
       photo: '',
@@ -25,6 +29,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery }: JobFeedProps) 
       name: 'Priya Sharma',
       work: 'House Cleaning',
       location: 'Bandra, Mumbai',
+      coordinates: CITY_COORDINATES['Bandra, Mumbai'],
       rate: '₹300/day',
       details: 'Looking for reliable domestic help for daily cleaning. Must be punctual and honest.',
       photo: '',
@@ -36,6 +41,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery }: JobFeedProps) 
       name: 'Amit Electricals',
       work: 'Electrician',
       location: 'Koramangala, Bangalore',
+      coordinates: CITY_COORDINATES['Koramangala, Bangalore'],
       rate: '₹400/day',
       details: 'Electrical wiring work for new flat. AC installation and switch board setup needed.',
       photo: '',
@@ -47,6 +53,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery }: JobFeedProps) 
       name: 'Sunita Devi',
       work: 'Cook',
       location: 'Sector 18, Noida',
+      coordinates: CITY_COORDINATES['Sector 18, Noida'],
       rate: '₹8000/month',
       details: 'Need experienced cook for North Indian cuisine. Must know both veg and non-veg cooking.',
       photo: '',
@@ -55,7 +62,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery }: JobFeedProps) 
     },
   ];
 
-  // Filter jobs based on selected skill and search query
+  // Filter and sort jobs based on selected skill, search query, and location
   const filteredJobs = jobs.filter(job => {
     const matchesSkill = selectedSkill === 'All' || job.work.toLowerCase().includes(selectedSkill.toLowerCase());
     const matchesSearch = !searchQuery || 
@@ -63,7 +70,33 @@ export const JobFeed = ({ language, selectedSkill, searchQuery }: JobFeedProps) 
       job.work.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.details.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSkill && matchesSearch;
+    
+    // Location-based filtering
+    let matchesLocation = true;
+    if (userLocation && job.coordinates) {
+      const distance = calculateDistance(userLocation, job.coordinates);
+      matchesLocation = distance <= locationRadius;
+    }
+    
+    return matchesSkill && matchesSearch && matchesLocation;
+  })
+  .map(job => {
+    // Add distance for sorting if user location is available
+    let distance = null;
+    if (userLocation && job.coordinates) {
+      distance = calculateDistance(userLocation, job.coordinates);
+    }
+    return { ...job, distance };
+  })
+  .sort((a, b) => {
+    // Sort by distance if location is enabled, otherwise keep original order
+    if (userLocation && a.distance !== null && b.distance !== null) {
+      return a.distance - b.distance;
+    }
+    // Prioritize urgent jobs
+    if (a.isUrgent && !b.isUrgent) return -1;
+    if (!a.isUrgent && b.isUrgent) return 1;
+    return 0;
   });
 
   return (
@@ -88,6 +121,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery }: JobFeedProps) 
             isUrgent={job.isUrgent}
             isVerified={job.isVerified}
             language={language}
+            distance={job.distance}
           />
         ))
       )}
