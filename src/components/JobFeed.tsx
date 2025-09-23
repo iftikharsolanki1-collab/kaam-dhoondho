@@ -3,9 +3,10 @@ import { JobCard } from './JobCard';
 interface JobFeedProps {
   language: 'en' | 'hi';
   selectedSkill: string;
+  searchQuery: string;
 }
 
-export const JobFeed = ({ language, selectedSkill }: JobFeedProps) => {
+export const JobFeed = ({ language, selectedSkill, searchQuery }: JobFeedProps) => {
   // Mock data - in real app this would come from API
   const jobs = [
     {
@@ -54,10 +55,16 @@ export const JobFeed = ({ language, selectedSkill }: JobFeedProps) => {
     },
   ];
 
-  // Filter jobs based on selected skill
-  const filteredJobs = selectedSkill === 'All' 
-    ? jobs 
-    : jobs.filter(job => job.work.toLowerCase().includes(selectedSkill.toLowerCase()));
+  // Filter jobs based on selected skill and search query
+  const filteredJobs = jobs.filter(job => {
+    const matchesSkill = selectedSkill === 'All' || job.work.toLowerCase().includes(selectedSkill.toLowerCase());
+    const matchesSearch = !searchQuery || 
+      job.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.work.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.details.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSkill && matchesSearch;
+  });
 
   return (
     <div className="space-y-4 pb-20">

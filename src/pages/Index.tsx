@@ -77,12 +77,6 @@ const Index = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim()) {
-      toast({
-        title: language === 'en' ? 'Searching...' : 'खोज रहे हैं...',
-        description: language === 'en' ? `Looking for: ${query}` : `खोज रहे हैं: ${query}`,
-      });
-    }
   };
 
   const handleNearbyJobs = () => {
@@ -231,9 +225,9 @@ const Index = () => {
             {/* Content Feed */}
             <div className="container mx-auto px-4">
               {activeTab === 'employers' ? (
-                <JobFeed language={language} selectedSkill={selectedSkill} />
+                <JobFeed language={language} selectedSkill={selectedSkill} searchQuery={searchQuery} />
               ) : (
-                <WorkerFeed language={language} selectedSkill={selectedSkill} />
+                <WorkerFeed language={language} selectedSkill={selectedSkill} searchQuery={searchQuery} />
               )}
             </div>
 
