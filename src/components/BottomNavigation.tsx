@@ -49,7 +49,10 @@ export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNav
               key={item.id}
               variant="ghost"
               size="sm"
-              onClick={() => onTabChange(item.id)}
+              onClick={() => {
+                console.log('Bottom nav clicked:', item.id);
+                onTabChange(item.id);
+              }}
               className={`flex flex-col items-center py-2 px-3 h-auto min-w-0 relative transition-all duration-300 hover:scale-110 ${
                 isActive 
                   ? 'text-primary bg-primary/5 transform scale-110' 
