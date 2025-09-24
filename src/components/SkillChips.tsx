@@ -35,7 +35,7 @@ const skills = [
   { en: 'Computer Repair', hi: 'कंप्यूटर मरम्मत', icon: '💻' },
   { en: 'Hostel', hi: 'छात्रावास', icon: '🏨' },
   { en: 'Tiffin Center', hi: 'टिफिन केंद्र', icon: '🍱' },
-  { en: 'Salesman', hi: 'विक्रेता', icon: '🤝' },
+  { en: 'Salesman', hi: 'सेल्समैन', icon: '🤝' },
   { en: 'Peon', hi: 'चपरासी', icon: '📋' },
 ];
 
