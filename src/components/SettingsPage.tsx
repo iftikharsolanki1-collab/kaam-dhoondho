@@ -1,34 +1,51 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
-  Settings, 
   User, 
+  Bell, 
   Palette, 
-  MessageSquare, 
+  HelpCircle, 
   LogOut, 
-  Bell,
-  Globe,
-  Shield,
-  HelpCircle 
+  Edit,
+  MessageCircle,
+  MessageSquare,
+  Moon,
+  Sun
 } from 'lucide-react';
 
 interface SettingsPageProps {
   language: 'en' | 'hi';
   onLanguageChange: (lang: 'en' | 'hi') => void;
+  onLogout?: () => void;
 }
 
-export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) => {
+export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsPageProps) => {
   const [notifications, setNotifications] = useState({
     newJobs: true,
     messages: true,
     schemes: false
   });
-  const [theme, setTheme] = useState('light');
+  
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'light';
+  });
+
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Apply theme to document
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const texts = {
     en: {
@@ -41,6 +58,7 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
       schemes: 'Government Scheme Updates',
       appearance: 'Appearance',
       theme: 'Theme',
+      themeLabel: 'Theme',
       language: 'Language',
       support: 'Support & Help',
       liveChat: 'Live Chat Support',
@@ -49,11 +67,8 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
       terms: 'Terms of Service',
       logout: 'Log Out',
       logoutDesc: 'Sign out of your account',
-      themes: {
-        light: 'Light',
-        dark: 'Dark',
-        system: 'System'
-      }
+      light: 'Light',
+      dark: 'Dark'
     },
     hi: {
       title: 'सेटिंग्स',
@@ -65,6 +80,7 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
       schemes: 'सरकारी योजना अपडेट',
       appearance: 'दिखावट',
       theme: 'थीम',
+      themeLabel: 'थीम',
       language: 'भाषा',
       support: 'समर्थन और सहायता',
       liveChat: 'लाइव चैट समर्थन',
@@ -73,29 +89,57 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
       terms: 'सेवा की शर्तें',
       logout: 'लॉग आउट',
       logoutDesc: 'अपने खाते से साइन आउट करें',
-      themes: {
-        light: 'हल्का',
-        dark: 'गहरा',
-        system: 'सिस्टम'
-      }
+      light: 'लाइट',
+      dark: 'डार्क'
     }
   };
 
-  const handleLogout = () => {
-    // Implement logout functionality
-    console.log('Logging out...');
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      toast({
+        title: language === 'en' ? 'Logged out' : 'लॉग आउट हो गए',
+        description: language === 'en' ? 'You have been logged out successfully' : 'आप सफलतापूर्वक लॉग आउट हो गए हैं',
+      });
+
+      if (onLogout) {
+        onLogout();
+      }
+    } catch (error: any) {
+      toast({
+        title: language === 'en' ? 'Error' : 'त्रुटि',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleEditProfile = () => {
-    // Navigate to profile editing
-    console.log('Opening profile editor...');
+    // Navigate to edit profile
+    console.log('Edit profile clicked');
+    toast({
+      title: language === 'en' ? 'Feature Coming Soon' : 'सुविधा जल्द आ रही है',
+      description: language === 'en' ? 'Profile editing will be available soon' : 'प्रोफाइल संपादन जल्द उपलब्ध होगा',
+    });
   };
 
   const handleLiveChat = () => {
-    // Implement live chat functionality
-    const whatsappUrl = `https://wa.me/919876543210?text=Hello, I need help with the Rojgar Mela app.`;
-    window.open(whatsappUrl, '_blank');
-    console.log('Opening live chat...');
+    // Open live chat support
+    console.log('Live chat clicked');
+    toast({
+      title: language === 'en' ? 'Support Chat' : 'सहायता चैट',
+      description: language === 'en' ? 'Live chat support will connect you with an agent' : 'लाइव चैट सहायता आपको एक एजेंट से जोड़ेगी',
+    });
+  };
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    toast({
+      title: language === 'en' ? 'Theme Updated' : 'थीम अपडेट की गई',
+      description: language === 'en' ? `Switched to ${newTheme} mode` : `${newTheme === 'dark' ? 'डार्क' : 'लाइट'} मोड में स्विच किया गया`,
+    });
   };
 
   return (
@@ -193,22 +237,36 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
             <Label className="text-sm font-medium">
               {texts[language].theme}
             </Label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['light', 'dark', 'system'] as const).map((themeOption) => (
-                <Button
-                  key={themeOption}
-                  variant={theme === themeOption ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTheme(themeOption)}
-                  className="text-xs"
-                >
-                  {texts[language].themes[themeOption]}
-                </Button>
-              ))}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                  <label className="text-sm font-medium">
+                    {texts[language].themeLabel}
+                  </label>
+                </div>
+                <Select value={theme} onValueChange={handleThemeChange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">
+                      <div className="flex items-center gap-2">
+                        <Sun className="w-4 h-4" />
+                        {texts[language].light}
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="dark">
+                      <div className="flex items-center gap-2">
+                        <Moon className="w-4 h-4" />
+                        {texts[language].dark}
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-          
-          <Separator />
           
           <div className="space-y-2">
             <Label className="text-sm font-medium">
@@ -221,7 +279,6 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
                 onClick={() => onLanguageChange('en')}
                 className="text-sm"
               >
-                <Globe className="w-4 h-4 mr-2" />
                 English
               </Button>
               <Button
@@ -230,7 +287,6 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
                 onClick={() => onLanguageChange('hi')}
                 className="text-sm"
               >
-                <Globe className="w-4 h-4 mr-2" />
                 हिंदी
               </Button>
             </div>
@@ -261,22 +317,37 @@ export const SettingsPage = ({ language, onLanguageChange }: SettingsPageProps) 
       {/* Logout */}
       <Card className="shadow-card border-destructive/20">
         <CardContent className="p-4">
-          <Button 
-            variant="destructive" 
-            className="w-full transition-all duration-200 hover:scale-[1.02]"
-            onClick={() => {
-              if (confirm(language === 'en' ? 'Are you sure you want to log out?' : 'क्या आप वाकई लॉग आउट करना चाहते हैं?')) {
-                handleLogout();
-                // Clear localStorage
-                localStorage.clear();
-                // Redirect or show success message
-                console.log('User logged out');
-              }
-            }}
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            {texts[language].logout}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="destructive" 
+                className="w-full transition-all duration-200 hover:scale-[1.02]"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                {texts[language].logout}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {language === 'en' ? 'Are you sure?' : 'क्या आप निश्चित हैं?'}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {language === 'en' 
+                    ? 'You will be logged out of your account.' 
+                    : 'आप अपने खाते से लॉग आउट हो जाएंगे।'}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>
+                  {language === 'en' ? 'Cancel' : 'रद्द करें'}
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>
+                  {language === 'en' ? 'Log Out' : 'लॉग आउट'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <p className="text-xs text-muted-foreground text-center mt-2">
             {texts[language].logoutDesc}
           </p>

@@ -12,10 +12,13 @@ import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
 import { TrendingPage } from '@/components/TrendingPage';
 import { ChatPage } from '@/components/ChatPage';
+import { AuthPage } from '@/components/AuthPage';
+import { NotificationPage } from '@/components/NotificationPage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { getCurrentLocation, type Coordinates } from '@/lib/location';
 import heroImage from '@/assets/hero-marketplace.jpg';
 
@@ -30,7 +33,38 @@ const Index = () => {
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [locationRadius, setLocationRadius] = useState(25); // Default 25km radius
   const [posts, setPosts] = useState<any[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  // Initialize theme
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.classList.add(savedTheme);
+  }, []);
+
+  // Auth state management
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Load saved jobs from localStorage
   useEffect(() => {
@@ -105,11 +139,52 @@ const Index = () => {
   };
 
   const handleFloatingActionClick = () => {
+    if (!user) {
+      toast({
+        title: language === 'en' ? 'Login Required' : 'लॉगिन आवश्यक',
+        description: language === 'en' ? 'Please login to post a job' : 'काम पोस्ट करने के लिए कृपया लॉगिन करें',
+      });
+      return;
+    }
     setShowPostForm(true);
+  };
+
+  const handleLogout = () => {
+    setCurrentPage('home');
+  };
+
+  const handleNotificationClick = () => {
+    if (!user) {
+      toast({
+        title: language === 'en' ? 'Login Required' : 'लॉगिन आवश्यक',
+        description: language === 'en' ? 'Please login to view notifications' : 'सूचनाएं देखने के लिए कृपया लॉगिन करें',
+      });
+      return;
+    }
+    setCurrentPage('notifications');
   };
 
   const renderCurrentPage = () => {
     console.log('Current page state:', currentPage);
+    
+    // Show loading while checking auth
+    if (isLoading) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Show auth page if not authenticated and trying to access protected pages
+    const protectedPages = ['profile', 'settings', 'chat', 'notifications'];
+    if (!user && protectedPages.includes(currentPage)) {
+      return <AuthPage language={language} onSuccess={() => setCurrentPage('home')} />;
+    }
+
     switch (currentPage) {
       case 'schemes':
         return (
@@ -126,6 +201,18 @@ const Index = () => {
           <div className="min-h-screen bg-background pt-20 pb-20">
             <div className="container mx-auto px-4 py-4">
               <ChatPage 
+                language={language}
+                onBack={() => setCurrentPage('home')}
+              />
+            </div>
+          </div>
+        );
+      
+      case 'notifications':
+        return (
+          <div className="min-h-screen bg-background pt-20 pb-20">
+            <div className="container mx-auto px-4 py-4">
+              <NotificationPage 
                 language={language}
                 onBack={() => setCurrentPage('home')}
               />
@@ -158,6 +245,7 @@ const Index = () => {
               <SettingsPage 
                 language={language} 
                 onLanguageChange={setLanguage}
+                onLogout={handleLogout}
               />
             </div>
           </div>
@@ -277,10 +365,7 @@ const Index = () => {
         language={language}
         onLanguageChange={setLanguage}
         onProfileClick={() => setCurrentPage('profile')}
-        onNotificationClick={() => toast({
-          title: language === 'en' ? 'Notifications' : 'सूचनाएं',
-          description: language === 'en' ? 'No new notifications' : 'कोई नई सूचना नहीं',
-        })}
+        onNotificationClick={handleNotificationClick}
       />
       {renderCurrentPage()}
       <BottomNavigation 

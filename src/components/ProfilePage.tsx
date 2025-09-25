@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { User, Mail, Phone, MapPin, Edit, Bookmark, Calendar, Camera } from 'lucide-react';
 
 interface ProfilePageProps {
@@ -23,6 +25,7 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
     joinDate: '2024-01-15',
     profilePhoto: ''
   });
+  const { toast } = useToast();
 
   // Load saved jobs from localStorage
   useEffect(() => {
@@ -65,14 +68,55 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
     }
   };
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfile(prev => ({ ...prev, profilePhoto: e.target?.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Upload file to Supabase storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-photos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-photos')
+        .getPublicUrl(fileName);
+
+      // Update profile in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ profile_photo_url: publicUrl })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setProfile(prev => ({
+        ...prev,
+        profilePhoto: publicUrl
+      }));
+
+      toast({
+        title: language === 'en' ? 'Success!' : 'सफलता!',
+        description: language === 'en' ? 'Profile photo updated successfully' : 'प्रोफाइल फोटो सफलतापूर्वक अपडेट की गई',
+      });
+
+    } catch (error: any) {
+      console.error('Error uploading photo:', error);
+      toast({
+        title: language === 'en' ? 'Error' : 'त्रुटि',
+        description: language === 'en' ? 'Failed to upload photo' : 'फोटो अपलोड करने में विफल',
+        variant: 'destructive'
+      });
     }
   };
 
