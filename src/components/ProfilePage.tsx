@@ -27,11 +27,41 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
   });
   const { toast } = useToast();
 
-  // Load saved jobs from localStorage
+  // Load saved jobs from Supabase instead of localStorage for security
   useEffect(() => {
-    const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
-    setSavedJobsList(savedJobs);
-  }, []);
+    const loadSavedPosts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('saved_posts')
+          .select(`
+            id,
+            created_at,
+            posts (
+              id,
+              title,
+              description,
+              location,
+              rate,
+              type,
+              created_at
+            )
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setSavedJobsList(data || []);
+      } catch (error) {
+        console.error('Error loading saved posts:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load saved jobs',
+          variant: 'destructive'
+        });
+      }
+    };
+
+    loadSavedPosts();
+  }, [toast]);
 
   const texts = {
     en: {

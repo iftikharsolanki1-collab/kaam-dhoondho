@@ -11,7 +11,7 @@ import { GovernmentSchemes } from '@/components/GovernmentSchemes';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
 import { TrendingPage } from '@/components/TrendingPage';
-import { ChatPage } from '@/components/ChatPage';
+import ChatPage from '@/components/ChatPage';
 import { AuthPage } from '@/components/AuthPage';
 import { NotificationPage } from '@/components/NotificationPage';
 import { Button } from '@/components/ui/button';

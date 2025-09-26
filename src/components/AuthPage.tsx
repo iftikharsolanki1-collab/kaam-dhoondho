@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { signUpSchema, signInSchema, type SignUpInput, type SignInInput } from '@/lib/validations';
 
 interface AuthPageProps {
   language: 'en' | 'hi';
@@ -43,7 +44,7 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       signInError: 'Failed to sign in',
       signUpError: 'Failed to create account',
       emailError: 'Please enter a valid email',
-      passwordError: 'Password must be at least 6 characters',
+      passwordError: 'Password must be at least 8 characters with uppercase, lowercase, and number',
       nameError: 'Please enter your full name',
     },
     hi: {
@@ -68,37 +69,31 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       signInError: 'साइन इन करने में विफल',
       signUpError: 'खाता बनाने में विफल',
       emailError: 'कृपया एक वैध ईमेल दर्ज करें',
-      passwordError: 'पासवर्ड कम से कम 6 अक्षर का होना चाहिए',
+      passwordError: 'पासवर्ड कम से कम 8 अक्षर का होना चाहिए जिसमें बड़े अक्षर, छोटे अक्षर और संख्या हो',
       nameError: 'कृपया अपना पूरा नाम दर्ज करें',
     }
   };
 
   const validateForm = () => {
-    if (!email || !email.includes('@')) {
-      toast({
-        title: texts[language].emailError,
-        variant: 'destructive'
-      });
+    try {
+      if (isSignUp) {
+        const data: SignUpInput = { name: name.trim(), email: email.trim().toLowerCase(), password };
+        signUpSchema.parse(data);
+      } else {
+        const data: SignInInput = { email: email.trim().toLowerCase(), password };
+        signInSchema.parse(data);
+      }
+      return true;
+    } catch (error: any) {
+      const firstError = error.errors?.[0];
+      if (firstError) {
+        toast({
+          title: firstError.message,
+          variant: "destructive",
+        });
+      }
       return false;
     }
-    
-    if (!password || password.length < 6) {
-      toast({
-        title: texts[language].passwordError,
-        variant: 'destructive'
-      });
-      return false;
-    }
-    
-    if (isSignUp && (!name || name.trim().length < 2)) {
-      toast({
-        title: texts[language].nameError,
-        variant: 'destructive'
-      });
-      return false;
-    }
-    
-    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
