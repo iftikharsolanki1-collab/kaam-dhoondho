@@ -256,6 +256,13 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       skills: {
@@ -281,7 +288,65 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      posts_public: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string | null
+          is_urgent: boolean | null
+          location: string | null
+          name: string | null
+          phone: string | null
+          photos: Json | null
+          rate: string | null
+          skill_id: number | null
+          title: string | null
+          type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_urgent?: boolean | null
+          location?: string | null
+          name?: string | null
+          phone?: never
+          photos?: Json | null
+          rate?: string | null
+          skill_id?: number | null
+          title?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_urgent?: boolean | null
+          location?: string | null
+          name?: string | null
+          phone?: never
+          photos?: Json | null
+          rate?: string | null
+          skill_id?: number | null
+          title?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       mask_phone_number: {
