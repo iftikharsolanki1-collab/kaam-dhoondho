@@ -204,7 +204,6 @@ export type Database = {
           is_urgent: boolean | null
           location: string
           name: string
-          phone: string
           photos: Json | null
           rate: string | null
           skill_id: number | null
@@ -220,7 +219,6 @@ export type Database = {
           is_urgent?: boolean | null
           location: string
           name: string
-          phone: string
           photos?: Json | null
           rate?: string | null
           skill_id?: number | null
@@ -236,7 +234,6 @@ export type Database = {
           is_urgent?: boolean | null
           location?: string
           name?: string
-          phone?: string
           photos?: Json | null
           rate?: string | null
           skill_id?: number | null
