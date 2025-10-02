@@ -20,6 +20,7 @@ import { Search, Plus, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentLocation, type Coordinates } from '@/lib/location';
+import { useNotificationBadges } from '@/hooks/useNotificationBadges';
 import heroImage from '@/assets/hero-marketplace.jpg';
 
 const Index = () => {
@@ -37,6 +38,7 @@ const Index = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { counts: notificationCounts, clearBadge } = useNotificationBadges(user?.id);
 
   // Initialize theme
   useEffect(() => {
@@ -161,7 +163,18 @@ const Index = () => {
       });
       return;
     }
+    clearBadge('notifications');
     setCurrentPage('notifications');
+  };
+
+  const handlePageChange = (page: string) => {
+    // Clear badge when user visits the page
+    if (page === 'chat') {
+      clearBadge('chat');
+    } else if (page === 'schemes') {
+      clearBadge('schemes');
+    }
+    setCurrentPage(page);
   };
 
   const renderCurrentPage = () => {
@@ -370,8 +383,9 @@ const Index = () => {
       {renderCurrentPage()}
       <BottomNavigation 
         activeTab={currentPage}
-        onTabChange={setCurrentPage}
+        onTabChange={handlePageChange}
         language={language}
+        notificationCounts={notificationCounts}
       />
       
       {/* Post Forms */}

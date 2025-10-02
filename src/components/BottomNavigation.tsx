@@ -2,13 +2,20 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Home, FileText, TrendingUp, User, Settings, MessageCircle } from 'lucide-react';
 
+interface NotificationCounts {
+  chat: number;
+  schemes: number;
+  notifications: number;
+}
+
 interface BottomNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   language: 'en' | 'hi';
+  notificationCounts?: NotificationCounts;
 }
 
-export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNavigationProps) => {
+export const BottomNavigation = ({ activeTab, onTabChange, language, notificationCounts }: BottomNavigationProps) => {
   const texts = {
     en: {
       home: 'Home',
@@ -28,13 +35,20 @@ export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNav
     }
   };
 
+  const getNotificationCount = (id: string): number => {
+    if (!notificationCounts) return 0;
+    if (id === 'chat') return notificationCounts.chat;
+    if (id === 'schemes') return notificationCounts.schemes;
+    return 0;
+  };
+
   const navItems = [
-    { id: 'home', icon: Home, label: texts[language].home, hasNotification: false },
-    { id: 'schemes', icon: FileText, label: texts[language].schemes, hasNotification: true },
-    { id: 'chat', icon: MessageCircle, label: texts[language].chat, hasNotification: true },
-    { id: 'trending', icon: TrendingUp, label: texts[language].trending, hasNotification: false },
-    { id: 'profile', icon: User, label: texts[language].profile, hasNotification: false },
-    { id: 'settings', icon: Settings, label: texts[language].settings, hasNotification: false },
+    { id: 'home', icon: Home, label: texts[language].home },
+    { id: 'schemes', icon: FileText, label: texts[language].schemes },
+    { id: 'chat', icon: MessageCircle, label: texts[language].chat },
+    { id: 'trending', icon: TrendingUp, label: texts[language].trending },
+    { id: 'profile', icon: User, label: texts[language].profile },
+    { id: 'settings', icon: Settings, label: texts[language].settings },
   ];
 
   return (
@@ -43,6 +57,8 @@ export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNav
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+          const notificationCount = getNotificationCount(item.id);
+          const hasNotification = notificationCount > 0;
           
           return (
             <Button
@@ -61,12 +77,12 @@ export const BottomNavigation = ({ activeTab, onTabChange, language }: BottomNav
             >
               <div className="relative">
                 <Icon className={`w-5 h-5 mb-1 transition-all duration-200 ${isActive ? 'text-primary animate-bounce-gentle' : ''}`} />
-                {item.hasNotification && (
+                {hasNotification && (
                   <Badge 
-                    variant="secondary" 
-                    className="absolute -top-2 -right-2 w-4 h-4 p-0 text-xs bg-urgent text-urgent-foreground animate-pulse"
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 min-w-[18px] h-[18px] p-0 flex items-center justify-center text-[10px] font-bold rounded-full animate-pulse"
                   >
-                    •
+                    {notificationCount > 9 ? '9+' : notificationCount}
                   </Badge>
                 )}
               </div>

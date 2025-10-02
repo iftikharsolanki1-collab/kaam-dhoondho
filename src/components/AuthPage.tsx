@@ -105,8 +105,8 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim().toLowerCase(),
           password,
           options: {
             data: {
@@ -118,30 +118,62 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
 
         if (error) throw error;
 
-        toast({
-          title: texts[language].signUpSuccess,
-          description: language === 'en' 
-            ? 'Please check your email to verify your account.' 
-            : 'कृपया अपना खाता सत्यापित करने के लिए अपना ईमेल जांचें।',
-        });
-        onSuccess();
+        // Check if email confirmation is required
+        if (data?.user && !data.session) {
+          toast({
+            title: texts[language].signUpSuccess,
+            description: language === 'en' 
+              ? 'Please check your email to verify your account before signing in.' 
+              : 'साइन इन करने से पहले अपना खाता सत्यापित करने के लिए कृपया अपना ईमेल जांचें।',
+          });
+        } else {
+          toast({
+            title: texts[language].signUpSuccess,
+            description: language === 'en' 
+              ? 'Account created successfully! You can now sign in.' 
+              : 'खाता सफलतापूर्वक बनाया गया! अब आप साइन इन कर सकते हैं।',
+          });
+        }
+        
+        // Switch to sign in mode after successful signup
+        setIsSignUp(false);
+        setPassword('');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          // Provide helpful error messages
+          if (error.message.includes('Email not confirmed')) {
+            throw new Error(
+              language === 'en' 
+                ? 'Please verify your email before signing in. Check your inbox for the verification link.' 
+                : 'साइन इन करने से पहले कृपया अपना ईमेल सत्यापित करें। सत्यापन लिंक के लिए अपना इनबॉक्स जांचें।'
+            );
+          } else if (error.message.includes('Invalid login credentials')) {
+            throw new Error(
+              language === 'en' 
+                ? 'Invalid email or password. Please try again.' 
+                : 'अमान्य ईमेल या पासवर्ड। कृपया पुनः प्रयास करें।'
+            );
+          }
+          throw error;
+        }
 
-        toast({
-          title: texts[language].signInSuccess,
-        });
-        onSuccess();
+        if (data.session) {
+          toast({
+            title: texts[language].signInSuccess,
+          });
+          onSuccess();
+        }
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         title: isSignUp ? texts[language].signUpError : texts[language].signInError,
-        description: error.message,
+        description: error.message || (language === 'en' ? 'An error occurred. Please try again.' : 'एक त्रुटि हुई। कृपया पुनः प्रयास करें।'),
         variant: 'destructive'
       });
     } finally {
