@@ -19,6 +19,7 @@ import {
 interface ChatPageProps {
   language: 'en' | 'hi';
   onBack: () => void;
+  initialChatUserId?: string | null;
 }
 
 interface Message {
@@ -42,8 +43,8 @@ interface Conversation {
   user_id: string;
 }
 
-const ChatPage: React.FC<ChatPageProps> = ({ language, onBack }) => {
-  const [activeChat, setActiveChat] = useState<string | null>(null);
+const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId }) => {
+  const [activeChat, setActiveChat] = useState<string | null>(initialChatUserId || null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -107,6 +108,33 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack }) => {
     if (activeChat && currentUser) {
       loadMessages(activeChat);
     }
+  }, [activeChat, currentUser]);
+
+  // Set up real-time message subscription
+  useEffect(() => {
+    if (!activeChat || !currentUser) return;
+
+    const channel = supabase
+      .channel('messages-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${currentUser.id}`,
+        },
+        (payload) => {
+          if (payload.new.sender_id === activeChat) {
+            setMessages((prev) => [...prev, payload.new as Message]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [activeChat, currentUser]);
 
   const loadCurrentUser = async () => {

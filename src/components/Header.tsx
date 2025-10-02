@@ -84,10 +84,10 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
               variant="outline"
               size="sm"
               onClick={handleLanguageToggle}
-              className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200 hover:scale-105"
+              className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-200 hover:scale-110 font-semibold shadow-sm bg-primary-foreground/10"
             >
-              <Globe className="w-4 h-4 mr-1" />
-              {language === 'en' ? 'हिंदी' : 'Eng'}
+              <Globe className="w-4 h-4 mr-2" />
+              <span className="text-sm">{language === 'en' ? 'हिंदी' : 'English'}</span>
             </Button>
 
             {/* Notifications */}

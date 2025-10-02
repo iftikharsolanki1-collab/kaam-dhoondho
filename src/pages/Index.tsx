@@ -37,6 +37,7 @@ const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [chatUserId, setChatUserId] = useState<string | null>(null);
   const { toast } = useToast();
   const { counts: notificationCounts, clearBadge } = useNotificationBadges(user?.id);
 
@@ -177,6 +178,18 @@ const Index = () => {
     setCurrentPage(page);
   };
 
+  const handleChatClick = (userId: string, userName: string) => {
+    if (!user) {
+      toast({
+        title: language === 'en' ? 'Login Required' : 'लॉगिन आवश्यक',
+        description: language === 'en' ? 'Please login to chat' : 'चैट करने के लिए कृपया लॉगिन करें',
+      });
+      return;
+    }
+    setChatUserId(userId);
+    setCurrentPage('chat');
+  };
+
   const renderCurrentPage = () => {
     console.log('Current page state:', currentPage);
     
@@ -215,7 +228,11 @@ const Index = () => {
             <div className="container mx-auto px-4 py-4">
               <ChatPage 
                 language={language}
-                onBack={() => setCurrentPage('home')}
+                onBack={() => {
+                  setChatUserId(null);
+                  setCurrentPage('home');
+                }}
+                initialChatUserId={chatUserId}
               />
             </div>
           </div>
@@ -346,6 +363,7 @@ const Index = () => {
                   searchQuery={searchQuery}
                   userLocation={userLocation}
                   locationRadius={locationRadius}
+                  onChatClick={handleChatClick}
                 />
               ) : (
                 <WorkerFeed 
@@ -354,6 +372,7 @@ const Index = () => {
                   searchQuery={searchQuery}
                   userLocation={userLocation}
                   locationRadius={locationRadius}
+                  onChatClick={handleChatClick}
                 />
               )}
             </div>

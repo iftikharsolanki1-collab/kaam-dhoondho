@@ -7,13 +7,15 @@ interface WorkerFeedProps {
   searchQuery: string;
   userLocation?: Coordinates | null;
   locationRadius?: number;
+  onChatClick?: (userId: string, name: string) => void;
 }
 
-export const WorkerFeed = ({ language, selectedSkill, searchQuery, userLocation, locationRadius = 25 }: WorkerFeedProps) => {
+export const WorkerFeed = ({ language, selectedSkill, searchQuery, userLocation, locationRadius = 25, onChatClick }: WorkerFeedProps) => {
   // Mock data - in real app this would come from API
   const workers = [
     {
       id: '1',
+      userId: 'mock-worker-1',
       name: 'Ramesh Mishra',
       work: 'Mason',
       location: 'Lajpat Nagar, Delhi',
@@ -26,6 +28,7 @@ export const WorkerFeed = ({ language, selectedSkill, searchQuery, userLocation,
     },
     {
       id: '2',
+      userId: 'mock-worker-2',
       name: 'Geeta Kumari', 
       work: 'Cleaner',
       location: 'Andheri, Mumbai',
@@ -38,6 +41,7 @@ export const WorkerFeed = ({ language, selectedSkill, searchQuery, userLocation,
     },
     {
       id: '3',
+      userId: 'mock-worker-3',
       name: 'Vikash Singh',
       work: 'Driver',
       location: 'Whitefield, Bangalore',
@@ -50,6 +54,7 @@ export const WorkerFeed = ({ language, selectedSkill, searchQuery, userLocation,
     },
     {
       id: '4',
+      userId: 'mock-worker-4',
       name: 'Ravi Carpenter',
       work: 'Carpenter',
       location: 'Karol Bagh, Delhi',
@@ -112,6 +117,7 @@ export const WorkerFeed = ({ language, selectedSkill, searchQuery, userLocation,
           <JobCard
             key={worker.id}
             id={worker.id}
+            userId={worker.userId}
             name={worker.name}
             work={worker.work}
             location={worker.location}
@@ -122,6 +128,7 @@ export const WorkerFeed = ({ language, selectedSkill, searchQuery, userLocation,
             isVerified={worker.isVerified}
             language={language}
             distance={worker.distance}
+            onChatClick={onChatClick}
           />
         ))
       )}
