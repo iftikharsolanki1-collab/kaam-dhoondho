@@ -14,7 +14,197 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      govt_schemes: {
+        Row: {
+          benefits: string | null
+          created_at: string | null
+          description: string
+          eligibility: string | null
+          how_to_apply: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          benefits?: string | null
+          created_at?: string | null
+          description: string
+          eligibility?: string | null
+          how_to_apply?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          benefits?: string | null
+          created_at?: string | null
+          description?: string
+          eligibility?: string | null
+          how_to_apply?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          created_at: string | null
+          details: string | null
+          id: string
+          is_urgent: boolean | null
+          is_verified: boolean | null
+          location: string
+          name: string
+          photo: string | null
+          rate: string
+          user_id: string
+          work: string
+        }
+        Insert: {
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          is_urgent?: boolean | null
+          is_verified?: boolean | null
+          location: string
+          name: string
+          photo?: string | null
+          rate: string
+          user_id: string
+          work: string
+        }
+        Update: {
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          is_urgent?: boolean | null
+          is_verified?: boolean | null
+          location?: string
+          name?: string
+          photo?: string | null
+          rate?: string
+          user_id?: string
+          work?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string | null
+          phone: string | null
+          profile_photo_url: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          profile_photo_url?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          profile_photo_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_posts: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
