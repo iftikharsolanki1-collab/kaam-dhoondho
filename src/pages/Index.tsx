@@ -24,7 +24,7 @@ import { useNotificationBadges } from '@/hooks/useNotificationBadges';
 import heroImage from '@/assets/hero-marketplace.jpg';
 
 const Index = () => {
-  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const [language, setLanguage] = useState<'en' | 'hi'>('hi');
   const [activeTab, setActiveTab] = useState<'employers' | 'workers'>('employers');
   const [selectedSkill, setSelectedSkill] = useState('All');
   const [currentPage, setCurrentPage] = useState('home');
