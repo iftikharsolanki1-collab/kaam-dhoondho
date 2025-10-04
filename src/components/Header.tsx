@@ -9,9 +9,12 @@ interface HeaderProps {
   onLanguageChange: (lang: 'en' | 'hi') => void;
   onProfileClick: () => void;
   onNotificationClick: () => void;
+  notificationCount?: number;
+  isLoggedIn?: boolean;
+  onLoginClick?: () => void;
 }
 
-export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick }: HeaderProps) => {
+export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick, notificationCount = 0, isLoggedIn = false, onLoginClick }: HeaderProps) => {
   const { toast } = useToast();
 
   const handleLanguageToggle = () => {
@@ -25,10 +28,6 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
 
   const handleNotificationClick = () => {
     onNotificationClick();
-    toast({
-      title: language === 'en' ? 'Notifications' : 'सूचनाएं',
-      description: language === 'en' ? 'You have 3 new notifications' : 'आपके पास 3 नई सूचनाएं हैं',
-    });
   };
 
   const handleProfileClick = () => {
@@ -44,13 +43,15 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
       title: 'Rojgar Mela',
       subtitle: 'Digital Marketplace for Local Services',
       notifications: 'Notifications',
-      profile: 'Profile'
+      profile: 'Profile',
+      login: 'Login'
     },
     hi: {
       title: 'रोजगार मेला',
       subtitle: 'स्थानीय सेवाओं के लिए डिजिटल बाज़ार',
       notifications: 'सूचनाएं',
-      profile: 'प्रोफ़ाइल'
+      profile: 'प्रोफ़ाइल',
+      login: 'लॉगिन'
     }
   };
 
@@ -90,31 +91,47 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
               <span className="text-sm">{language === 'en' ? 'हिंदी' : 'English'}</span>
             </Button>
 
-            {/* Notifications */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNotificationClick}
-              className="text-primary-foreground hover:bg-primary-foreground/10 relative transition-all duration-200 hover:scale-105"
-            >
-              <Bell className="w-5 h-5" />
-              <Badge 
-                variant="secondary" 
-                className="absolute -top-1 -right-1 w-5 h-5 p-0 text-xs bg-urgent text-urgent-foreground animate-pulse"
-              >
-                3
-              </Badge>
-            </Button>
+            {isLoggedIn ? (
+              <>
+                {/* Notifications */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNotificationClick}
+                  className="text-primary-foreground hover:bg-primary-foreground/10 relative transition-all duration-200 hover:scale-105"
+                >
+                  <Bell className="w-5 h-5" />
+                  {notificationCount > 0 && (
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute -top-1 -right-1 w-5 h-5 p-0 text-xs bg-urgent text-urgent-foreground animate-pulse flex items-center justify-center"
+                    >
+                      {notificationCount > 9 ? '9+' : notificationCount}
+                    </Badge>
+                  )}
+                </Button>
 
-            {/* Profile */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleProfileClick}
-              className="text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200 hover:scale-105"
-            >
-              <User className="w-5 h-5" />
-            </Button>
+                {/* Profile */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleProfileClick}
+                  className="text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200 hover:scale-105"
+                >
+                  <User className="w-5 h-5" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onLoginClick}
+                className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-200 hover:scale-110 font-semibold shadow-sm bg-primary-foreground/10"
+              >
+                <User className="w-4 h-4 mr-2" />
+                {texts[language].login}
+              </Button>
+            )}
           </div>
         </div>
       </div>

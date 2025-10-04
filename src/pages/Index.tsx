@@ -211,6 +211,11 @@ const Index = () => {
       return <AuthPage language={language} onSuccess={() => setCurrentPage('home')} />;
     }
 
+    // Show auth page when explicitly requested
+    if (currentPage === 'auth') {
+      return <AuthPage language={language} onSuccess={() => setCurrentPage('home')} />;
+    }
+
     switch (currentPage) {
       case 'schemes':
         return (
@@ -398,6 +403,9 @@ const Index = () => {
         onLanguageChange={setLanguage}
         onProfileClick={() => setCurrentPage('profile')}
         onNotificationClick={handleNotificationClick}
+        notificationCount={notificationCounts.notifications}
+        isLoggedIn={!!user}
+        onLoginClick={() => setCurrentPage('auth')}
       />
       {renderCurrentPage()}
       <BottomNavigation 

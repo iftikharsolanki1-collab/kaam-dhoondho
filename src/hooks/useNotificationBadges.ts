@@ -113,10 +113,11 @@ export const useNotificationBadges = (userId: string | undefined) => {
   const loadNewSchemes = async () => {
     if (!userId) return;
     
+    // Note: is_new column doesn't exist in govt_schemes table
+    // For now, just count all schemes as potentially new
     const { count } = await supabase
       .from('govt_schemes')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_new', true);
+      .select('*', { count: 'exact', head: true });
 
     setCounts((prev) => ({ ...prev, schemes: count || 0 }));
   };
