@@ -41,10 +41,12 @@ const Index = () => {
   const { toast } = useToast();
   const { counts: notificationCounts, clearBadge } = useNotificationBadges(user?.id);
 
-  // Initialize theme
+  // Initialize dark theme
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(savedTheme);
+    localStorage.setItem('theme', savedTheme);
   }, []);
 
   // Auth state management
@@ -289,65 +291,51 @@ const Index = () => {
       default:
         return (
           <>
-            {/* Hero Section - Redesigned */}
-            <div className="relative overflow-hidden bg-gradient-hero min-h-[280px] flex items-center">
-              <div className="absolute inset-0">
-                <img 
-                  src={heroImage} 
-                  alt="Rojgar Mela Marketplace" 
-                  className="w-full h-full object-cover opacity-10"
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/10 to-background" />
-              </div>
-              
-              <div className="relative container mx-auto px-4 py-8 w-full">
-                <div className="text-center text-primary-foreground space-y-6 animate-fade-in">
-                  {/* Title Section */}
-                  <div className="space-y-2">
-                    <h1 className="text-4xl font-bold tracking-tight drop-shadow-lg">
-                      {texts[language].heroTitle}
-                    </h1>
-                    <p className="text-base opacity-95 max-w-xs mx-auto">
-                      {texts[language].heroSubtitle}
-                    </p>
-                  </div>
-                  
-                  {/* Enhanced Search Bar */}
-                  <div className="relative max-w-md mx-auto">
-                    <div className="relative group">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 z-10 transition-colors group-focus-within:text-primary" />
-                      <Input
-                        placeholder={texts[language].searchPlaceholder}
-                        value={searchQuery}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        className="pl-12 pr-4 h-14 bg-background/95 backdrop-blur-md border-2 border-border/50 rounded-2xl shadow-elegant transition-all duration-300 focus:scale-[1.02] focus:shadow-glow focus:border-primary/50 text-base"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter' && searchQuery.trim()) {
-                            handleSearch(searchQuery);
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Nearby Jobs Button - Enhanced */}
-                  <div className="flex justify-center pt-2">
-                    <Button 
-                      variant="secondary" 
-                      size="default"
-                      className="rounded-full px-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                      onClick={handleNearbyJobs}
-                    >
-                      <MapPin className={`w-4 h-4 mr-2 transition-colors ${locationEnabled ? 'text-verified animate-pulse' : ''}`} />
-                      <span className="font-medium">{texts[language].nearbyJobs}</span>
-                    </Button>
+            {/* Hero Section - Modern Mobile Design */}
+            <div className="bg-gradient-hero pt-4 pb-6 px-4">
+              <div className="max-w-screen-xl mx-auto">
+                {/* Hero Text */}
+                <div className="text-center mb-5 animate-fade-in">
+                  <h1 className="text-white text-2xl font-bold mb-1.5">
+                    जुड़ें। काम करें। बढ़ें।
+                  </h1>
+                  <p className="text-white/80 text-sm">
+                    कुशल सेवाओं के लिए आपका स्थानीय बाज़ार
+                  </p>
+                </div>
+                
+                {/* Search Bar */}
+                <div className="mb-4">
+                  <div className="relative">
+                    <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                    <Input
+                      placeholder="काम, कौशल या नाम खोजें..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="pl-11 h-12 bg-card rounded-xl border-0 shadow-md text-base"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && searchQuery.trim()) {
+                          handleSearch(searchQuery);
+                        }
+                      }}
+                    />
                   </div>
                 </div>
+                
+                {/* Nearby Jobs Button */}
+                <Button 
+                  variant="secondary" 
+                  className="w-full rounded-xl h-11 shadow-md font-medium"
+                  onClick={handleNearbyJobs}
+                >
+                  <MapPin className={`w-4 h-4 mr-2 ${locationEnabled ? 'animate-pulse' : ''}`} />
+                  📍 आस-पास के काम खोजें
+                </Button>
               </div>
             </div>
 
-            {/* Tab Navigation with subtle shadow */}
-            <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-sm shadow-sm">
+            {/* Tab Navigation */}
+            <div className="sticky top-[52px] z-30 bg-background shadow-sm">
               <TabNavigation 
                 activeTab={activeTab} 
                 onTabChange={setActiveTab}
@@ -355,8 +343,8 @@ const Index = () => {
               />
             </div>
 
-            {/* Skill Chips */}
-            <div className="bg-muted/30">
+            {/* Category Chips - Scrollable */}
+            <div className="bg-card border-b border-border">
               <SkillChips 
                 language={language}
                 selectedSkill={selectedSkill}
@@ -365,17 +353,13 @@ const Index = () => {
             </div>
 
             {/* Content Feed */}
-            <div className="container mx-auto px-4 pb-24">
+            <div className="px-3 pb-20 pt-3">
               {locationEnabled && (
-                <div className="mb-4 p-4 bg-gradient-to-r from-verified/10 to-verified/5 rounded-2xl border border-verified/20 shadow-sm animate-fade-in">
-                  <div className="flex items-center gap-3 text-sm text-verified">
-                    <div className="w-8 h-8 rounded-full bg-verified/20 flex items-center justify-center">
-                      <MapPin className="w-4 h-4 animate-pulse" />
-                    </div>
+                <div className="mb-3 p-3 bg-secondary/10 rounded-xl border border-secondary/20 animate-fade-in">
+                  <div className="flex items-center gap-2 text-xs text-secondary">
+                    <MapPin className="w-4 h-4" />
                     <span className="font-medium">
-                      {language === 'en' 
-                        ? `Showing nearby results within ${locationRadius}km` 
-                        : `${locationRadius}किमी के भीतर के परिणाम दिखा रहे हैं`}
+                      {locationRadius}किमी के भीतर के परिणाम दिखा रहे हैं
                     </span>
                   </div>
                 </div>
@@ -404,15 +388,13 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Floating Action Button - Enhanced */}
-            <Button
-              variant="hero"
-              size="lg"
-              className="fixed bottom-24 right-5 rounded-full w-16 h-16 shadow-glow z-40 transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-95"
+            {/* FAB - Gradient Orange to Blue */}
+            <button
               onClick={handleFloatingActionClick}
+              className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-fab rounded-full shadow-glow flex items-center justify-center text-white z-40 transition-all duration-300 hover:scale-110 active:scale-95"
             >
-              <Plus className="w-7 h-7" />
-            </Button>
+              <Plus className="w-6 h-6" />
+            </button>
           </>
         );
     }

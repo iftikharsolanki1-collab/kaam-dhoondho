@@ -56,39 +56,33 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
   };
 
   return (
-    <header className="bg-gradient-hero shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3">
+    <header className="bg-gradient-hero shadow-lg sticky top-0 z-50 border-b border-white/10">
+      <div className="max-w-screen-xl mx-auto px-3 py-2.5">
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary-foreground rounded-full flex items-center justify-center shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-md overflow-hidden">
               <img 
                 src={logoImage} 
-                alt="Rojgar Mela Logo" 
-                className="w-8 h-8 object-contain"
+                alt="रोज़गार मेला" 
+                className="w-7 h-7 object-contain"
               />
             </div>
-            <div>
-              <h1 className="text-primary-foreground font-bold text-xl">
-                {texts[language].title}
-              </h1>
-              <p className="text-primary-foreground/80 text-xs">
-                {texts[language].subtitle}
-              </p>
-            </div>
+            <h1 className="text-white font-bold text-lg tracking-tight">
+              रोज़गार मेला
+            </h1>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center space-x-2">
-            {/* Language Toggle */}
+          <div className="flex items-center gap-1.5">
+            {/* Language Icon */}
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={handleLanguageToggle}
-              className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-200 hover:scale-110 font-semibold shadow-sm bg-primary-foreground/10"
+              className="text-white hover:bg-white/10 transition-all w-9 h-9"
             >
-              <Globe className="w-4 h-4 mr-2" />
-              <span className="text-sm">{language === 'en' ? 'हिंदी' : 'English'}</span>
+              <Globe className="w-5 h-5" />
             </Button>
 
             {isLoggedIn ? (
@@ -96,40 +90,36 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
                 {/* Notifications */}
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={handleNotificationClick}
-                  className="text-primary-foreground hover:bg-primary-foreground/10 relative transition-all duration-200 hover:scale-105"
+                  className="text-white hover:bg-white/10 relative transition-all w-9 h-9"
                 >
                   <Bell className="w-5 h-5" />
                   {notificationCount > 0 && (
-                    <Badge 
-                      variant="secondary" 
-                      className="absolute -top-1 -right-1 w-5 h-5 p-0 text-xs bg-urgent text-urgent-foreground animate-pulse flex items-center justify-center"
-                    >
-                      {notificationCount > 9 ? '9+' : notificationCount}
-                    </Badge>
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-urgent text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                      {notificationCount > 9 ? '9' : notificationCount}
+                    </span>
                   )}
                 </Button>
 
                 {/* Profile */}
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={handleProfileClick}
-                  className="text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200 hover:scale-105"
+                  className="text-white hover:bg-white/10 transition-all w-9 h-9"
                 >
                   <User className="w-5 h-5" />
                 </Button>
               </>
             ) : (
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 onClick={onLoginClick}
-                className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-200 hover:scale-110 font-semibold shadow-sm bg-primary-foreground/10"
+                className="text-white hover:bg-white/10 transition-all w-9 h-9"
               >
-                <User className="w-4 h-4 mr-2" />
-                {texts[language].login}
+                <User className="w-5 h-5" />
               </Button>
             )}
           </div>
