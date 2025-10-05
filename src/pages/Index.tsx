@@ -289,71 +289,90 @@ const Index = () => {
       default:
         return (
           <>
-            {/* Hero Section */}
-            <div className="relative overflow-hidden bg-gradient-hero">
+            {/* Hero Section - Redesigned */}
+            <div className="relative overflow-hidden bg-gradient-hero min-h-[280px] flex items-center">
               <div className="absolute inset-0">
                 <img 
                   src={heroImage} 
                   alt="Rojgar Mela Marketplace" 
-                  className="w-full h-full object-cover opacity-20"
+                  className="w-full h-full object-cover opacity-10"
                 />
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/10 to-background" />
               </div>
-              <div className="relative container mx-auto px-4 py-8">
-                <div className="text-center text-primary-foreground">
-                  <h1 className="text-3xl font-bold mb-2">{texts[language].heroTitle}</h1>
-                  <p className="text-lg opacity-90 mb-6">{texts[language].heroSubtitle}</p>
-                  
-                  {/* Search Bar */}
-                  <div className="relative max-w-md mx-auto mb-4">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <Input
-                      placeholder={texts[language].searchPlaceholder}
-                      value={searchQuery}
-                      onChange={(e) => handleSearch(e.target.value)}
-                      className="pl-10 bg-background/90 backdrop-blur-sm border-primary-foreground/20 transition-all duration-200 focus:scale-105"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && searchQuery.trim()) {
-                          handleSearch(searchQuery);
-                        }
-                      }}
-                    />
+              
+              <div className="relative container mx-auto px-4 py-8 w-full">
+                <div className="text-center text-primary-foreground space-y-6 animate-fade-in">
+                  {/* Title Section */}
+                  <div className="space-y-2">
+                    <h1 className="text-4xl font-bold tracking-tight drop-shadow-lg">
+                      {texts[language].heroTitle}
+                    </h1>
+                    <p className="text-base opacity-95 max-w-xs mx-auto">
+                      {texts[language].heroSubtitle}
+                    </p>
                   </div>
                   
-                  {/* Nearby Jobs Button */}
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="mb-4 transition-all duration-200 hover:scale-105"
-                    onClick={handleNearbyJobs}
-                  >
-                    <MapPin className={`w-4 h-4 mr-2 ${locationEnabled ? 'text-green-500' : ''}`} />
-                    {texts[language].nearbyJobs}
-                  </Button>
+                  {/* Enhanced Search Bar */}
+                  <div className="relative max-w-md mx-auto">
+                    <div className="relative group">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 z-10 transition-colors group-focus-within:text-primary" />
+                      <Input
+                        placeholder={texts[language].searchPlaceholder}
+                        value={searchQuery}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        className="pl-12 pr-4 h-14 bg-background/95 backdrop-blur-md border-2 border-border/50 rounded-2xl shadow-elegant transition-all duration-300 focus:scale-[1.02] focus:shadow-glow focus:border-primary/50 text-base"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && searchQuery.trim()) {
+                            handleSearch(searchQuery);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Nearby Jobs Button - Enhanced */}
+                  <div className="flex justify-center pt-2">
+                    <Button 
+                      variant="secondary" 
+                      size="default"
+                      className="rounded-full px-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                      onClick={handleNearbyJobs}
+                    >
+                      <MapPin className={`w-4 h-4 mr-2 transition-colors ${locationEnabled ? 'text-verified animate-pulse' : ''}`} />
+                      <span className="font-medium">{texts[language].nearbyJobs}</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Tab Navigation */}
-            <TabNavigation 
-              activeTab={activeTab} 
-              onTabChange={setActiveTab}
-              language={language}
-            />
+            {/* Tab Navigation with subtle shadow */}
+            <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-sm shadow-sm">
+              <TabNavigation 
+                activeTab={activeTab} 
+                onTabChange={setActiveTab}
+                language={language}
+              />
+            </div>
 
             {/* Skill Chips */}
-            <SkillChips 
-              language={language}
-              selectedSkill={selectedSkill}
-              onSkillSelect={setSelectedSkill}
-            />
+            <div className="bg-muted/30">
+              <SkillChips 
+                language={language}
+                selectedSkill={selectedSkill}
+                onSkillSelect={setSelectedSkill}
+              />
+            </div>
 
             {/* Content Feed */}
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 pb-24">
               {locationEnabled && (
-                <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
-                  <div className="flex items-center gap-2 text-sm text-primary">
-                    <MapPin className="w-4 h-4" />
-                    <span>
+                <div className="mb-4 p-4 bg-gradient-to-r from-verified/10 to-verified/5 rounded-2xl border border-verified/20 shadow-sm animate-fade-in">
+                  <div className="flex items-center gap-3 text-sm text-verified">
+                    <div className="w-8 h-8 rounded-full bg-verified/20 flex items-center justify-center">
+                      <MapPin className="w-4 h-4 animate-pulse" />
+                    </div>
+                    <span className="font-medium">
                       {language === 'en' 
                         ? `Showing nearby results within ${locationRadius}km` 
                         : `${locationRadius}किमी के भीतर के परिणाम दिखा रहे हैं`}
@@ -361,35 +380,38 @@ const Index = () => {
                   </div>
                 </div>
               )}
-              {activeTab === 'employers' ? (
-                <JobFeed 
-                  language={language} 
-                  selectedSkill={selectedSkill} 
-                  searchQuery={searchQuery}
-                  userLocation={userLocation}
-                  locationRadius={locationRadius}
-                  onChatClick={handleChatClick}
-                />
-              ) : (
-                <WorkerFeed 
-                  language={language} 
-                  selectedSkill={selectedSkill} 
-                  searchQuery={searchQuery}
-                  userLocation={userLocation}
-                  locationRadius={locationRadius}
-                  onChatClick={handleChatClick}
-                />
-              )}
+              
+              <div className="animate-fade-in">
+                {activeTab === 'employers' ? (
+                  <JobFeed 
+                    language={language} 
+                    selectedSkill={selectedSkill} 
+                    searchQuery={searchQuery}
+                    userLocation={userLocation}
+                    locationRadius={locationRadius}
+                    onChatClick={handleChatClick}
+                  />
+                ) : (
+                  <WorkerFeed 
+                    language={language} 
+                    selectedSkill={selectedSkill} 
+                    searchQuery={searchQuery}
+                    userLocation={userLocation}
+                    locationRadius={locationRadius}
+                    onChatClick={handleChatClick}
+                  />
+                )}
+              </div>
             </div>
 
-            {/* Floating Action Button */}
+            {/* Floating Action Button - Enhanced */}
             <Button
               variant="hero"
               size="lg"
-              className="fixed bottom-20 right-4 rounded-full w-14 h-14 shadow-lg z-40 transition-all duration-300 hover:scale-110 animate-bounce-gentle"
+              className="fixed bottom-24 right-5 rounded-full w-16 h-16 shadow-glow z-40 transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-95"
               onClick={handleFloatingActionClick}
             >
-              <Plus className="w-6 h-6" />
+              <Plus className="w-7 h-7" />
             </Button>
           </>
         );
