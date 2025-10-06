@@ -6,15 +6,20 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Mail, Phone, MapPin, Edit, Bookmark, Calendar, Camera } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun } from 'lucide-react';
 
 interface ProfilePageProps {
   language: 'en' | 'hi';
+  onLanguageChange?: (lang: 'en' | 'hi') => void;
+  onLogout?: () => void;
 }
 
-export const ProfilePage = ({ language }: ProfilePageProps) => {
+export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
   const [profile, setProfile] = useState({
@@ -25,7 +30,21 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
     joinDate: '2024-01-15',
     profilePhoto: ''
   });
+  const [notifications, setNotifications] = useState({
+    newJobs: true,
+    messages: true,
+    schemes: false
+  });
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'light';
+  });
   const { toast } = useToast();
+
+  useEffect(() => {
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   // Load saved jobs from Supabase instead of localStorage for security
   useEffect(() => {
@@ -78,7 +97,21 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
       cancel: 'Cancel',
       noSavedJobs: 'No saved jobs yet',
       viewAll: 'View All',
-      uploadPhoto: 'Upload Photo'
+      uploadPhoto: 'Upload Photo',
+      notifications: 'Notifications',
+      newJobs: 'New Job Notifications',
+      messages: 'Message Notifications',
+      schemes: 'Government Scheme Updates',
+      appearance: 'Appearance',
+      theme: 'Theme',
+      themeLabel: 'Theme',
+      language: 'Language',
+      support: 'Support & Help',
+      liveChat: 'Live Chat Support',
+      logout: 'Log Out',
+      logoutDesc: 'Sign out of your account',
+      light: 'Light',
+      dark: 'Dark'
     },
     hi: {
       title: 'मेरी प्रोफ़ाइल',
@@ -94,7 +127,21 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
       cancel: 'रद्द करें',
       noSavedJobs: 'अभी तक कोई काम सेव नहीं किया',
       viewAll: 'सभी देखें',
-      uploadPhoto: 'फोटो अपलोड करें'
+      uploadPhoto: 'फोटो अपलोड करें',
+      notifications: 'सूचनाएं',
+      newJobs: 'नए काम की सूचनाएं',
+      messages: 'संदेश सूचनाएं',
+      schemes: 'सरकारी योजना अपडेट',
+      appearance: 'दिखावट',
+      theme: 'थीम',
+      themeLabel: 'थीम',
+      language: 'भाषा',
+      support: 'समर्थन और सहायता',
+      liveChat: 'लाइव चैट समर्थन',
+      logout: 'लॉग आउट',
+      logoutDesc: 'अपने खाते से साइन आउट करें',
+      light: 'लाइट',
+      dark: 'डार्क'
     }
   };
 
@@ -160,6 +207,43 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
     return language === 'en' 
       ? date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
       : date.toLocaleDateString('hi-IN', { year: 'numeric', month: 'long' });
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      toast({
+        title: language === 'en' ? 'Logged out' : 'लॉग आउट हो गए',
+        description: language === 'en' ? 'You have been logged out successfully' : 'आप सफलतापूर्वक लॉग आउट हो गए हैं',
+      });
+
+      if (onLogout) {
+        onLogout();
+      }
+    } catch (error: any) {
+      toast({
+        title: language === 'en' ? 'Error' : 'त्रुटि',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    toast({
+      title: language === 'en' ? 'Theme Updated' : 'थीम अपडेट की गई',
+      description: language === 'en' ? `Switched to ${newTheme} mode` : `${newTheme === 'dark' ? 'डार्क' : 'लाइट'} मोड में स्विच किया गया`,
+    });
+  };
+
+  const handleLiveChat = () => {
+    toast({
+      title: language === 'en' ? 'Support Chat' : 'सहायता चैट',
+      description: language === 'en' ? 'Live chat support will connect you with an agent' : 'लाइव चैट सहायता आपको एक एजेंट से जोड़ेगी',
+    });
   };
 
   return (
@@ -347,6 +431,192 @@ export const ProfilePage = ({ language }: ProfilePageProps) => {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Notifications */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Bell className="w-5 h-5 mr-2 text-primary" />
+            {texts[language].notifications}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="newJobs" className="text-sm font-medium">
+              {texts[language].newJobs}
+            </Label>
+            <Switch
+              id="newJobs"
+              checked={notifications.newJobs}
+              onCheckedChange={(checked) => 
+                setNotifications(prev => ({ ...prev, newJobs: checked }))
+              }
+            />
+          </div>
+          
+          <Separator />
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="messages" className="text-sm font-medium">
+              {texts[language].messages}
+            </Label>
+            <Switch
+              id="messages"
+              checked={notifications.messages}
+              onCheckedChange={(checked) => 
+                setNotifications(prev => ({ ...prev, messages: checked }))
+              }
+            />
+          </div>
+          
+          <Separator />
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="schemes" className="text-sm font-medium">
+              {texts[language].schemes}
+            </Label>
+            <Switch
+              id="schemes"
+              checked={notifications.schemes}
+              onCheckedChange={(checked) => 
+                setNotifications(prev => ({ ...prev, schemes: checked }))
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Appearance */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Palette className="w-5 h-5 mr-2 text-primary" />
+            {texts[language].appearance}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              {texts[language].theme}
+            </Label>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                  <label className="text-sm font-medium">
+                    {texts[language].themeLabel}
+                  </label>
+                </div>
+                <Select value={theme} onValueChange={handleThemeChange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">
+                      <div className="flex items-center gap-2">
+                        <Sun className="w-4 h-4" />
+                        {texts[language].light}
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="dark">
+                      <div className="flex items-center gap-2">
+                        <Moon className="w-4 h-4" />
+                        {texts[language].dark}
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          
+          {onLanguageChange && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                {texts[language].language}
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant={language === 'en' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => onLanguageChange('en')}
+                  className="text-sm"
+                >
+                  English
+                </Button>
+                <Button
+                  variant={language === 'hi' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => onLanguageChange('hi')}
+                  className="text-sm"
+                >
+                  हिंदी
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Support & Help */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <HelpCircle className="w-5 h-5 mr-2 text-primary" />
+            {texts[language].support}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button 
+            variant="outline" 
+            className="w-full justify-start transition-all duration-200 hover:scale-[1.02]" 
+            onClick={handleLiveChat}
+          >
+            <MessageSquare className="w-4 h-4 mr-3" />
+            {texts[language].liveChat}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Logout */}
+      <Card className="shadow-card border-destructive/20">
+        <CardContent className="p-4">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="destructive" 
+                className="w-full transition-all duration-200 hover:scale-[1.02]"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                {texts[language].logout}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {language === 'en' ? 'Are you sure?' : 'क्या आप निश्चित हैं?'}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {language === 'en' 
+                    ? 'You will be logged out of your account.' 
+                    : 'आप अपने खाते से लॉग आउट हो जाएंगे।'}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>
+                  {language === 'en' ? 'Cancel' : 'रद्द करें'}
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>
+                  {language === 'en' ? 'Log Out' : 'लॉग आउट'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            {texts[language].logoutDesc}
+          </p>
         </CardContent>
       </Card>
     </div>

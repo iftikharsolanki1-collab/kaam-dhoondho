@@ -239,8 +239,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
         .insert({
           sender_id: currentUser.id,
           receiver_id: activeChat,
-          content: newMessage.trim(),
-          message_type: 'text'
+          content: newMessage.trim()
         });
 
       if (error) throw error;

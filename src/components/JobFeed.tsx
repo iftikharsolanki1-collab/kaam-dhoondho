@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { JobCard } from './JobCard';
 import { calculateDistance, CITY_COORDINATES, type Coordinates } from '@/lib/location';
+import { supabase } from '@/integrations/supabase/client';
 
 interface JobFeedProps {
   language: 'en' | 'hi';
@@ -11,61 +13,43 @@ interface JobFeedProps {
 }
 
 export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, locationRadius = 25, onChatClick }: JobFeedProps) => {
-  // Mock data - in real app this would come from API
-  const jobs = [
-    {
-      id: '1',
-      userId: 'mock-user-1',
-      name: 'Rajesh Kumar',
-      work: 'Plumber',
-      location: 'Connaught Place, Delhi',
-      coordinates: CITY_COORDINATES['Connaught Place, Delhi'],
-      rate: '₹500/day',
-      details: 'Need experienced plumber for bathroom renovation. Tile work and pipe fitting required.',
-      photo: '',
-      isUrgent: true,
-      isVerified: true,
-    },
-    {
-      id: '2',
-      userId: 'mock-user-2',
-      name: 'Priya Sharma',
-      work: 'House Cleaning',
-      location: 'Bandra, Mumbai',
-      coordinates: CITY_COORDINATES['Bandra, Mumbai'],
-      rate: '₹300/day',
-      details: 'Looking for reliable domestic help for daily cleaning. Must be punctual and honest.',
-      photo: '',
-      isUrgent: false,
-      isVerified: true,
-    },
-    {
-      id: '3',
-      userId: 'mock-user-3',
-      name: 'Amit Electricals',
-      work: 'Electrician',
-      location: 'Koramangala, Bangalore',
-      coordinates: CITY_COORDINATES['Koramangala, Bangalore'],
-      rate: '₹400/day',
-      details: 'Electrical wiring work for new flat. AC installation and switch board setup needed.',
-      photo: '',
-      isUrgent: false,
-      isVerified: false,
-    },
-    {
-      id: '4',
-      userId: 'mock-user-4',
-      name: 'Sunita Devi',
-      work: 'Cook',
-      location: 'Sector 18, Noida',
-      coordinates: CITY_COORDINATES['Sector 18, Noida'],
-      rate: '₹8000/month',
-      details: 'Need experienced cook for North Indian cuisine. Must know both veg and non-veg cooking.',
-      photo: '',
-      isUrgent: true,
-      isVerified: true,
-    },
-  ];
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        const formattedJobs = (data || []).map(post => ({
+          id: post.id,
+          userId: post.user_id,
+          name: post.name,
+          work: post.work,
+          location: post.location,
+          coordinates: CITY_COORDINATES[post.location as keyof typeof CITY_COORDINATES],
+          rate: post.rate,
+          details: post.details || '',
+          photo: post.photo || '',
+          isUrgent: post.is_urgent || false,
+          isVerified: post.is_verified || false,
+        }));
+
+        setJobs(formattedJobs);
+      } catch (error) {
+        console.error('Error loading posts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, []);
 
   // Filter and sort jobs based on selected skill, search query, and location
   const filteredJobs = jobs.filter(job => {
@@ -103,6 +87,17 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
     if (!a.isUrgent && b.isUrgent) return 1;
     return 0;
   });
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-muted-foreground">
+          {language === 'en' ? 'Loading jobs...' : 'काम लोड हो रहे हैं...'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 pb-20">

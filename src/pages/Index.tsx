@@ -270,7 +270,11 @@ const Index = () => {
         return (
           <div className="min-h-screen bg-background pt-20 pb-20">
             <div className="container mx-auto px-4 py-4">
-              <ProfilePage language={language} />
+              <ProfilePage 
+                language={language}
+                onLanguageChange={setLanguage}
+                onLogout={handleLogout}
+              />
             </div>
           </div>
         );
