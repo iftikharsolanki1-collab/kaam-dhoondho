@@ -16,8 +16,13 @@ interface PostJobFormProps {
 }
 
 const skills = [
-  'Plumber', 'Electrician', 'Mason', 'Carpenter', 'Painter', 
-  'Cleaner', 'Driver', 'Cook', 'Guard', 'Gardener', 'Other'
+  'Plumber', 'Mason', 'Painter', 'Electrician', 'Driver', 'Helper',
+  'Carpenter', 'Welder', 'Cook', 'Mechanic', 'Tailor', 'Gardener',
+  'Cleaner', 'Security Guard', 'Delivery', 'AC Technician', 'Beautician',
+  'Barber', 'Laundry', 'Tutor', 'Nurse', 'Caretaker', 'Construction',
+  'Tiles Work', 'Furniture', 'Pest Control', 'Packers & Movers',
+  'Event Staff', 'Photography', 'Computer Repair', 'Mobile Repair',
+  'Sales', 'Office Work', 'Other'
 ];
 
 export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) => {

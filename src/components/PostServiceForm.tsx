@@ -14,8 +14,13 @@ interface PostServiceFormProps {
 }
 
 const skills = [
-  'Plumber', 'Electrician', 'Mason', 'Carpenter', 'Painter', 
-  'Cleaner', 'Driver', 'Cook', 'Guard', 'Gardener', 'Other'
+  'Plumber', 'Mason', 'Painter', 'Electrician', 'Driver', 'Helper',
+  'Carpenter', 'Welder', 'Cook', 'Mechanic', 'Tailor', 'Gardener',
+  'Cleaner', 'Security Guard', 'Delivery', 'AC Technician', 'Beautician',
+  'Barber', 'Laundry', 'Tutor', 'Nurse', 'Caretaker', 'Construction',
+  'Tiles Work', 'Furniture', 'Pest Control', 'Packers & Movers',
+  'Event Staff', 'Photography', 'Computer Repair', 'Mobile Repair',
+  'Sales', 'Office Work', 'Other'
 ];
 
 export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceFormProps) => {
@@ -27,8 +32,6 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
     experience: '',
     description: '',
     location: '',
-    rate: '',
-    rateType: 'daily',
     photos: [] as File[]
   });
 
@@ -42,16 +45,11 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
       experience: 'Years of Experience',
       description: 'Description',
       location: 'Your Location',
-      rate: 'Your Rate',
-      daily: 'Per Day',
-      hourly: 'Per Hour',
-      monthly: 'Per Month',
       photos: 'Add Photos/Videos',
       submit: 'Post Service',
       cancel: 'Cancel',
       required: 'This field is required',
-      descriptionPlaceholder: 'Describe your experience, skills, and what services you provide...',
-      ratePlaceholder: 'e.g., ₹500'
+      descriptionPlaceholder: 'Describe your experience, skills, and what services you provide...'
     },
     hi: {
       title: 'अपनी सेवा पेश करें',
@@ -62,16 +60,11 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
       experience: 'अनुभव के वर्ष',
       description: 'विवरण',
       location: 'आपका स्थान',
-      rate: 'आपकी दर',
-      daily: 'प्रति दिन',
-      hourly: 'प्रति घंटा',
-      monthly: 'प्रति महीना',
       photos: 'फोटो/वीडियो जोड़ें',
       submit: 'सेवा पोस्ट करें',
       cancel: 'रद्द करें',
       required: 'यह फ़ील्ड आवश्यक है',
-      descriptionPlaceholder: 'अपने अनुभव, कौशल और सेवाओं का वर्णन करें...',
-      ratePlaceholder: 'जैसे, ₹500'
+      descriptionPlaceholder: 'अपने अनुभव, कौशल और सेवाओं का वर्णन करें...'
     }
   };
 
@@ -83,8 +76,7 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
       skill: finalSkill,
       work: finalSkill, // For compatibility with JobCard component
       details: formData.description,
-      mobile: formData.phone,
-      rateDisplay: `₹${formData.rate}/${formData.rateType === 'daily' ? (language === 'en' ? 'day' : 'दिन') : formData.rateType === 'hourly' ? (language === 'en' ? 'hour' : 'घंटा') : (language === 'en' ? 'month' : 'महीना')}`
+      mobile: formData.phone
     };
     onSubmit(serviceData);
   };
@@ -214,36 +206,6 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
                   required
                   className="pl-10"
                 />
-              </div>
-            </div>
-
-            {/* Rate */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label htmlFor="rate" className="text-sm font-medium">
-                  {texts[language].rate} *
-                </Label>
-                <Input
-                  id="rate"
-                  value={formData.rate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, rate: e.target.value }))}
-                  required
-                  className="mt-1"
-                  placeholder={texts[language].ratePlaceholder}
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">&nbsp;</Label>
-                <Select value={formData.rateType} onValueChange={(value) => setFormData(prev => ({ ...prev, rateType: value }))}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">{texts[language].daily}</SelectItem>
-                    <SelectItem value="hourly">{texts[language].hourly}</SelectItem>
-                    <SelectItem value="monthly">{texts[language].monthly}</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
