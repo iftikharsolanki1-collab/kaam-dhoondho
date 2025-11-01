@@ -30,14 +30,14 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
           id: post.id,
           userId: post.user_id,
           name: post.name,
-          work: post.work,
+          work: post.title || '',
           location: post.location,
           coordinates: CITY_COORDINATES[post.location as keyof typeof CITY_COORDINATES],
-          rate: post.rate,
-          details: post.details || '',
-          photo: post.photo || '',
+          rate: post.rate || '',
+          details: post.description || '',
+          photo: Array.isArray(post.photos) ? post.photos[0] : '',
           isUrgent: post.is_urgent || false,
-          isVerified: post.is_verified || false,
+          isVerified: false,
         }));
 
         setJobs(formattedJobs);
