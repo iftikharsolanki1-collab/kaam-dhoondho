@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Upload, AlertCircle, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { postJobSchema } from '@/lib/validations';
 
 interface PostJobFormProps {
   language: 'en' | 'hi';
@@ -26,6 +28,7 @@ const skills = [
 ];
 
 export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     work: '',
@@ -85,6 +88,27 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalWork = formData.work === 'Other' ? formData.customWork : formData.work;
+    
+    // Validate input data using zod schema
+    const validationResult = postJobSchema.safeParse({
+      title: finalWork,
+      description: formData.details,
+      location: formData.location,
+      rate: formData.rate,
+      phone: formData.mobile,
+      name: formData.name
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map(err => err.message).join(', ');
+      toast({
+        title: language === 'en' ? 'Validation Error' : 'सत्यापन त्रुटि',
+        description: errors,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const jobData = {
       ...formData,
       work: finalWork,

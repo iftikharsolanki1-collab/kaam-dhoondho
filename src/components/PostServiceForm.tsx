@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Upload, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { postServiceSchema } from '@/lib/validations';
 
 interface PostServiceFormProps {
   language: 'en' | 'hi';
@@ -24,6 +26,7 @@ const skills = [
 ];
 
 export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceFormProps) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -71,6 +74,28 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalSkill = formData.skill === 'Other' ? formData.customSkill : formData.skill;
+    
+    // Validate input data using zod schema
+    const validationResult = postServiceSchema.safeParse({
+      skill: finalSkill,
+      experience: formData.experience || '0',
+      description: formData.description,
+      location: formData.location,
+      rate: '', // Optional field
+      phone: formData.phone,
+      name: formData.name
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map(err => err.message).join(', ');
+      toast({
+        title: language === 'en' ? 'Validation Error' : 'सत्यापन त्रुटि',
+        description: errors,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const serviceData = {
       ...formData,
       skill: finalSkill,
