@@ -14,183 +14,339 @@ export type Database = {
   }
   public: {
     Tables: {
-      govt_schemes: {
+      categories: {
         Row: {
-          benefits: string | null
-          created_at: string | null
-          description: string
-          eligibility: string | null
-          how_to_apply: string | null
-          id: string
-          title: string
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: number
+          name_en: string
+          name_hi: string | null
+          name_hinglish: string | null
         }
         Insert: {
-          benefits?: string | null
-          created_at?: string | null
-          description: string
-          eligibility?: string | null
-          how_to_apply?: string | null
-          id?: string
-          title: string
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: number
+          name_en: string
+          name_hi?: string | null
+          name_hinglish?: string | null
         }
         Update: {
-          benefits?: string | null
-          created_at?: string | null
-          description?: string
-          eligibility?: string | null
-          how_to_apply?: string | null
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: number
+          name_en?: string
+          name_hi?: string | null
+          name_hinglish?: string | null
+        }
+        Relationships: []
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_id: string | null
+          updated_at: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
           id?: string
+          last_message_id?: string | null
+          updated_at?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_id?: string | null
+          updated_at?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
+      govt_schemes: {
+        Row: {
+          created_at: string
+          description: string
+          external_link: string
+          id: string
+          is_new: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          external_link: string
+          id?: string
+          is_new?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          external_link?: string
+          id?: string
+          is_new?: boolean | null
           title?: string
+          updated_at?: string
         }
         Relationships: []
       }
       messages: {
         Row: {
           content: string
-          created_at: string | null
+          created_at: string
           id: string
           is_read: boolean | null
+          message_type: string | null
           receiver_id: string
           sender_id: string
+          updated_at: string
         }
         Insert: {
           content: string
-          created_at?: string | null
+          created_at?: string
           id?: string
           is_read?: boolean | null
+          message_type?: string | null
           receiver_id: string
           sender_id: string
+          updated_at?: string
         }
         Update: {
           content?: string
-          created_at?: string | null
+          created_at?: string
           id?: string
           is_read?: boolean | null
+          message_type?: string | null
           receiver_id?: string
           sender_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
       notifications: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: string
           is_read: boolean | null
           message: string
           title: string
-          type: string
+          type: string | null
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           is_read?: boolean | null
           message: string
           title: string
-          type: string
+          type?: string | null
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           is_read?: boolean | null
           message?: string
           title?: string
-          type?: string
+          type?: string | null
           user_id?: string
         }
         Relationships: []
+      }
+      post_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          owner_id: string
+          phone: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_id: string
+          phone: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          phone?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_contacts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       posts: {
         Row: {
-          created_at: string | null
-          details: string | null
+          created_at: string
+          description: string
           id: string
           is_urgent: boolean | null
-          is_verified: boolean | null
           location: string
           name: string
-          photo: string | null
-          rate: string
+          photos: Json | null
+          rate: string | null
+          skill_id: number | null
+          title: string | null
+          type: string
+          updated_at: string
           user_id: string
-          work: string
         }
         Insert: {
-          created_at?: string | null
-          details?: string | null
+          created_at?: string
+          description: string
           id?: string
           is_urgent?: boolean | null
-          is_verified?: boolean | null
           location: string
           name: string
-          photo?: string | null
-          rate: string
+          photos?: Json | null
+          rate?: string | null
+          skill_id?: number | null
+          title?: string | null
+          type: string
+          updated_at?: string
           user_id: string
-          work: string
         }
         Update: {
-          created_at?: string | null
-          details?: string | null
+          created_at?: string
+          description?: string
           id?: string
           is_urgent?: boolean | null
-          is_verified?: boolean | null
           location?: string
           name?: string
-          photo?: string | null
-          rate?: string
+          photos?: Json | null
+          rate?: string | null
+          skill_id?: number | null
+          title?: string | null
+          type?: string
+          updated_at?: string
           user_id?: string
-          work?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
-          created_at: string | null
+          created_at: string
           email: string | null
           id: string
-          name: string | null
+          location: string | null
+          name: string
           phone: string | null
           profile_photo_url: string | null
-          updated_at: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           email?: string | null
           id?: string
-          name?: string | null
+          location?: string | null
+          name: string
           phone?: string | null
           profile_photo_url?: string | null
-          updated_at?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           email?: string | null
           id?: string
-          name?: string | null
+          location?: string | null
+          name?: string
           phone?: string | null
           profile_photo_url?: string | null
-          updated_at?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
       }
+      quotes: {
+        Row: {
+          author: string | null
+          category_id: number | null
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          language: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          category_id?: number | null
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          language?: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          category_id?: number | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          language?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_posts: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: string
           post_id: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           post_id: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           post_id?: string
           user_id?: string
@@ -205,12 +361,92 @@ export type Database = {
           },
         ]
       }
+      skills: {
+        Row: {
+          created_at: string
+          id: number
+          name_en: string
+          name_hi: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name_en: string
+          name_hi: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name_en?: string
+          name_hi?: string
+        }
+        Relationships: []
+      }
+      user_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          quote_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quote_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quote_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          daily_notifications: boolean
+          id: string
+          language: string
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_notifications?: boolean
+          id?: string
+          language?: string
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_notifications?: boolean
+          id?: string
+          language?: string
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      mask_phone_number: { Args: { phone_number: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
