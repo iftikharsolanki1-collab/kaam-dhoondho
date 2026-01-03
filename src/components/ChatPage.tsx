@@ -165,8 +165,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       // Convert profiles to conversations format
       const conversationList: Conversation[] = profiles.map(profile => ({
         id: profile.user_id,
-        name: profile.name || profile.email || 'Unknown User',
-        email: profile.email,
+        name: profile.name || 'Unknown User',
+        email: `${profile.phone}@rojgarmela.app`,
         lastMessage: 'Start a conversation',
         timestamp: new Date().toISOString(),
         unreadCount: 0,
