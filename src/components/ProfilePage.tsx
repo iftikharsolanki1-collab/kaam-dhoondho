@@ -46,39 +46,6 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  // Load user profile from Supabase
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) throw error;
-
-        if (profileData) {
-          setProfile({
-            name: profileData.name || 'User',
-            email: `${profileData.phone}@rojgarmela.app`,
-            phone: `+91 ${profileData.phone}`,
-            location: profileData.location || 'Not set',
-            joinDate: profileData.created_at,
-            profilePhoto: profileData.avatar_url || ''
-          });
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-      }
-    };
-
-    loadUserProfile();
-  }, []);
-
   // Load saved jobs from Supabase instead of localStorage for security
   useEffect(() => {
     const loadSavedPosts = async () => {
@@ -204,7 +171,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
       // Update profile in database
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ profile_photo_url: publicUrl })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
