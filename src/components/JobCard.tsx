@@ -7,7 +7,6 @@ import { MapPin, Phone, MessageCircle, Bookmark, Share, CheckCircle } from 'luci
 import { formatDistance } from '@/lib/location';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-
 interface JobCardProps {
   id: string;
   name: string;
@@ -23,7 +22,6 @@ interface JobCardProps {
   userId?: string;
   onChatClick?: (userId: string, name: string) => void;
 }
-
 export const JobCard = ({
   id,
   name,
@@ -41,32 +39,33 @@ export const JobCard = ({
 }: JobCardProps) => {
   const [isSaved, setIsSaved] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     loadCurrentUser();
     checkIfSaved();
   }, [id]);
-
   const loadCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: {
+        user
+      }
+    } = await supabase.auth.getUser();
     setCurrentUser(user);
   };
-
   const checkIfSaved = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: {
+        user
+      }
+    } = await supabase.auth.getUser();
     if (!user) return;
-
-    const { data } = await supabase
-      .from('saved_posts')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('post_id', id)
-      .single();
-
+    const {
+      data
+    } = await supabase.from('saved_posts').select('id').eq('user_id', user.id).eq('post_id', id).single();
     setIsSaved(!!data);
   };
-
   const texts = {
     en: {
       urgent: 'Urgent',
@@ -85,7 +84,6 @@ export const JobCard = ({
       share: 'शेयर'
     }
   };
-
   const handleSave = async () => {
     if (!currentUser) {
       toast({
@@ -95,13 +93,14 @@ export const JobCard = ({
       });
       return;
     }
-
     try {
       if (!isSaved) {
-        const { error } = await supabase
-          .from('saved_posts')
-          .insert({ user_id: currentUser.id, post_id: id });
-        
+        const {
+          error
+        } = await supabase.from('saved_posts').insert({
+          user_id: currentUser.id,
+          post_id: id
+        });
         if (error) throw error;
         setIsSaved(true);
         toast({
@@ -109,12 +108,9 @@ export const JobCard = ({
           description: language === 'en' ? 'Post saved successfully' : 'पोस्ट सफलतापूर्वक सेव हो गई'
         });
       } else {
-        const { error } = await supabase
-          .from('saved_posts')
-          .delete()
-          .eq('user_id', currentUser.id)
-          .eq('post_id', id);
-        
+        const {
+          error
+        } = await supabase.from('saved_posts').delete().eq('user_id', currentUser.id).eq('post_id', id);
         if (error) throw error;
         setIsSaved(false);
         toast({
@@ -131,14 +127,12 @@ export const JobCard = ({
       });
     }
   };
-
   const handleCall = () => {
     // Extract phone number from details or use a mock number
     const phoneNumber = '9876543210'; // This would come from the job data in real app
     window.open(`tel:+91${phoneNumber}`, '_self');
     console.log('Calling...', id);
   };
-
   const handleChat = () => {
     if (!currentUser) {
       toast({
@@ -148,7 +142,6 @@ export const JobCard = ({
       });
       return;
     }
-
     if (userId && onChatClick) {
       onChatClick(userId, name);
     } else {
@@ -159,31 +152,24 @@ export const JobCard = ({
       });
     }
   };
-
   const handleShare = () => {
     // Implement WhatsApp share
     const text = `${name} - ${work} in ${location}. Rate: ${rate}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
   };
-
-  return (
-    <Card className="shadow-card hover:shadow-lg transition-all duration-300 bg-gradient-card hover:scale-[1.02] animate-fade-in">
+  return <Card className="shadow-card hover:shadow-lg transition-all duration-300 bg-gradient-card hover:scale-[1.02] animate-fade-in">
       <CardContent className="p-4">
         {/* Header with badges */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex flex-wrap gap-2">
-            {isUrgent && (
-              <Badge variant="destructive" className="bg-urgent text-urgent-foreground">
+            {isUrgent && <Badge variant="destructive" className="bg-urgent text-urgent-foreground">
                 🔴 {texts[language].urgent}
-              </Badge>
-            )}
-            {isVerified && (
-              <Badge variant="secondary" className="bg-verified text-verified-foreground">
+              </Badge>}
+            {isVerified && <Badge variant="secondary" className="bg-verified text-verified-foreground">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 {texts[language].verified}
-              </Badge>
-            )}
+              </Badge>}
           </div>
         </div>
 
@@ -202,14 +188,12 @@ export const JobCard = ({
             <div className="flex items-center text-muted-foreground text-sm mt-1">
               <MapPin className="w-3 h-3 mr-1" />
               <span className="truncate">{location}</span>
-              {distance && (
-                <>
+              {distance && <>
                   <span className="mx-1">•</span>
                   <span className="text-primary font-medium">
                     {formatDistance(distance, language)}
                   </span>
-                </>
-              )}
+                </>}
             </div>
           </div>
           
@@ -225,45 +209,20 @@ export const JobCard = ({
 
         {/* Action buttons */}
         <div className="flex space-x-2">
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleChat}
-            className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
-          >
+          <Button variant="default" size="sm" onClick={handleChat} className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105">
             <MessageCircle className="w-4 h-4 mr-1" />
             {texts[language].chat}
           </Button>
           
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleCall}
-            className="flex-1 transition-all duration-200 hover:scale-105"
-          >
+          <Button variant="secondary" size="sm" onClick={handleCall} className="flex-1 transition-all duration-200 hover:scale-105">
             <Phone className="w-4 h-4 mr-1" />
             {texts[language].call}
           </Button>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSave}
-            className={`transition-all duration-200 hover:scale-105 ${isSaved ? 'bg-secondary text-secondary-foreground' : ''}`}
-          >
-            <Bookmark className={`w-4 h-4 transition-all duration-200 ${isSaved ? 'fill-current' : ''}`} />
-          </Button>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleShare}
-            className="text-green-600 border-green-200 hover:bg-green-50 transition-all duration-200 hover:scale-105"
-          >
-            <Share className="w-4 h-4" />
-          </Button>
+          
+          
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
