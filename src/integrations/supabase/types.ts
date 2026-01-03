@@ -14,6 +14,280 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          name_hi: string | null
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          name_hi?: string | null
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          name_hi?: string | null
+        }
+        Relationships: []
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          participant1_id: string
+          participant2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant1_id: string
+          participant2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant1_id?: string
+          participant2_id?: string
+        }
+        Relationships: []
+      }
+      govt_schemes: {
+        Row: {
+          benefits: string | null
+          benefits_hi: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          description_hi: string | null
+          eligibility: string | null
+          eligibility_hi: string | null
+          id: string
+          is_active: boolean | null
+          link: string | null
+          title: string
+          title_hi: string | null
+        }
+        Insert: {
+          benefits?: string | null
+          benefits_hi?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          description_hi?: string | null
+          eligibility?: string | null
+          eligibility_hi?: string | null
+          id?: string
+          is_active?: boolean | null
+          link?: string | null
+          title: string
+          title_hi?: string | null
+        }
+        Update: {
+          benefits?: string | null
+          benefits_hi?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          description_hi?: string | null
+          eligibility?: string | null
+          eligibility_hi?: string | null
+          id?: string
+          is_active?: boolean | null
+          link?: string | null
+          title?: string
+          title_hi?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      post_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_contacts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          experience: string | null
+          id: string
+          is_urgent: boolean | null
+          is_verified: boolean | null
+          location: string | null
+          name: string | null
+          phone: string | null
+          photos: string[] | null
+          rate: string | null
+          skill_id: string | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          experience?: string | null
+          id?: string
+          is_urgent?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          name?: string | null
+          phone?: string | null
+          photos?: string[] | null
+          rate?: string | null
+          skill_id?: string | null
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          experience?: string | null
+          id?: string
+          is_urgent?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          name?: string | null
+          phone?: string | null
+          photos?: string[] | null
+          rate?: string | null
+          skill_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -42,6 +316,153 @@ export type Database = {
           location?: string | null
           name?: string
           phone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          author: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          text: string
+          text_hi: string | null
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          text: string
+          text_hi?: string | null
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          text?: string
+          text_hi?: string | null
+        }
+        Relationships: []
+      }
+      saved_posts: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skills: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          id: string
+          name: string
+          name_hi: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          name_hi?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          name_hi?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skills_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          daily_notifications: boolean | null
+          id: string
+          language: string | null
+          theme: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          theme?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          theme?: string | null
           updated_at?: string
           user_id?: string
         }
