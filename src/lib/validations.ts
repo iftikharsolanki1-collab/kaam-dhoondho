@@ -1,28 +1,27 @@
 import { z } from 'zod';
 
-// Authentication schemas
+// Phone number validation for Indian numbers
+const phoneRegex = /^[6-9]\d{9}$/;
+
+// Authentication schemas - Phone based
 export const signUpSchema = z.object({
   name: z.string()
     .trim()
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must be less than 100 characters')
     .regex(/^[a-zA-Z\s\u0900-\u097F]+$/, 'Name can only contain letters and spaces'),
-  email: z.string()
+  phone: z.string()
     .trim()
-    .email('Invalid email address')
-    .max(255, 'Email must be less than 255 characters')
-    .toLowerCase(),
+    .regex(phoneRegex, 'Please enter a valid 10-digit Indian phone number'),
   password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one uppercase letter, one lowercase letter, and one number')
+    .min(6, 'Password must be at least 6 characters')
+    .max(50, 'Password must be less than 50 characters')
 });
 
 export const signInSchema = z.object({
-  email: z.string()
+  phone: z.string()
     .trim()
-    .email('Invalid email address')
-    .max(255, 'Email must be less than 255 characters')
-    .toLowerCase(),
+    .regex(phoneRegex, 'Please enter a valid 10-digit Indian phone number'),
   password: z.string()
     .min(1, 'Password is required')
 });

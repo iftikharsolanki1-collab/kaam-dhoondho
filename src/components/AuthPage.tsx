@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Phone, Lock, User } from 'lucide-react';
 import { signUpSchema, signInSchema, type SignUpInput, type SignInInput } from '@/lib/validations';
 
 interface AuthPageProps {
@@ -15,7 +14,7 @@ interface AuthPageProps {
 
 export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,62 +25,69 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
     en: {
       signIn: 'Sign In',
       signUp: 'Sign Up',
-      email: 'Email',
+      phone: 'Phone Number',
+      phonePlaceholder: 'Enter 10-digit number',
       password: 'Password',
       name: 'Full Name',
       signInTitle: 'Welcome Back',
       signUpTitle: 'Create Account',
-      signInDescription: 'Sign in to your account to continue',
-      signUpDescription: 'Create a new account to get started',
+      signInDescription: 'Sign in with your phone number',
+      signUpDescription: 'Register with your phone number',
       noAccount: "Don't have an account?",
       haveAccount: 'Already have an account?',
       signInButton: 'Sign In',
       signUpButton: 'Create Account',
-      forgotPassword: 'Forgot Password?',
       signingIn: 'Signing in...',
       creatingAccount: 'Creating account...',
       signInSuccess: 'Signed in successfully!',
       signUpSuccess: 'Account created successfully!',
       signInError: 'Failed to sign in',
       signUpError: 'Failed to create account',
-      emailError: 'Please enter a valid email',
-      passwordError: 'Password must be at least 8 characters with uppercase, lowercase, and number',
+      phoneError: 'Please enter a valid 10-digit phone number',
+      passwordError: 'Password must be at least 6 characters',
       nameError: 'Please enter your full name',
+      phoneExists: 'This phone number is already registered',
+      invalidCredentials: 'Invalid phone number or password',
     },
     hi: {
       signIn: 'साइन इन करें',
       signUp: 'साइन अप करें',
-      email: 'ईमेल',
+      phone: 'फ़ोन नंबर',
+      phonePlaceholder: '10 अंकों का नंबर दर्ज करें',
       password: 'पासवर्ड',
       name: 'पूरा नाम',
       signInTitle: 'वापस स्वागत है',
       signUpTitle: 'खाता बनाएं',
-      signInDescription: 'जारी रखने के लिए अपने खाते में साइन इन करें',
-      signUpDescription: 'शुरू करने के लिए एक नया खाता बनाएं',
+      signInDescription: 'अपने फ़ोन नंबर से साइन इन करें',
+      signUpDescription: 'अपने फ़ोन नंबर से पंजीकरण करें',
       noAccount: 'कोई खाता नहीं है?',
       haveAccount: 'पहले से खाता है?',
       signInButton: 'साइन इन करें',
       signUpButton: 'खाता बनाएं',
-      forgotPassword: 'पासवर्ड भूल गए?',
       signingIn: 'साइन इन हो रहा है...',
       creatingAccount: 'खाता बनाया जा रहा है...',
       signInSuccess: 'सफलतापूर्वक साइन इन हो गए!',
       signUpSuccess: 'खाता सफलतापूर्वक बनाया गया!',
       signInError: 'साइन इन करने में विफल',
       signUpError: 'खाता बनाने में विफल',
-      emailError: 'कृपया एक वैध ईमेल दर्ज करें',
-      passwordError: 'पासवर्ड कम से कम 8 अक्षर का होना चाहिए जिसमें बड़े अक्षर, छोटे अक्षर और संख्या हो',
+      phoneError: 'कृपया एक वैध 10 अंकों का फ़ोन नंबर दर्ज करें',
+      passwordError: 'पासवर्ड कम से कम 6 अक्षर का होना चाहिए',
       nameError: 'कृपया अपना पूरा नाम दर्ज करें',
+      phoneExists: 'यह फ़ोन नंबर पहले से पंजीकृत है',
+      invalidCredentials: 'अमान्य फ़ोन नंबर या पासवर्ड',
     }
   };
+
+  // Convert phone to pseudo-email for Supabase auth
+  const phoneToEmail = (phoneNumber: string) => `${phoneNumber}@rojgarmela.app`;
 
   const validateForm = () => {
     try {
       if (isSignUp) {
-        const data: SignUpInput = { name: name.trim(), email: email.trim().toLowerCase(), password };
+        const data: SignUpInput = { name: name.trim(), phone: phone.trim(), password };
         signUpSchema.parse(data);
       } else {
-        const data: SignInInput = { email: email.trim().toLowerCase(), password };
+        const data: SignInInput = { phone: phone.trim(), password };
         signInSchema.parse(data);
       }
       return true;
@@ -103,62 +109,54 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
     if (!validateForm()) return;
     
     setIsLoading(true);
+    const cleanPhone = phone.trim();
+    const pseudoEmail = phoneToEmail(cleanPhone);
 
     try {
       if (isSignUp) {
         const { data, error } = await supabase.auth.signUp({
-          email: email.trim().toLowerCase(),
+          email: pseudoEmail,
           password,
           options: {
             data: {
-              name: name.trim()
+              name: name.trim(),
+              phone: cleanPhone
             },
             emailRedirectTo: `${window.location.origin}/`
           }
         });
 
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('already registered') || error.message.includes('already exists')) {
+            throw new Error(texts[language].phoneExists);
+          }
+          throw error;
+        }
 
-        // Check if email confirmation is required
-        if (data?.user && !data.session) {
+        if (data.session) {
           toast({
             title: texts[language].signUpSuccess,
-            description: language === 'en' 
-              ? 'Please check your email to verify your account before signing in.' 
-              : 'साइन इन करने से पहले अपना खाता सत्यापित करने के लिए कृपया अपना ईमेल जांचें।',
           });
+          onSuccess();
         } else {
           toast({
             title: texts[language].signUpSuccess,
             description: language === 'en' 
-              ? 'Account created successfully! You can now sign in.' 
-              : 'खाता सफलतापूर्वक बनाया गया! अब आप साइन इन कर सकते हैं।',
+              ? 'You can now sign in with your phone number.' 
+              : 'अब आप अपने फ़ोन नंबर से साइन इन कर सकते हैं।',
           });
+          setIsSignUp(false);
+          setPassword('');
         }
-        
-        // Switch to sign in mode after successful signup
-        setIsSignUp(false);
-        setPassword('');
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
+          email: pseudoEmail,
           password,
         });
 
         if (error) {
-          // Provide helpful error messages
-          if (error.message.includes('Email not confirmed')) {
-            throw new Error(
-              language === 'en' 
-                ? 'Please verify your email before signing in. Check your inbox for the verification link.' 
-                : 'साइन इन करने से पहले कृपया अपना ईमेल सत्यापित करें। सत्यापन लिंक के लिए अपना इनबॉक्स जांचें।'
-            );
-          } else if (error.message.includes('Invalid login credentials')) {
-            throw new Error(
-              language === 'en' 
-                ? 'Invalid email or password. Please try again.' 
-                : 'अमान्य ईमेल या पासवर्ड। कृपया पुनः प्रयास करें।'
-            );
+          if (error.message.includes('Invalid login credentials')) {
+            throw new Error(texts[language].invalidCredentials);
           }
           throw error;
         }
@@ -171,7 +169,6 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
         }
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
       toast({
         title: isSignUp ? texts[language].signUpError : texts[language].signInError,
         description: error.message || (language === 'en' ? 'An error occurred. Please try again.' : 'एक त्रुटि हुई। कृपया पुनः प्रयास करें।'),
@@ -182,32 +179,13 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        },
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      toast({
-        title: language === 'en' ? 'Error' : 'त्रुटि',
-        description: error.message || (language === 'en' ? 'Google sign-in failed' : 'Google साइन-इन विफल'),
-        variant: 'destructive',
-      });
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
+          <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+            <Phone className="w-8 h-8 text-primary" />
+          </div>
           <CardTitle className="text-2xl font-bold">
             {isSignUp ? texts[language].signUpTitle : texts[language].signInTitle}
           </CardTitle>
@@ -220,26 +198,38 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
             {isSignUp && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">{texts[language].name}</label>
-                <Input
-                  type="text"
-                  placeholder={texts[language].name}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder={texts[language].name}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
             )}
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">{texts[language].email}</label>
+              <label className="text-sm font-medium">{texts[language].phone}</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <div className="absolute left-10 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground border-r pr-2">
+                  +91
+                </div>
                 <Input
-                  type="email"
-                  placeholder={texts[language].email}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder={texts[language].phonePlaceholder}
+                  value={phone}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setPhone(value);
+                  }}
+                  className="pl-20"
                   required
                 />
               </div>
@@ -281,51 +271,17 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
             </Button>
           </form>
 
-          <div className="relative my-4">
-            <Separator />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="bg-card px-2 text-sm text-muted-foreground">
-                {language === 'en' ? 'Or continue with' : 'या इसके साथ जारी रखें'}
-              </span>
-            </div>
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleSignIn}
-            disabled={isLoading}
-          >
-            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="currentColor"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            {language === 'en' ? 'Sign in with Google' : 'Google से साइन इन करें'}
-          </Button>
-
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">
               {isSignUp ? texts[language].haveAccount : texts[language].noAccount}
             </span>{' '}
             <Button
               variant="link"
-              className="p-0 h-auto"
-              onClick={() => setIsSignUp(!isSignUp)}
+              className="p-0 h-auto font-semibold"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setPassword('');
+              }}
             >
               {isSignUp ? texts[language].signIn : texts[language].signUp}
             </Button>
