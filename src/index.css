@@ -2,52 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Rojgar Mela Design System - Indian Professional Theme
+/* Rojgar Mela Design System - Golden Yellow, White, Black Theme
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Base colors */
-    --background: 48 100% 99%;
-    --foreground: 240 10% 15%;
+    /* Base colors - White background */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 5%;
 
     /* Card colors */
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 15%;
+    --card-foreground: 0 0% 5%;
 
     /* Popover colors */
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 15%;
+    --popover-foreground: 0 0% 5%;
 
-    /* Primary - Saffron/Orange theme */
-    --primary: 24 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 30 100% 85%;
-    --primary-dark: 20 100% 40%;
+    /* Primary - Golden Yellow theme */
+    --primary: 45 100% 50%;
+    --primary-foreground: 0 0% 5%;
+    --primary-light: 48 100% 70%;
+    --primary-dark: 40 100% 40%;
 
-    /* Secondary - Success Green */
-    --secondary: 120 60% 35%;
+    /* Secondary - Black */
+    --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-light: 120 45% 85%;
+    --secondary-light: 0 0% 20%;
 
-    /* Accent - Professional Blue */
-    --accent: 220 90% 45%;
-    --accent-foreground: 0 0% 100%;
-    --accent-light: 220 45% 85%;
+    /* Accent - Golden */
+    --accent: 45 100% 45%;
+    --accent-foreground: 0 0% 5%;
+    --accent-light: 48 100% 75%;
 
     /* Muted colors */
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 45%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
     /* Destructive colors */
-    --destructive: 0 85% 60%;
+    --destructive: 0 85% 55%;
     --destructive-foreground: 0 0% 100%;
 
     /* Border and input */
-    --border: 240 6% 90%;
-    --input: 240 6% 95%;
-    --ring: 24 100% 50%;
+    --border: 45 30% 85%;
+    --input: 0 0% 95%;
+    --ring: 45 100% 50%;
 
     /* Custom Rojgar Mela colors */
     --urgent: 0 100% 50%;
@@ -55,19 +55,22 @@ All colors MUST be HSL.
     --verified: 120 100% 30%;
     --verified-foreground: 0 0% 100%;
     --warning: 45 100% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning-foreground: 0 0% 5%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-dark)));
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(120 60% 25%));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(240 5% 98%) 100%);
+    /* Gradients - Golden theme */
+    --gradient-primary: linear-gradient(135deg, hsl(45 100% 50%), hsl(40 100% 40%));
+    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 10%), hsl(0 0% 20%));
+    --gradient-hero: linear-gradient(135deg, hsl(45 100% 50%) 0%, hsl(40 100% 40%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(45 20% 98%) 100%);
+    --gradient-fab: linear-gradient(135deg, hsl(45 100% 50%) 0%, hsl(40 100% 40%) 100%);
 
     /* Shadows */
-    --shadow-sm: 0 2px 4px hsl(var(--primary) / 0.1);
-    --shadow-md: 0 4px 12px hsl(var(--primary) / 0.15);
-    --shadow-lg: 0 8px 25px hsl(var(--primary) / 0.2);
-    --shadow-card: 0 2px 8px hsl(240 10% 15% / 0.08);
+    --shadow-sm: 0 2px 4px hsl(0 0% 0% / 0.08);
+    --shadow-md: 0 4px 12px hsl(0 0% 0% / 0.12);
+    --shadow-lg: 0 8px 25px hsl(0 0% 0% / 0.15);
+    --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.08);
+    --shadow-elegant: 0 4px 20px hsl(45 100% 50% / 0.2);
+    --shadow-glow: 0 0 20px hsl(45 100% 50% / 0.3);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -76,95 +79,89 @@ All colors MUST be HSL.
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 45 100% 50%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 45 30% 95%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 45 30% 90%;
+    --sidebar-ring: 45 100% 50%;
   }
 
   .dark {
-    /* Base colors - Modern dark theme */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    /* Base colors - Black background */
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
 
     /* Card colors */
-    --card: 222 47% 14%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
 
     /* Popover colors */
-    --popover: 222 47% 14%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Primary - Orange theme */
-    --primary: 25 95% 53%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 30 100% 65%;
-    --primary-dark: 20 90% 45%;
+    /* Primary - Golden Yellow theme */
+    --primary: 45 100% 50%;
+    --primary-foreground: 0 0% 5%;
+    --primary-light: 48 100% 65%;
+    --primary-dark: 40 100% 40%;
 
-    /* Secondary - Green for nearby/success */
-    --secondary: 142 71% 45%;
-    --secondary-foreground: 0 0% 100%;
-    --secondary-light: 142 71% 65%;
+    /* Secondary - White */
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 5%;
+    --secondary-light: 0 0% 80%;
 
-    /* Accent - Blue theme */
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
-    --accent-light: 217 91% 75%;
+    /* Accent - Golden */
+    --accent: 45 100% 50%;
+    --accent-foreground: 0 0% 5%;
+    --accent-light: 48 100% 70%;
 
     /* Muted colors */
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
     /* Destructive colors */
-    --destructive: 0 85% 60%;
+    --destructive: 0 85% 55%;
     --destructive-foreground: 0 0% 100%;
 
     /* Border and input */
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 25 95% 53%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 45 100% 50%;
 
     /* Custom Rojgar Mela colors (dark mode) */
-    --urgent: 0 85% 60%;
+    --urgent: 0 85% 55%;
     --urgent-foreground: 0 0% 100%;
-    --verified: 142 71% 45%;
+    --verified: 120 70% 45%;
     --verified-foreground: 0 0% 100%;
-    --warning: 45 93% 58%;
-    --warning-foreground: 222 47% 11%;
+    --warning: 45 100% 55%;
+    --warning-foreground: 0 0% 5%;
 
-    /* Gradients (dark mode) - Orange to Blue */
-    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(20 90% 45%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(142 71% 35%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(217 91% 60%) 100%);
-    --gradient-fab: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(217 91% 60%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(222 47% 15%) 0%, hsl(222 47% 12%) 100%);
+    /* Gradients (dark mode) - Golden theme */
+    --gradient-primary: linear-gradient(135deg, hsl(45 100% 50%) 0%, hsl(40 100% 40%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 95%) 0%, hsl(0 0% 80%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(45 100% 50%) 0%, hsl(40 100% 40%) 100%);
+    --gradient-fab: linear-gradient(135deg, hsl(45 100% 50%) 0%, hsl(40 100% 40%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 12%) 0%, hsl(0 0% 8%) 100%);
 
-    /* Shadows (dark mode) - Enhanced for mobile */
+    /* Shadows (dark mode) */
     --shadow-sm: 0 2px 8px hsl(0 0% 0% / 0.4);
     --shadow-md: 0 4px 16px hsl(0 0% 0% / 0.5);
     --shadow-lg: 0 8px 32px hsl(0 0% 0% / 0.6);
     --shadow-card: 0 2px 12px hsl(0 0% 0% / 0.4);
-    --shadow-elegant: 0 4px 20px hsl(25 95% 53% / 0.15);
-    --shadow-glow: 0 0 20px hsl(25 95% 53% / 0.3);
+    --shadow-elegant: 0 4px 20px hsl(45 100% 50% / 0.2);
+    --shadow-glow: 0 0 20px hsl(45 100% 50% / 0.4);
 
     /* Sidebar colors */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 45 100% 50%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 45 100% 50%;
   }
 }
 

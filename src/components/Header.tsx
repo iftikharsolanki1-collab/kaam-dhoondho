@@ -1,8 +1,7 @@
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Globe, Bell, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import logoImage from '@/assets/rojgar-mela-logo.png';
+import logoImage from '@/assets/rojgar-mela-logo-new.png';
 
 interface HeaderProps {
   language: 'en' | 'hi';
@@ -56,19 +55,19 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
   };
 
   return (
-    <header className="bg-gradient-hero shadow-lg sticky top-0 z-50 border-b border-white/10">
+    <header className="bg-gradient-hero shadow-lg sticky top-0 z-50 border-b border-primary-dark/20">
       <div className="max-w-screen-xl mx-auto px-3 py-2.5">
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-md overflow-hidden">
+            <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center shadow-md overflow-hidden">
               <img 
                 src={logoImage} 
                 alt="रोज़गार मेला" 
-                className="w-7 h-7 object-contain"
+                className="w-9 h-9 object-contain"
               />
             </div>
-            <h1 className="text-white font-bold text-lg tracking-tight">
+            <h1 className="text-secondary font-bold text-lg tracking-tight">
               रोज़गार मेला
             </h1>
           </div>
@@ -80,7 +79,7 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
               variant="ghost"
               size="icon"
               onClick={handleLanguageToggle}
-              className="text-white hover:bg-white/10 transition-all w-9 h-9"
+              className="text-secondary hover:bg-secondary/10 transition-all w-9 h-9"
             >
               <Globe className="w-5 h-5" />
             </Button>
@@ -92,7 +91,7 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
                   variant="ghost"
                   size="icon"
                   onClick={handleNotificationClick}
-                  className="text-white hover:bg-white/10 relative transition-all w-9 h-9"
+                  className="text-secondary hover:bg-secondary/10 relative transition-all w-9 h-9"
                 >
                   <Bell className="w-5 h-5" />
                   {notificationCount > 0 && (
@@ -107,7 +106,7 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
                   variant="ghost"
                   size="icon"
                   onClick={handleProfileClick}
-                  className="text-white hover:bg-white/10 transition-all w-9 h-9"
+                  className="text-secondary hover:bg-secondary/10 transition-all w-9 h-9"
                 >
                   <User className="w-5 h-5" />
                 </Button>
@@ -117,7 +116,7 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
                 variant="ghost"
                 size="icon"
                 onClick={onLoginClick}
-                className="text-white hover:bg-white/10 transition-all w-9 h-9"
+                className="text-secondary hover:bg-secondary/10 transition-all w-9 h-9"
               >
                 <User className="w-5 h-5" />
               </Button>

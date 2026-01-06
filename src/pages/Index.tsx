@@ -10,18 +10,14 @@ import { PostServiceForm } from '@/components/PostServiceForm';
 import { GovernmentSchemes } from '@/components/GovernmentSchemes';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
-import { TrendingPage } from '@/components/TrendingPage';
 import ChatPage from '@/components/ChatPage';
 import { AuthPage } from '@/components/AuthPage';
 import { NotificationPage } from '@/components/NotificationPage';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, MapPin } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { getCurrentLocation, type Coordinates } from '@/lib/location';
 import { useNotificationBadges } from '@/hooks/useNotificationBadges';
-import heroImage from '@/assets/hero-marketplace.jpg';
 
 const Index = () => {
   const [language, setLanguage] = useState<'en' | 'hi'>('hi');
@@ -30,9 +26,6 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [showPostForm, setShowPostForm] = useState(false);
-  const [locationEnabled, setLocationEnabled] = useState(false);
-  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
-  const [locationRadius, setLocationRadius] = useState(25); // Default 25km radius
   const [posts, setPosts] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
@@ -121,27 +114,6 @@ const Index = () => {
     setSearchQuery(query);
   };
 
-  const handleNearbyJobs = async () => {
-    try {
-      const location = await getCurrentLocation();
-      setUserLocation(location);
-      setLocationEnabled(true);
-      toast({
-        title: language === 'en' ? 'Location Found' : 'स्थान मिल गया',
-        description: language === 'en' 
-          ? `Showing jobs within ${locationRadius}km` 
-          : `${locationRadius}किमी के भीतर के काम दिखा रहे हैं`,
-      });
-    } catch (error) {
-      console.error('Location error:', error);
-      toast({
-        title: language === 'en' ? 'Location Error' : 'स्थान त्रुटि',
-        description: language === 'en' 
-          ? 'Please enable location access in your browser' 
-          : 'कृपया अपने ब्राउज़र में स्थान पहुंच सक्षम करें',
-      });
-    }
-  };
 
   const handleFloatingActionClick = () => {
     if (!user) {
@@ -257,14 +229,6 @@ const Index = () => {
           </div>
         );
       
-      case 'trending':
-        return (
-          <div className="min-h-screen bg-background pt-20 pb-20">
-            <div className="container mx-auto px-4 py-4">
-              <TrendingPage language={language} />
-            </div>
-          </div>
-        );
       
       case 'profile':
         return (
@@ -325,16 +289,6 @@ const Index = () => {
                     />
                   </div>
                 </div>
-                
-                {/* Nearby Jobs Button */}
-                <Button 
-                  variant="secondary" 
-                  className="w-full rounded-xl h-11 shadow-md font-medium"
-                  onClick={handleNearbyJobs}
-                >
-                  <MapPin className={`w-4 h-4 mr-2 ${locationEnabled ? 'animate-pulse' : ''}`} />
-                  📍 आस-पास के काम खोजें
-                </Button>
               </div>
             </div>
 
@@ -358,25 +312,12 @@ const Index = () => {
 
             {/* Content Feed */}
             <div className="px-3 pb-20 pt-3">
-              {locationEnabled && (
-                <div className="mb-3 p-3 bg-secondary/10 rounded-xl border border-secondary/20 animate-fade-in">
-                  <div className="flex items-center gap-2 text-xs text-secondary">
-                    <MapPin className="w-4 h-4" />
-                    <span className="font-medium">
-                      {locationRadius}किमी के भीतर के परिणाम दिखा रहे हैं
-                    </span>
-                  </div>
-                </div>
-              )}
-              
               <div className="animate-fade-in">
                 {activeTab === 'employers' ? (
                   <JobFeed 
                     language={language} 
                     selectedSkill={selectedSkill} 
                     searchQuery={searchQuery}
-                    userLocation={userLocation}
-                    locationRadius={locationRadius}
                     onChatClick={handleChatClick}
                   />
                 ) : (
@@ -384,8 +325,6 @@ const Index = () => {
                     language={language} 
                     selectedSkill={selectedSkill} 
                     searchQuery={searchQuery}
-                    userLocation={userLocation}
-                    locationRadius={locationRadius}
                     onChatClick={handleChatClick}
                   />
                 )}

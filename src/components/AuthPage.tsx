@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Eye, EyeOff, Phone, Lock, User } from 'lucide-react';
-import { signUpSchema, signInSchema, type SignUpInput, type SignInInput } from '@/lib/validations';
+import { Phone, User } from 'lucide-react';
+import logoImage from '@/assets/rojgar-mela-logo-new.png';
 
 interface AuthPageProps {
   language: 'en' | 'hi';
@@ -15,9 +15,7 @@ interface AuthPageProps {
 export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -27,12 +25,12 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       signUp: 'Sign Up',
       phone: 'Phone Number',
       phonePlaceholder: 'Enter 10-digit number',
-      password: 'Password',
       name: 'Full Name',
+      namePlaceholder: 'Enter your full name',
       signInTitle: 'Welcome Back',
       signUpTitle: 'Create Account',
-      signInDescription: 'Sign in with your phone number',
-      signUpDescription: 'Register with your phone number',
+      signInDescription: 'Sign in with your phone number and name',
+      signUpDescription: 'Register with your phone number and name',
       noAccount: "Don't have an account?",
       haveAccount: 'Already have an account?',
       signInButton: 'Sign In',
@@ -44,22 +42,21 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       signInError: 'Failed to sign in',
       signUpError: 'Failed to create account',
       phoneError: 'Please enter a valid 10-digit phone number',
-      passwordError: 'Password must be at least 6 characters',
       nameError: 'Please enter your full name',
       phoneExists: 'This phone number is already registered',
-      invalidCredentials: 'Invalid phone number or password',
+      invalidCredentials: 'Invalid phone number or name',
     },
     hi: {
       signIn: 'साइन इन करें',
       signUp: 'साइन अप करें',
       phone: 'फ़ोन नंबर',
       phonePlaceholder: '10 अंकों का नंबर दर्ज करें',
-      password: 'पासवर्ड',
       name: 'पूरा नाम',
+      namePlaceholder: 'अपना पूरा नाम दर्ज करें',
       signInTitle: 'वापस स्वागत है',
       signUpTitle: 'खाता बनाएं',
-      signInDescription: 'अपने फ़ोन नंबर से साइन इन करें',
-      signUpDescription: 'अपने फ़ोन नंबर से पंजीकरण करें',
+      signInDescription: 'अपने फ़ोन नंबर और नाम से साइन इन करें',
+      signUpDescription: 'अपने फ़ोन नंबर और नाम से पंजीकरण करें',
       noAccount: 'कोई खाता नहीं है?',
       haveAccount: 'पहले से खाता है?',
       signInButton: 'साइन इन करें',
@@ -71,10 +68,9 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       signInError: 'साइन इन करने में विफल',
       signUpError: 'खाता बनाने में विफल',
       phoneError: 'कृपया एक वैध 10 अंकों का फ़ोन नंबर दर्ज करें',
-      passwordError: 'पासवर्ड कम से कम 6 अक्षर का होना चाहिए',
       nameError: 'कृपया अपना पूरा नाम दर्ज करें',
       phoneExists: 'यह फ़ोन नंबर पहले से पंजीकृत है',
-      invalidCredentials: 'अमान्य फ़ोन नंबर या पासवर्ड',
+      invalidCredentials: 'अमान्य फ़ोन नंबर या नाम',
     }
   };
 
@@ -82,25 +78,22 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
   const phoneToEmail = (phoneNumber: string) => `${phoneNumber}@rojgarmela.app`;
 
   const validateForm = () => {
-    try {
-      if (isSignUp) {
-        const data: SignUpInput = { name: name.trim(), phone: phone.trim(), password };
-        signUpSchema.parse(data);
-      } else {
-        const data: SignInInput = { phone: phone.trim(), password };
-        signInSchema.parse(data);
-      }
-      return true;
-    } catch (error: any) {
-      const firstError = error.errors?.[0];
-      if (firstError) {
-        toast({
-          title: firstError.message,
-          variant: "destructive",
-        });
-      }
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      toast({
+        title: texts[language].phoneError,
+        variant: "destructive",
+      });
       return false;
     }
+    if (!name.trim() || name.trim().length < 2) {
+      toast({
+        title: texts[language].nameError,
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,7 +103,10 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
     
     setIsLoading(true);
     const cleanPhone = phone.trim();
+    const cleanName = name.trim();
     const pseudoEmail = phoneToEmail(cleanPhone);
+    // Use name as password (simple auth without OTP)
+    const password = cleanName.toLowerCase().replace(/\s+/g, '');
 
     try {
       if (isSignUp) {
@@ -119,7 +115,7 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
           password,
           options: {
             data: {
-              name: name.trim(),
+              name: cleanName,
               phone: cleanPhone
             },
             emailRedirectTo: `${window.location.origin}/`
@@ -146,7 +142,6 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
               : 'अब आप अपने फ़ोन नंबर से साइन इन कर सकते हैं।',
           });
           setIsSignUp(false);
-          setPassword('');
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -181,10 +176,14 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-md shadow-lg border-primary/20">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-            <Phone className="w-8 h-8 text-primary" />
+          <div className="mx-auto mb-4 w-20 h-20 bg-background rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+            <img 
+              src={logoImage} 
+              alt="रोज़गार मेला" 
+              className="w-16 h-16 object-contain"
+            />
           </div>
           <CardTitle className="text-2xl font-bold">
             {isSignUp ? texts[language].signUpTitle : texts[language].signInTitle}
@@ -195,22 +194,20 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{texts[language].name}</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder={texts[language].name}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{texts[language].name}</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={texts[language].namePlaceholder}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="pl-10"
+                  required
+                />
               </div>
-            )}
+            </div>
             
             <div className="space-y-2">
               <label className="text-sm font-medium">{texts[language].phone}</label>
@@ -234,34 +231,10 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
                 />
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{texts[language].password}</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder={texts[language].password}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-              </div>
-            </div>
 
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full bg-primary text-primary-foreground hover:bg-primary-dark" 
               disabled={isLoading}
             >
               {isLoading 
@@ -277,10 +250,9 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
             </span>{' '}
             <Button
               variant="link"
-              className="p-0 h-auto font-semibold"
+              className="p-0 h-auto font-semibold text-primary"
               onClick={() => {
                 setIsSignUp(!isSignUp);
-                setPassword('');
               }}
             >
               {isSignUp ? texts[language].signIn : texts[language].signUp}

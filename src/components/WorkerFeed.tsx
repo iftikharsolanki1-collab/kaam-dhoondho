@@ -127,7 +127,6 @@ export const WorkerFeed = ({ language, selectedSkill, searchQuery, userLocation,
             isUrgent={worker.isUrgent}
             isVerified={worker.isVerified}
             language={language}
-            distance={worker.distance}
             onChatClick={onChatClick}
           />
         ))
