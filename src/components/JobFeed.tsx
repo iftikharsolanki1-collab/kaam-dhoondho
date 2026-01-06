@@ -122,7 +122,6 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
             isUrgent={job.isUrgent}
             isVerified={job.isVerified}
             language={language}
-            distance={job.distance}
             onChatClick={onChatClick}
           />
         ))

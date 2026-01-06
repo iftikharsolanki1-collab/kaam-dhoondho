@@ -1,6 +1,4 @@
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Home, FileText, TrendingUp, User, Settings, MessageCircle } from 'lucide-react';
+import { Home, User, MessageCircle } from 'lucide-react';
 
 interface NotificationCounts {
   chat: number;
@@ -20,13 +18,11 @@ export const BottomNavigation = ({ activeTab, onTabChange, language, notificatio
     en: {
       home: 'Home',
       chat: 'Chat',
-      trending: 'Trending',
       profile: 'Profile',
     },
     hi: {
       home: 'होम',
       chat: 'चैट',
-      trending: 'ट्रेंडिंग',
       profile: 'प्रोफ़ाइल',
     }
   };
@@ -40,7 +36,6 @@ export const BottomNavigation = ({ activeTab, onTabChange, language, notificatio
   const navItems = [
     { id: 'home', icon: Home, label: texts[language].home },
     { id: 'chat', icon: MessageCircle, label: texts[language].chat },
-    { id: 'trending', icon: TrendingUp, label: texts[language].trending },
     { id: 'profile', icon: User, label: texts[language].profile },
   ];
 

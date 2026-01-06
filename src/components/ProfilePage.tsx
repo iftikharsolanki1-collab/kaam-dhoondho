@@ -171,7 +171,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
       // Update profile in database
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ profile_photo_url: publicUrl })
+        .update({ avatar_url: publicUrl })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
