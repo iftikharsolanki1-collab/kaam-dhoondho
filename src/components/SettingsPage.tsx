@@ -12,11 +12,7 @@ import {
   User, 
   Bell, 
   Palette, 
-  HelpCircle, 
   LogOut, 
-  Edit,
-  MessageCircle,
-  MessageSquare,
   Moon,
   Sun
 } from 'lucide-react';
@@ -31,7 +27,6 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
   const [notifications, setNotifications] = useState({
     newJobs: true,
     messages: true,
-    schemes: false
   });
   
   const [theme, setTheme] = useState(() => {
@@ -41,7 +36,6 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
   const { toast } = useToast();
 
   useEffect(() => {
-    // Apply theme to document
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);
     localStorage.setItem('theme', theme);
@@ -55,16 +49,10 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
       notifications: 'Notifications',
       newJobs: 'New Job Notifications',
       messages: 'Message Notifications', 
-      schemes: 'Government Scheme Updates',
       appearance: 'Appearance',
       theme: 'Theme',
       themeLabel: 'Theme',
       language: 'Language',
-      support: 'Support & Help',
-      liveChat: 'Live Chat Support',
-      help: 'Help Center',
-      privacy: 'Privacy Policy',
-      terms: 'Terms of Service',
       logout: 'Log Out',
       logoutDesc: 'Sign out of your account',
       light: 'Light',
@@ -77,16 +65,10 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
       notifications: 'सूचनाएं',
       newJobs: 'नए काम की सूचनाएं',
       messages: 'संदेश सूचनाएं',
-      schemes: 'सरकारी योजना अपडेट',
       appearance: 'दिखावट',
       theme: 'थीम',
       themeLabel: 'थीम',
       language: 'भाषा',
-      support: 'समर्थन और सहायता',
-      liveChat: 'लाइव चैट समर्थन',
-      help: 'सहायता केंद्र',
-      privacy: 'प्राइवेसी पॉलिसी',
-      terms: 'सेवा की शर्तें',
       logout: 'लॉग आउट',
       logoutDesc: 'अपने खाते से साइन आउट करें',
       light: 'लाइट',
@@ -117,20 +99,10 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
   };
 
   const handleEditProfile = () => {
-    // Navigate to edit profile
     console.log('Edit profile clicked');
     toast({
       title: language === 'en' ? 'Feature Coming Soon' : 'सुविधा जल्द आ रही है',
       description: language === 'en' ? 'Profile editing will be available soon' : 'प्रोफाइल संपादन जल्द उपलब्ध होगा',
-    });
-  };
-
-  const handleLiveChat = () => {
-    // Open live chat support
-    console.log('Live chat clicked');
-    toast({
-      title: language === 'en' ? 'Support Chat' : 'सहायता चैट',
-      description: language === 'en' ? 'Live chat support will connect you with an agent' : 'लाइव चैट सहायता आपको एक एजेंट से जोड़ेगी',
     });
   };
 
@@ -206,21 +178,6 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
               }
             />
           </div>
-          
-          <Separator />
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="schemes" className="text-sm font-medium">
-              {texts[language].schemes}
-            </Label>
-            <Switch
-              id="schemes"
-              checked={notifications.schemes}
-              onCheckedChange={(checked) => 
-                setNotifications(prev => ({ ...prev, schemes: checked }))
-              }
-            />
-          </div>
         </CardContent>
       </Card>
 
@@ -291,26 +248,6 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Support & Help */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <HelpCircle className="w-5 h-5 mr-2 text-primary" />
-            {texts[language].support}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start transition-all duration-200 hover:scale-[1.02]" 
-            onClick={handleLiveChat}
-          >
-            <MessageSquare className="w-4 h-4 mr-3" />
-            {texts[language].liveChat}
-          </Button>
         </CardContent>
       </Card>
 

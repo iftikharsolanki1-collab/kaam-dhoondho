@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Phone, MessageCircle, CheckCircle } from 'lucide-react';
+import { MessageCircle, CheckCircle, Briefcase } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,14 +12,17 @@ interface JobCardProps {
   name: string;
   work: string;
   location: string;
-  rate: string;
+  rate?: string;
   details: string;
   photo?: string;
   isUrgent?: boolean;
   isVerified?: boolean;
   language: 'en' | 'hi';
   userId?: string;
+  phone?: string;
+  postType?: 'giver' | 'seeker';
   onChatClick?: (userId: string, name: string) => void;
+  onCardClick?: () => void;
 }
 
 export const JobCard = ({
@@ -34,7 +37,10 @@ export const JobCard = ({
   isVerified,
   language,
   userId,
-  onChatClick
+  phone,
+  postType,
+  onChatClick,
+  onCardClick
 }: JobCardProps) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
@@ -53,22 +59,20 @@ export const JobCard = ({
       urgent: 'Urgent',
       verified: 'Verified',
       chat: 'Chat',
-      call: 'Call',
+      jobGiver: 'Job Giver',
+      jobSeeker: 'Job Seeker',
     },
     hi: {
       urgent: 'तुरंत',
       verified: 'सत्यापित',
       chat: 'चैट',
-      call: 'कॉल',
+      jobGiver: 'काम देने वाले',
+      jobSeeker: 'काम करने वाले',
     }
   };
 
-  const handleCall = () => {
-    const phoneNumber = '9876543210';
-    window.open(`tel:+91${phoneNumber}`, '_self');
-  };
-
-  const handleChat = () => {
+  const handleChat = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
     if (!currentUser) {
       toast({
         title: language === 'en' ? 'Login Required' : 'लॉगिन आवश्यक',
@@ -88,12 +92,27 @@ export const JobCard = ({
     }
   };
 
+  const handleCardClick = () => {
+    if (onCardClick) {
+      onCardClick();
+    }
+  };
+
   return (
-    <Card className="shadow-card hover:shadow-lg transition-all duration-300 bg-gradient-card hover:scale-[1.02] animate-fade-in">
+    <Card 
+      className="shadow-card hover:shadow-lg transition-all duration-300 bg-gradient-card hover:scale-[1.02] animate-fade-in cursor-pointer"
+      onClick={handleCardClick}
+    >
       <CardContent className="p-4">
         {/* Header with badges */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex flex-wrap gap-2">
+            {postType && (
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary text-xs">
+                <Briefcase className="w-3 h-3 mr-1" />
+                {postType === 'giver' ? texts[language].jobGiver : texts[language].jobSeeker}
+              </Badge>
+            )}
             {isUrgent && (
               <Badge variant="destructive" className="bg-urgent text-urgent-foreground">
                 🔴 {texts[language].urgent}
@@ -113,7 +132,7 @@ export const JobCard = ({
           <Avatar className="w-12 h-12">
             <AvatarImage src={photo} alt={name} />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
-              {name.charAt(0)}
+              {name?.charAt(0)}
             </AvatarFallback>
           </Avatar>
           
@@ -122,10 +141,6 @@ export const JobCard = ({
             <p className="text-primary font-medium text-sm">{work}</p>
             <p className="text-muted-foreground text-sm mt-1 truncate">{location}</p>
           </div>
-          
-          <div className="text-right">
-            <p className="font-bold text-primary text-lg">{rate}</p>
-          </div>
         </div>
 
         {/* Details */}
@@ -133,28 +148,16 @@ export const JobCard = ({
           {details}
         </p>
 
-        {/* Action buttons */}
-        <div className="flex space-x-2">
-          <Button 
-            variant="default" 
-            size="sm" 
-            onClick={handleChat} 
-            className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
-          >
-            <MessageCircle className="w-4 h-4 mr-1" />
-            {texts[language].chat}
-          </Button>
-          
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            onClick={handleCall} 
-            className="flex-1 transition-all duration-200 hover:scale-105"
-          >
-            <Phone className="w-4 h-4 mr-1" />
-            {texts[language].call}
-          </Button>
-        </div>
+        {/* Chat button only */}
+        <Button 
+          variant="default" 
+          size="sm" 
+          onClick={handleChat} 
+          className="w-full bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
+        >
+          <MessageCircle className="w-4 h-4 mr-1" />
+          {texts[language].chat}
+        </Button>
       </CardContent>
     </Card>
   );

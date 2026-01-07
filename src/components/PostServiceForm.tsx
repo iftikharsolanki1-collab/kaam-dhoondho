@@ -5,9 +5,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Upload, X } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { MapPin, Upload, X, Briefcase } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { postServiceSchema } from '@/lib/validations';
+import { getJobCategories } from './SkillChips';
 
 interface PostServiceFormProps {
   language: 'en' | 'hi';
@@ -15,18 +16,10 @@ interface PostServiceFormProps {
   onSubmit: (serviceData: any) => void;
 }
 
-const skills = [
-  'Plumber', 'Mason', 'Painter', 'Electrician', 'Driver', 'Helper',
-  'Carpenter', 'Welder', 'Cook', 'Mechanic', 'Tailor', 'Gardener',
-  'Cleaner', 'Security Guard', 'Delivery', 'AC Technician', 'Beautician',
-  'Barber', 'Laundry', 'Tutor', 'Nurse', 'Caretaker', 'Construction',
-  'Tiles Work', 'Furniture', 'Pest Control', 'Packers & Movers',
-  'Event Staff', 'Photography', 'Computer Repair', 'Mobile Repair',
-  'Sales', 'Office Work', 'Other'
-];
-
 export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceFormProps) => {
   const { toast } = useToast();
+  const jobCategories = getJobCategories().filter(c => c.id !== '0');
+  
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -35,14 +28,18 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
     experience: '',
     description: '',
     location: '',
+    postType: 'seeker' as 'giver' | 'seeker',
     photos: [] as File[]
   });
 
   const texts = {
     en: {
       title: 'Offer Your Service',
-      name: 'Your Name',
-      phone: 'Phone Number',
+      postType: 'Post Type',
+      jobGiver: 'Job Givers / काम देने वाले',
+      jobSeeker: 'Job Seekers / काम करने वाले',
+      name: 'Contact Person Name',
+      phone: 'Mobile Number',
       skill: 'Your Skill',
       customSkill: 'Specify Skill',
       experience: 'Years of Experience',
@@ -51,13 +48,17 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
       photos: 'Add Photos/Videos',
       submit: 'Post Service',
       cancel: 'Cancel',
-      required: 'This field is required',
-      descriptionPlaceholder: 'Describe your experience, skills, and what services you provide...'
+      descriptionPlaceholder: 'Describe your experience, skills, and what services you provide...',
+      namePlaceholder: 'Enter contact person name',
+      mobilePlaceholder: 'Enter 10-digit number',
     },
     hi: {
       title: 'अपनी सेवा पेश करें',
-      name: 'आपका नाम',
-      phone: 'फोन नंबर',
+      postType: 'पोस्ट का प्रकार',
+      jobGiver: 'Job Givers / काम देने वाले',
+      jobSeeker: 'Job Seekers / काम करने वाले',
+      name: 'संपर्क व्यक्ति का नाम',
+      phone: 'मोबाइल नंबर',
       skill: 'आपका कौशल',
       customSkill: 'कौशल बताएं',
       experience: 'अनुभव के वर्ष',
@@ -66,8 +67,9 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
       photos: 'फोटो/वीडियो जोड़ें',
       submit: 'सेवा पोस्ट करें',
       cancel: 'रद्द करें',
-      required: 'यह फ़ील्ड आवश्यक है',
-      descriptionPlaceholder: 'अपने अनुभव, कौशल और सेवाओं का वर्णन करें...'
+      descriptionPlaceholder: 'अपने अनुभव, कौशल और सेवाओं का वर्णन करें...',
+      namePlaceholder: 'संपर्क व्यक्ति का नाम दर्ज करें',
+      mobilePlaceholder: '10 अंकों का नंबर दर्ज करें',
     }
   };
 
@@ -75,22 +77,43 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
     e.preventDefault();
     const finalSkill = formData.skill === 'Other' ? formData.customSkill : formData.skill;
     
-    // Validate input data using zod schema
-    const validationResult = postServiceSchema.safeParse({
-      skill: finalSkill,
-      experience: formData.experience || '0',
-      description: formData.description,
-      location: formData.location,
-      rate: '', // Optional field
-      phone: formData.phone,
-      name: formData.name
-    });
-
-    if (!validationResult.success) {
-      const errors = validationResult.error.issues.map(err => err.message).join(', ');
+    // Basic validation
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
       toast({
-        title: language === 'en' ? 'Validation Error' : 'सत्यापन त्रुटि',
-        description: errors,
+        title: language === 'en' ? 'Name is required' : 'नाम आवश्यक है',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(formData.phone.trim())) {
+      toast({
+        title: language === 'en' ? 'Please enter valid 10-digit number' : 'कृपया वैध 10 अंकों का नंबर दर्ज करें',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!finalSkill) {
+      toast({
+        title: language === 'en' ? 'Skill is required' : 'कौशल आवश्यक है',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.location.trim()) {
+      toast({
+        title: language === 'en' ? 'Location is required' : 'स्थान आवश्यक है',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.description.trim() || formData.description.trim().length < 10) {
+      toast({
+        title: language === 'en' ? 'Description must be at least 10 characters' : 'विवरण कम से कम 10 अक्षर होने चाहिए',
         variant: "destructive",
       });
       return;
@@ -99,7 +122,7 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
     const serviceData = {
       ...formData,
       skill: finalSkill,
-      work: finalSkill, // For compatibility with JobCard component
+      work: finalSkill,
       details: formData.description,
       mobile: formData.phone
     };
@@ -111,7 +134,7 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
       const newFiles = Array.from(e.target.files);
       setFormData(prev => ({
         ...prev,
-        photos: [...prev.photos, ...newFiles].slice(0, 5) // Limit to 5 files
+        photos: [...prev.photos, ...newFiles].slice(0, 5)
       }));
     }
   };
@@ -139,6 +162,34 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
         
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Post Type Selection */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium flex items-center">
+                <Briefcase className="w-4 h-4 mr-2 text-primary" />
+                {texts[language].postType} *
+              </Label>
+              <RadioGroup
+                value={formData.postType}
+                onValueChange={(value: 'giver' | 'seeker') => 
+                  setFormData(prev => ({ ...prev, postType: value }))
+                }
+                className="grid grid-cols-1 gap-2"
+              >
+                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted cursor-pointer">
+                  <RadioGroupItem value="giver" id="service-giver" />
+                  <Label htmlFor="service-giver" className="cursor-pointer flex-1">
+                    {texts[language].jobGiver}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted cursor-pointer">
+                  <RadioGroupItem value="seeker" id="service-seeker" />
+                  <Label htmlFor="service-seeker" className="cursor-pointer flex-1">
+                    {texts[language].jobSeeker}
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             {/* Name */}
             <div>
               <Label htmlFor="name" className="text-sm font-medium">
@@ -150,6 +201,7 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 required
                 className="mt-1"
+                placeholder={texts[language].namePlaceholder}
               />
             </div>
 
@@ -158,15 +210,23 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
               <Label htmlFor="phone" className="text-sm font-medium">
                 {texts[language].phone} *
               </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                required
-                className="mt-1"
-                placeholder="+91 9876543210"
-              />
+              <div className="relative mt-1">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
+                  +91
+                </div>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setFormData(prev => ({ ...prev, phone: value }));
+                  }}
+                  required
+                  className="pl-12"
+                  placeholder={texts[language].mobilePlaceholder}
+                />
+              </div>
             </div>
 
             {/* Skill */}
@@ -179,9 +239,14 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
                   <SelectValue placeholder={texts[language].skill} />
                 </SelectTrigger>
                 <SelectContent>
-                  {skills.map((skill) => (
-                    <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                  {jobCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.en}>
+                      {language === 'hi' ? category.hi : category.en}
+                    </SelectItem>
                   ))}
+                  <SelectItem value="Other">
+                    {language === 'hi' ? 'अन्य' : 'Other'}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -261,10 +326,10 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
                   multiple
                   onChange={handleFileChange}
                   className="hidden"
-                  id="file-upload"
+                  id="service-file-upload"
                 />
                 <Label
-                  htmlFor="file-upload"
+                  htmlFor="service-file-upload"
                   className="flex items-center justify-center w-full h-20 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50"
                 >
                   <Upload className="w-6 h-6 text-muted-foreground mr-2" />
@@ -272,7 +337,6 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
                 </Label>
               </div>
               
-              {/* Preview uploaded files */}
               {formData.photos.length > 0 && (
                 <div className="mt-2 space-y-2">
                   {formData.photos.map((file, index) => (
