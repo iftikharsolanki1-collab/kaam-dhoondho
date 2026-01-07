@@ -10,9 +10,10 @@ interface JobFeedProps {
   userLocation?: Coordinates | null;
   locationRadius?: number;
   onChatClick?: (userId: string, name: string) => void;
+  onCardClick?: (post: any) => void;
 }
 
-export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, locationRadius = 25, onChatClick }: JobFeedProps) => {
+export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, locationRadius = 25, onChatClick, onCardClick }: JobFeedProps) => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -22,7 +23,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
         const { data, error } = await supabase
           .from('posts')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: true }); // Oldest first - new posts NOT at top
 
         if (error) throw error;
         
@@ -36,8 +37,10 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
           rate: post.rate || '',
           details: post.description || '',
           photo: Array.isArray(post.photos) ? post.photos[0] : '',
+          phone: post.phone || '',
           isUrgent: post.is_urgent || false,
           isVerified: false,
+          postType: post.type === 'service' ? 'seeker' : 'giver',
         }));
 
         setJobs(formattedJobs);
@@ -51,16 +54,15 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
     loadPosts();
   }, []);
 
-  // Filter and sort jobs based on selected skill, search query, and location
+  // Filter and sort jobs
   const filteredJobs = jobs.filter(job => {
     const matchesSkill = selectedSkill === 'All' || job.work.toLowerCase().includes(selectedSkill.toLowerCase());
     const matchesSearch = !searchQuery || 
-      job.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.work.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.details.toLowerCase().includes(searchQuery.toLowerCase());
+      job.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.work?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.details?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Location-based filtering
     let matchesLocation = true;
     if (userLocation && job.coordinates) {
       const distance = calculateDistance(userLocation, job.coordinates);
@@ -70,7 +72,6 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
     return matchesSkill && matchesSearch && matchesLocation;
   })
   .map(job => {
-    // Add distance for sorting if user location is available
     let distance = null;
     if (userLocation && job.coordinates) {
       distance = calculateDistance(userLocation, job.coordinates);
@@ -78,11 +79,9 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
     return { ...job, distance };
   })
   .sort((a, b) => {
-    // Sort by distance if location is enabled, otherwise keep original order
     if (userLocation && a.distance !== null && b.distance !== null) {
       return a.distance - b.distance;
     }
-    // Prioritize urgent jobs
     if (a.isUrgent && !b.isUrgent) return -1;
     if (!a.isUrgent && b.isUrgent) return 1;
     return 0;
@@ -119,10 +118,13 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
             rate={job.rate}
             details={job.details}
             photo={job.photo}
+            phone={job.phone}
             isUrgent={job.isUrgent}
             isVerified={job.isVerified}
+            postType={job.postType}
             language={language}
             onChatClick={onChatClick}
+            onCardClick={() => onCardClick?.(job)}
           />
         ))
       )}

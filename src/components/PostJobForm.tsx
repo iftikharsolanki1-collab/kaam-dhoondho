@@ -5,11 +5,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Upload, AlertCircle, X } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { MapPin, Upload, AlertCircle, X, Briefcase } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { postJobSchema } from '@/lib/validations';
+import { getJobCategories } from './SkillChips';
 
 interface PostJobFormProps {
   language: 'en' | 'hi';
@@ -17,18 +17,10 @@ interface PostJobFormProps {
   onSubmit: (jobData: any) => void;
 }
 
-const skills = [
-  'Plumber', 'Mason', 'Painter', 'Electrician', 'Driver', 'Helper',
-  'Carpenter', 'Welder', 'Cook', 'Mechanic', 'Tailor', 'Gardener',
-  'Cleaner', 'Security Guard', 'Delivery', 'AC Technician', 'Beautician',
-  'Barber', 'Laundry', 'Tutor', 'Nurse', 'Caretaker', 'Construction',
-  'Tiles Work', 'Furniture', 'Pest Control', 'Packers & Movers',
-  'Event Staff', 'Photography', 'Computer Repair', 'Mobile Repair',
-  'Sales', 'Office Work', 'Other'
-];
-
 export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) => {
   const { toast } = useToast();
+  const jobCategories = getJobCategories().filter(c => c.id !== '0'); // Exclude "All"
+  
   const [formData, setFormData] = useState({
     name: '',
     work: '',
@@ -36,8 +28,7 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
     details: '',
     location: '',
     mobile: '',
-    rate: '',
-    rateType: 'daily',
+    postType: 'giver' as 'giver' | 'seeker',
     isUrgent: false,
     photos: [] as File[]
   });
@@ -45,43 +36,43 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
   const texts = {
     en: {
       title: 'Post a Job',
-      name: 'Your Name',
+      postType: 'Post Type',
+      jobGiver: 'Job Givers / काम देने वाले',
+      jobSeeker: 'Job Seekers / काम करने वाले',
+      name: 'Contact Person Name',
       work: 'Type of Work',
       customWork: 'Specify Work Type',
       details: 'Work Details',
       location: 'Location',
       mobile: 'Mobile Number',
-      rate: 'Rate',
-      daily: 'Per Day',
-      hourly: 'Per Hour',
-      monthly: 'Per Month',
       urgent: 'Mark as Urgent',
       photos: 'Add Photos/Videos',
       submit: 'Post Job',
       cancel: 'Cancel',
       required: 'This field is required',
       detailsPlaceholder: 'Describe the work in detail, requirements, timing, etc.',
-      ratePlaceholder: 'e.g., ₹500'
+      namePlaceholder: 'Enter contact person name',
+      mobilePlaceholder: 'Enter 10-digit number',
     },
     hi: {
       title: 'काम पोस्ट करें',
-      name: 'आपका नाम',
+      postType: 'पोस्ट का प्रकार',
+      jobGiver: 'Job Givers / काम देने वाले',
+      jobSeeker: 'Job Seekers / काम करने वाले',
+      name: 'संपर्क व्यक्ति का नाम',
       work: 'काम का प्रकार',
       customWork: 'काम का प्रकार बताएं',
       details: 'काम का विवरण',
       location: 'स्थान',
       mobile: 'मोबाइल नंबर',
-      rate: 'दर',
-      daily: 'प्रति दिन',
-      hourly: 'प्रति घंटा',
-      monthly: 'प्रति महीना',
       urgent: 'तुरंत का निशान लगाएं',
       photos: 'फोटो/वीडियो जोड़ें',
       submit: 'काम पोस्ट करें',
       cancel: 'रद्द करें',
       required: 'यह फ़ील्ड आवश्यक है',
       detailsPlaceholder: 'काम का विस्तार से वर्णन करें, आवश्यकताएं, समय आदि।',
-      ratePlaceholder: 'जैसे, ₹500'
+      namePlaceholder: 'संपर्क व्यक्ति का नाम दर्ज करें',
+      mobilePlaceholder: '10 अंकों का नंबर दर्ज करें',
     }
   };
 
@@ -89,21 +80,43 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
     e.preventDefault();
     const finalWork = formData.work === 'Other' ? formData.customWork : formData.work;
     
-    // Validate input data using zod schema
-    const validationResult = postJobSchema.safeParse({
-      title: finalWork,
-      description: formData.details,
-      location: formData.location,
-      rate: formData.rate,
-      phone: formData.mobile,
-      name: formData.name
-    });
-
-    if (!validationResult.success) {
-      const errors = validationResult.error.issues.map(err => err.message).join(', ');
+    // Basic validation
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
       toast({
-        title: language === 'en' ? 'Validation Error' : 'सत्यापन त्रुटि',
-        description: errors,
+        title: language === 'en' ? 'Name is required' : 'नाम आवश्यक है',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!finalWork) {
+      toast({
+        title: language === 'en' ? 'Work type is required' : 'काम का प्रकार आवश्यक है',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.location.trim()) {
+      toast({
+        title: language === 'en' ? 'Location is required' : 'स्थान आवश्यक है',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(formData.mobile.trim())) {
+      toast({
+        title: language === 'en' ? 'Please enter valid 10-digit number' : 'कृपया वैध 10 अंकों का नंबर दर्ज करें',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.details.trim() || formData.details.trim().length < 10) {
+      toast({
+        title: language === 'en' ? 'Details must be at least 10 characters' : 'विवरण कम से कम 10 अक्षर होने चाहिए',
         variant: "destructive",
       });
       return;
@@ -112,7 +125,6 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
     const jobData = {
       ...formData,
       work: finalWork,
-      rateDisplay: `₹${formData.rate}/${formData.rateType === 'daily' ? (language === 'en' ? 'day' : 'दिन') : formData.rateType === 'hourly' ? (language === 'en' ? 'hour' : 'घंटा') : (language === 'en' ? 'month' : 'महीना')}`
     };
     onSubmit(jobData);
   };
@@ -122,7 +134,7 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
       const newFiles = Array.from(e.target.files);
       setFormData(prev => ({
         ...prev,
-        photos: [...prev.photos, ...newFiles].slice(0, 5) // Limit to 5 files
+        photos: [...prev.photos, ...newFiles].slice(0, 5)
       }));
     }
   };
@@ -150,6 +162,34 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
         
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Post Type Selection */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium flex items-center">
+                <Briefcase className="w-4 h-4 mr-2 text-primary" />
+                {texts[language].postType} *
+              </Label>
+              <RadioGroup
+                value={formData.postType}
+                onValueChange={(value: 'giver' | 'seeker') => 
+                  setFormData(prev => ({ ...prev, postType: value }))
+                }
+                className="grid grid-cols-1 gap-2"
+              >
+                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted cursor-pointer">
+                  <RadioGroupItem value="giver" id="giver" />
+                  <Label htmlFor="giver" className="cursor-pointer flex-1">
+                    {texts[language].jobGiver}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted cursor-pointer">
+                  <RadioGroupItem value="seeker" id="seeker" />
+                  <Label htmlFor="seeker" className="cursor-pointer flex-1">
+                    {texts[language].jobSeeker}
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             {/* Name */}
             <div>
               <Label htmlFor="name" className="text-sm font-medium">
@@ -161,6 +201,7 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 required
                 className="mt-1"
+                placeholder={texts[language].namePlaceholder}
               />
             </div>
 
@@ -174,9 +215,14 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
                   <SelectValue placeholder={texts[language].work} />
                 </SelectTrigger>
                 <SelectContent>
-                  {skills.map((skill) => (
-                    <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                  {jobCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.en}>
+                      {language === 'hi' ? category.hi : category.en}
+                    </SelectItem>
                   ))}
+                  <SelectItem value="Other">
+                    {language === 'hi' ? 'अन्य' : 'Other'}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -219,44 +265,22 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
               <Label htmlFor="mobile" className="text-sm font-medium">
                 {texts[language].mobile} *
               </Label>
-              <Input
-                id="mobile"
-                type="tel"
-                value={formData.mobile}
-                onChange={(e) => setFormData(prev => ({ ...prev, mobile: e.target.value }))}
-                required
-                className="mt-1"
-                placeholder="+91 9876543210"
-              />
-            </div>
-
-            {/* Rate */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label htmlFor="rate" className="text-sm font-medium">
-                  {texts[language].rate} *
-                </Label>
+              <div className="relative mt-1">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
+                  +91
+                </div>
                 <Input
-                  id="rate"
-                  value={formData.rate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, rate: e.target.value }))}
+                  id="mobile"
+                  type="tel"
+                  value={formData.mobile}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setFormData(prev => ({ ...prev, mobile: value }));
+                  }}
                   required
-                  className="mt-1"
-                  placeholder={texts[language].ratePlaceholder}
+                  className="pl-12"
+                  placeholder={texts[language].mobilePlaceholder}
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">&nbsp;</Label>
-                <Select value={formData.rateType} onValueChange={(value) => setFormData(prev => ({ ...prev, rateType: value }))}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">{texts[language].daily}</SelectItem>
-                    <SelectItem value="hourly">{texts[language].hourly}</SelectItem>
-                    <SelectItem value="monthly">{texts[language].monthly}</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
@@ -310,7 +334,6 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
                 </Label>
               </div>
               
-              {/* Preview uploaded files */}
               {formData.photos.length > 0 && (
                 <div className="mt-2 space-y-2">
                   {formData.photos.map((file, index) => (

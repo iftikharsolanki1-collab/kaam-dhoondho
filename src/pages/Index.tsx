@@ -7,7 +7,7 @@ import { WorkerFeed } from '@/components/WorkerFeed';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { PostJobForm } from '@/components/PostJobForm';
 import { PostServiceForm } from '@/components/PostServiceForm';
-import { GovernmentSchemes } from '@/components/GovernmentSchemes';
+import { PostDetailPage } from '@/components/PostDetailPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
 import ChatPage from '@/components/ChatPage';
@@ -31,6 +31,7 @@ const Index = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [chatUserId, setChatUserId] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
   const { toast } = useToast();
   const { counts: notificationCounts, clearBadge } = useNotificationBadges(user?.id);
 
@@ -44,7 +45,6 @@ const Index = () => {
 
   // Auth state management
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
@@ -54,7 +54,6 @@ const Index = () => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -64,32 +63,16 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Load saved jobs from localStorage
-  useEffect(() => {
-    const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
-    console.log('Saved jobs loaded:', savedJobs);
-  }, []);
-
   const texts = {
     en: {
       searchPlaceholder: 'Search jobs, skills, or names...',
-      nearbyJobs: 'Find nearby jobs',
       heroTitle: 'Connect. Work. Grow.',
       heroSubtitle: 'Your local marketplace for skilled services',
-      postJob: 'Post a Job',
-      offerService: 'Offer Service',
-      trending: 'Trending Cards',
-      comingSoon: 'Coming soon...'
     },
     hi: {
       searchPlaceholder: 'काम, कौशल या नाम खोजें...',
-      nearbyJobs: 'आस-पास के काम खोजें',
       heroTitle: 'जुड़ें। काम करें। बढ़ें।',
       heroSubtitle: 'कुशल सेवाओं के लिए आपका स्थानीय बाज़ार',
-      postJob: 'काम पोस्ट करें',
-      offerService: 'सेवा दें',
-      trending: 'ट्रेंडिंग कार्ड',
-      comingSoon: 'जल्द आ रहा है...'
     }
   };
 
@@ -99,7 +82,7 @@ const Index = () => {
       id: Date.now().toString(),
       timestamp: new Date().toISOString()
     };
-    setPosts(prev => [newPost, ...prev]);
+    setPosts(prev => [...prev, newPost]); // Add at end instead of beginning
     console.log('Posted:', newPost);
     setShowPostForm(false);
     toast({
@@ -113,7 +96,6 @@ const Index = () => {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
-
 
   const handleFloatingActionClick = () => {
     if (!user) {
@@ -143,11 +125,8 @@ const Index = () => {
   };
 
   const handlePageChange = (page: string) => {
-    // Clear badge when user visits the page
     if (page === 'chat') {
       clearBadge('chat');
-    } else if (page === 'schemes') {
-      clearBadge('schemes');
     }
     setCurrentPage(page);
   };
@@ -164,10 +143,14 @@ const Index = () => {
     setCurrentPage('chat');
   };
 
+  const handleCardClick = (post: any) => {
+    setSelectedPost(post);
+    setCurrentPage('postDetail');
+  };
+
   const renderCurrentPage = () => {
     console.log('Current page state:', currentPage);
     
-    // Show loading while checking auth
     if (isLoading) {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center">
@@ -179,25 +162,24 @@ const Index = () => {
       );
     }
 
-    // Show auth page if not authenticated and trying to access protected pages
     const protectedPages = ['profile', 'settings', 'chat', 'notifications'];
     if (!user && protectedPages.includes(currentPage)) {
       return <AuthPage language={language} onSuccess={() => setCurrentPage('home')} />;
     }
 
-    // Show auth page when explicitly requested
     if (currentPage === 'auth') {
       return <AuthPage language={language} onSuccess={() => setCurrentPage('home')} />;
     }
 
     switch (currentPage) {
-      case 'schemes':
+      case 'postDetail':
         return (
-          <div className="min-h-screen bg-background pt-20 pb-20">
-            <div className="container mx-auto px-4 py-4">
-              <GovernmentSchemes language={language} />
-            </div>
-          </div>
+          <PostDetailPage
+            post={selectedPost}
+            language={language}
+            onBack={() => setCurrentPage('home')}
+            onChatClick={handleChatClick}
+          />
         );
       
       case 'chat':
@@ -229,7 +211,6 @@ const Index = () => {
           </div>
         );
       
-      
       case 'profile':
         return (
           <div className="min-h-screen bg-background pt-20 pb-20">
@@ -259,25 +240,23 @@ const Index = () => {
       default:
         return (
           <>
-            {/* Hero Section - Modern Mobile Design */}
+            {/* Hero Section */}
             <div className="bg-gradient-hero pt-4 pb-6 px-4">
               <div className="max-w-screen-xl mx-auto">
-                {/* Hero Text */}
                 <div className="text-center mb-5 animate-fade-in">
                   <h1 className="text-white text-2xl font-bold mb-1.5">
-                    जुड़ें। काम करें। बढ़ें।
+                    {texts[language].heroTitle}
                   </h1>
                   <p className="text-white/80 text-sm">
-                    कुशल सेवाओं के लिए आपका स्थानीय बाज़ार
+                    {texts[language].heroSubtitle}
                   </p>
                 </div>
                 
-                {/* Search Bar */}
                 <div className="mb-4">
                   <div className="relative">
                     <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                     <Input
-                      placeholder="काम, कौशल या नाम खोजें..."
+                      placeholder={texts[language].searchPlaceholder}
                       value={searchQuery}
                       onChange={(e) => handleSearch(e.target.value)}
                       className="pl-11 h-12 bg-card rounded-xl border-0 shadow-md text-base"
@@ -301,7 +280,7 @@ const Index = () => {
               />
             </div>
 
-            {/* Category Chips - Scrollable */}
+            {/* Category Chips - Auto Scrolling */}
             <div className="bg-card border-b border-border">
               <SkillChips 
                 language={language}
@@ -319,6 +298,7 @@ const Index = () => {
                     selectedSkill={selectedSkill} 
                     searchQuery={searchQuery}
                     onChatClick={handleChatClick}
+                    onCardClick={handleCardClick}
                   />
                 ) : (
                   <WorkerFeed 
@@ -326,12 +306,13 @@ const Index = () => {
                     selectedSkill={selectedSkill} 
                     searchQuery={searchQuery}
                     onChatClick={handleChatClick}
+                    onCardClick={handleCardClick}
                   />
                 )}
               </div>
             </div>
 
-            {/* FAB - Gradient Orange to Blue */}
+            {/* FAB */}
             <button
               onClick={handleFloatingActionClick}
               className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-fab rounded-full shadow-glow flex items-center justify-center text-white z-40 transition-all duration-300 hover:scale-110 active:scale-95"
