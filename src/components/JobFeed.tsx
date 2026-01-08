@@ -23,7 +23,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
         const { data, error } = await supabase
           .from('posts')
           .select('*')
-          .order('created_at', { ascending: true }); // Oldest first - new posts NOT at top
+          .order('created_at', { ascending: false }); // Newest first - new posts at top
 
         if (error) throw error;
         
