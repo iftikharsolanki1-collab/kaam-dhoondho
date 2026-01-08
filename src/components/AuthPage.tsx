@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Phone, User } from 'lucide-react';
+import { Phone, User, Lock } from 'lucide-react';
 import logoImage from '@/assets/rojgar-mela-logo-new.png';
 
 interface AuthPageProps {
@@ -16,6 +16,7 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -27,10 +28,12 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       phonePlaceholder: 'Enter 10-digit number',
       name: 'Full Name',
       namePlaceholder: 'Enter your full name',
+      password: 'Password',
+      passwordPlaceholder: 'Enter password (min 8 characters)',
       signInTitle: 'Welcome Back',
       signUpTitle: 'Create Account',
-      signInDescription: 'Sign in with your phone number and name',
-      signUpDescription: 'Register with your phone number and name',
+      signInDescription: 'Sign in with your phone number and password',
+      signUpDescription: 'Register with your phone number and password',
       noAccount: "Don't have an account?",
       haveAccount: 'Already have an account?',
       signInButton: 'Sign In',
@@ -43,8 +46,9 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       signUpError: 'Failed to create account',
       phoneError: 'Please enter a valid 10-digit phone number',
       nameError: 'Please enter your full name',
+      passwordError: 'Password must be at least 8 characters with letters and numbers',
       phoneExists: 'This phone number is already registered',
-      invalidCredentials: 'Invalid phone number or name',
+      invalidCredentials: 'Invalid phone number or password',
     },
     hi: {
       signIn: 'साइन इन करें',
@@ -53,10 +57,12 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       phonePlaceholder: '10 अंकों का नंबर दर्ज करें',
       name: 'पूरा नाम',
       namePlaceholder: 'अपना पूरा नाम दर्ज करें',
+      password: 'पासवर्ड',
+      passwordPlaceholder: 'पासवर्ड दर्ज करें (कम से कम 8 अक्षर)',
       signInTitle: 'वापस स्वागत है',
       signUpTitle: 'खाता बनाएं',
-      signInDescription: 'अपने फ़ोन नंबर और नाम से साइन इन करें',
-      signUpDescription: 'अपने फ़ोन नंबर और नाम से पंजीकरण करें',
+      signInDescription: 'अपने फ़ोन नंबर और पासवर्ड से साइन इन करें',
+      signUpDescription: 'अपने फ़ोन नंबर और पासवर्ड से पंजीकरण करें',
       noAccount: 'कोई खाता नहीं है?',
       haveAccount: 'पहले से खाता है?',
       signInButton: 'साइन इन करें',
@@ -69,13 +75,22 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       signUpError: 'खाता बनाने में विफल',
       phoneError: 'कृपया एक वैध 10 अंकों का फ़ोन नंबर दर्ज करें',
       nameError: 'कृपया अपना पूरा नाम दर्ज करें',
+      passwordError: 'पासवर्ड कम से कम 8 अक्षर का होना चाहिए जिसमें अक्षर और संख्या हो',
       phoneExists: 'यह फ़ोन नंबर पहले से पंजीकृत है',
-      invalidCredentials: 'अमान्य फ़ोन नंबर या नाम',
+      invalidCredentials: 'अमान्य फ़ोन नंबर या पासवर्ड',
     }
   };
 
   // Convert phone to pseudo-email for Supabase auth
   const phoneToEmail = (phoneNumber: string) => `${phoneNumber}@rojgarmela.app`;
+
+  // Validate password strength
+  const validatePassword = (pwd: string) => {
+    const hasMinLength = pwd.length >= 8;
+    const hasLetter = /[a-zA-Z]/.test(pwd);
+    const hasNumber = /\d/.test(pwd);
+    return hasMinLength && hasLetter && hasNumber;
+  };
 
   const validateForm = () => {
     const phoneRegex = /^[6-9]\d{9}$/;
@@ -86,9 +101,16 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
       });
       return false;
     }
-    if (!name.trim() || name.trim().length < 2) {
+    if (isSignUp && (!name.trim() || name.trim().length < 2)) {
       toast({
         title: texts[language].nameError,
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (!validatePassword(password)) {
+      toast({
+        title: texts[language].passwordError,
         variant: "destructive",
       });
       return false;
@@ -105,8 +127,6 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
     const cleanPhone = phone.trim();
     const cleanName = name.trim();
     const pseudoEmail = phoneToEmail(cleanPhone);
-    // Use name as password (simple auth without OTP)
-    const password = cleanName.toLowerCase().replace(/\s+/g, '');
 
     try {
       if (isSignUp) {
@@ -194,20 +214,22 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{texts[language].name}</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder={texts[language].namePlaceholder}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="pl-10"
-                  required
-                />
+            {isSignUp && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">{texts[language].name}</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder={texts[language].namePlaceholder}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
-            </div>
+            )}
             
             <div className="space-y-2">
               <label className="text-sm font-medium">{texts[language].phone}</label>
@@ -228,6 +250,22 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
                   }}
                   className="pl-20"
                   required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{texts[language].password}</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="password"
+                  placeholder={texts[language].passwordPlaceholder}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10"
+                  required
+                  minLength={8}
                 />
               </div>
             </div>

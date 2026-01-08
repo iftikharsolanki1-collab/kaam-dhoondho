@@ -154,16 +154,43 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
         return;
       }
 
-      // Get all users from profiles to create potential conversations
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .neq('user_id', user.id);
+      // Only load conversations where messages exist - not all profiles
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select('sender_id, receiver_id')
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
+      // Get unique user IDs from messages
+      const userIds = new Set<string>();
+      messages?.forEach(msg => {
+        if (msg.sender_id !== user.id) userIds.add(msg.sender_id);
+        if (msg.receiver_id !== user.id) userIds.add(msg.receiver_id);
+      });
+
+      // If we have a specific user to chat with, add them
+      if (initialChatUserId) {
+        userIds.add(initialChatUserId);
+      }
+
+      if (userIds.size === 0) {
+        setConversations([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Load only profiles we have conversations with (only name, no phone)
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id, name, avatar_url')
+        .in('user_id', Array.from(userIds));
+
+      if (profileError) throw profileError;
+
       // Convert profiles to conversations format
-      const conversationList: Conversation[] = profiles.map(profile => ({
+      const conversationList: Conversation[] = (profiles || []).map(profile => ({
         id: profile.user_id,
         name: profile.name || 'Unknown User',
         lastMessage: 'Start a conversation',

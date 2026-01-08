@@ -149,12 +149,40 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: language === 'en' ? 'Invalid file type' : 'अमान्य फ़ाइल प्रकार',
+        description: language === 'en' ? 'Only JPG, PNG, and WEBP images are allowed' : 'केवल JPG, PNG, और WEBP छवियाँ अनुमत हैं',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: language === 'en' ? 'File too large' : 'फ़ाइल बहुत बड़ी है',
+        description: language === 'en' ? 'Maximum file size is 5MB' : 'अधिकतम फ़ाइल आकार 5MB है',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Upload file to Supabase storage
-      const fileExt = file.name.split('.').pop();
+      // Use safe extension from MIME type
+      const extMap: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp'
+      };
+      const fileExt = extMap[file.type] || 'jpg';
       const fileName = `${user.id}/avatar.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
@@ -188,7 +216,6 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
       });
 
     } catch (error: any) {
-      console.error('Error uploading photo:', error);
       toast({
         title: language === 'en' ? 'Error' : 'त्रुटि',
         description: language === 'en' ? 'Failed to upload photo' : 'फोटो अपलोड करने में विफल',
