@@ -119,12 +119,6 @@ export const PostDetailPage = ({ post, language, onBack, onChatClick }: PostDeta
               <div>
                 <p className="text-sm text-muted-foreground">{texts[language].contactPerson}</p>
                 <h3 className="font-semibold text-lg text-foreground">{post.name}</h3>
-                {post.phone && (
-                  <p className="text-sm text-muted-foreground flex items-center mt-1">
-                    <Phone className="w-3 h-3 mr-1" />
-                    +91 {post.phone}
-                  </p>
-                )}
               </div>
             </div>
 
