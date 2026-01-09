@@ -26,7 +26,7 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [showPostForm, setShowPostForm] = useState(false);
-  const [posts, setPosts] = useState<any[]>([]);
+  const [postsRefreshKey, setPostsRefreshKey] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,21 +76,78 @@ const Index = () => {
     }
   };
 
-  const handlePostSubmit = (data: any) => {
-    const newPost = {
-      ...data,
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString()
+
+  // Hardware/browser back button: go to Home instead of closing the app
+  useEffect(() => {
+    // Always ensure there is a "home" entry in history
+    window.history.replaceState({ page: 'home' }, '');
+    window.history.pushState({ page: 'home' }, '');
+
+    const onPopState = (e: PopStateEvent) => {
+      const page = (e.state as any)?.page ?? 'home';
+
+      if (page === 'home') {
+        setCurrentPage('home');
+        // Re-push home so next back doesn't close the app
+        window.history.pushState({ page: 'home' }, '');
+        return;
+      }
+
+      setCurrentPage(page);
     };
-    setPosts(prev => [...prev, newPost]); // Add at end instead of beginning
-    console.log('Posted:', newPost);
-    setShowPostForm(false);
-    toast({
-      title: language === 'en' ? 'Success!' : 'सफलता!',
-      description: language === 'en' 
-        ? 'Your post has been published successfully.' 
-        : 'आपकी पोस्ट सफलतापूर्वक प्रकाशित हो गई है।',
-    });
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  // Sync internal navigation into browser history
+  useEffect(() => {
+    if (currentPage === 'home') {
+      window.history.replaceState({ page: 'home' }, '');
+      return;
+    }
+    window.history.pushState({ page: currentPage }, '');
+  }, [currentPage]);
+
+  const handlePostSubmit = async (data: any) => {
+    if (!user) return;
+
+    try {
+      const postType = activeTab === 'workers' ? 'service' : 'job';
+
+      const payload = {
+        user_id: user.id,
+        title: data.work || '',
+        description: data.details || '',
+        location: data.location || '',
+        name: data.name || '',
+        phone: data.mobile || '',
+        is_urgent: !!data.isUrgent,
+        type: postType,
+        photos: null as string[] | null,
+      };
+
+      const { error } = await supabase.from('posts').insert(payload);
+      if (error) throw error;
+
+      setPostsRefreshKey((k) => k + 1);
+      setShowPostForm(false);
+
+      toast({
+        title: language === 'en' ? 'Success!' : 'सफलता!',
+        description:
+          language === 'en'
+            ? 'Your post has been published successfully.'
+            : 'आपकी पोस्ट सफलतापूर्वक प्रकाशित हो गई है।',
+      });
+    } catch (err: any) {
+      console.error('Post submit failed:', err);
+      toast({
+        title: language === 'en' ? 'Post failed' : 'पोस्ट नहीं हुई',
+        description: err?.message || (language === 'en' ? 'Please try again.' : 'कृपया फिर से कोशिश करें।'),
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleSearch = (query: string) => {
@@ -297,6 +354,7 @@ const Index = () => {
                     language={language} 
                     selectedSkill={selectedSkill} 
                     searchQuery={searchQuery}
+                    refreshKey={postsRefreshKey}
                     onChatClick={handleChatClick}
                     onCardClick={handleCardClick}
                   />
@@ -305,6 +363,7 @@ const Index = () => {
                     language={language} 
                     selectedSkill={selectedSkill} 
                     searchQuery={searchQuery}
+                    refreshKey={postsRefreshKey}
                     onChatClick={handleChatClick}
                     onCardClick={handleCardClick}
                   />
