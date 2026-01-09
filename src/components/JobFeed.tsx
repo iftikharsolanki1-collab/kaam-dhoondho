@@ -7,13 +7,14 @@ interface JobFeedProps {
   language: 'en' | 'hi';
   selectedSkill: string;
   searchQuery: string;
+  refreshKey?: number;
   userLocation?: Coordinates | null;
   locationRadius?: number;
   onChatClick?: (userId: string, name: string) => void;
   onCardClick?: (post: any) => void;
 }
 
-export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, locationRadius = 25, onChatClick, onCardClick }: JobFeedProps) => {
+export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, userLocation, locationRadius = 25, onChatClick, onCardClick }: JobFeedProps) => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -23,11 +24,12 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
         const { data, error } = await supabase
           .from('posts')
           .select('*')
+          .neq('type', 'service')
           .order('created_at', { ascending: false }); // Newest first - new posts at top
 
         if (error) throw error;
-        
-        const formattedJobs = (data || []).map(post => ({
+
+        const formattedJobs = (data || []).map((post) => ({
           id: post.id,
           userId: post.user_id,
           name: post.name,
@@ -40,7 +42,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
           phone: post.phone || '',
           isUrgent: post.is_urgent || false,
           isVerified: false,
-          postType: post.type === 'service' ? 'seeker' : 'giver',
+          postType: 'giver' as const,
         }));
 
         setJobs(formattedJobs);
@@ -52,7 +54,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, userLocation, lo
     };
 
     loadPosts();
-  }, []);
+  }, [refreshKey]);
 
   // Filter and sort jobs
   const filteredJobs = jobs.filter(job => {
