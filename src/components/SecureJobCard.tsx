@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Calendar, Phone, MessageSquare } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface SecureJobCardProps {
@@ -33,20 +32,22 @@ export const SecureJobCard = ({ post, currentUserId, language, onContactClick }:
     en: {
       contact: 'Contact',
       message: 'Message',
-      phoneHidden: 'Phone number hidden - contact through app',
+      call: 'Call',
       posted: 'Posted'
     },
     hi: {
       contact: 'संपर्क करें',
       message: 'संदेश',
-      phoneHidden: 'फोन नंबर छुपा है - ऐप के माध्यम से संपर्क करें',
+      call: 'कॉल करें',
       posted: 'पोस्ट किया गया'
     }
   };
 
-  const maskPhoneNumber = (phone: string) => {
-    if (!phone || phone.length < 6) return phone;
-    return phone.substring(0, 3) + '****' + phone.slice(-2);
+  const handleCall = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (post.phone) {
+      window.open(`tel:+91${post.phone}`, '_self');
+    }
   };
 
   const handleContactClick = async () => {
@@ -99,28 +100,28 @@ export const SecureJobCard = ({ post, currentUserId, language, onContactClick }:
             <span>{texts[language].posted}: {formatDate(post.created_at)}</span>
           </div>
           
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Phone className="h-4 w-4" />
-            <span>
-              {isOwnPost || currentUserId ? post.phone : maskPhoneNumber(post.phone)}
-            </span>
-            {!isOwnPost && !currentUserId && (
-              <span className="text-xs text-orange-600">
-                {texts[language].phoneHidden}
-              </span>
-            )}
-          </div>
         </div>
         
         {!isOwnPost && (
-          <Button 
-            onClick={handleContactClick}
-            className="w-full"
-            size="sm"
-          >
-            <MessageSquare className="h-4 w-4 mr-2" />
-            {texts[language].message}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleContactClick}
+              className="flex-1"
+              size="sm"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              {texts[language].message}
+            </Button>
+            {post.phone && (
+              <Button 
+                onClick={handleCall}
+                variant="secondary"
+                size="sm"
+              >
+                <Phone className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>
