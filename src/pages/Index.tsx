@@ -35,9 +35,9 @@ const Index = () => {
   const { toast } = useToast();
   const { counts: notificationCounts, clearBadge } = useNotificationBadges(user?.id);
 
-  // Initialize dark theme
+  // Initialize light theme as default
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
+    const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(savedTheme);
     localStorage.setItem('theme', savedTheme);

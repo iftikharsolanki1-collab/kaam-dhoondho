@@ -108,8 +108,8 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
       language: 'Language',
       support: 'Support & Help',
       liveChat: 'Live Chat Support',
-      logout: 'Log Out',
-      logoutDesc: 'Sign out of your account',
+      logout: 'Delete Account',
+      logoutDesc: 'Permanently delete your account and all data',
       light: 'Light',
       dark: 'Dark'
     },
@@ -138,8 +138,8 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
       language: 'भाषा',
       support: 'समर्थन और सहायता',
       liveChat: 'लाइव चैट समर्थन',
-      logout: 'लॉग आउट',
-      logoutDesc: 'अपने खाते से साइन आउट करें',
+      logout: 'खाता हटाएं',
+      logoutDesc: 'अपना खाता और सभी डेटा स्थायी रूप से हटाएं',
       light: 'लाइट',
       dark: 'डार्क'
     }
@@ -238,12 +238,27 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
 
   const handleLogout = async () => {
     try {
+      // Get current user before signing out
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Delete user's data from all tables
+        await supabase.from('posts').delete().eq('user_id', user.id);
+        await supabase.from('saved_posts').delete().eq('user_id', user.id);
+        await supabase.from('messages').delete().or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+        await supabase.from('notifications').delete().eq('user_id', user.id);
+        await supabase.from('profiles').delete().eq('user_id', user.id);
+        await supabase.from('user_preferences').delete().eq('user_id', user.id);
+        await supabase.from('user_favorites').delete().eq('user_id', user.id);
+        await supabase.from('post_contacts').delete().eq('user_id', user.id);
+      }
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
       toast({
-        title: language === 'en' ? 'Logged out' : 'लॉग आउट हो गए',
-        description: language === 'en' ? 'You have been logged out successfully' : 'आप सफलतापूर्वक लॉग आउट हो गए हैं',
+        title: language === 'en' ? 'Account Deleted' : 'खाता हटाया गया',
+        description: language === 'en' ? 'Your account has been permanently deleted' : 'आपका खाता स्थायी रूप से हटा दिया गया है',
       });
 
       if (onLogout) {
@@ -623,12 +638,12 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  {language === 'en' ? 'Are you sure?' : 'क्या आप निश्चित हैं?'}
+                  {language === 'en' ? 'Delete Account?' : 'खाता हटाएं?'}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   {language === 'en' 
-                    ? 'You will be logged out of your account.' 
-                    : 'आप अपने खाते से लॉग आउट हो जाएंगे।'}
+                    ? 'This will permanently delete your account and all your data. This action cannot be undone.' 
+                    : 'यह आपके खाते और सभी डेटा को स्थायी रूप से हटा देगा। यह क्रिया पूर्ववत नहीं की जा सकती।'}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -636,7 +651,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
                   {language === 'en' ? 'Cancel' : 'रद्द करें'}
                 </AlertDialogCancel>
                 <AlertDialogAction onClick={handleLogout}>
-                  {language === 'en' ? 'Log Out' : 'लॉग आउट'}
+                  {language === 'en' ? 'Delete Account' : 'खाता हटाएं'}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
