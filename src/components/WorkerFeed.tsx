@@ -30,15 +30,16 @@ export const WorkerFeed = ({
   useEffect(() => {
     const loadPosts = async () => {
       try {
+        // Use posts_secure view to protect phone numbers - phone is only shown to owner or after chat
         const { data, error } = await supabase
-          .from('posts')
+          .from('posts_secure' as 'posts')
           .select('*')
           .eq('type', 'service')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        const formatted = (data || []).map((post) => ({
+        const formatted = (data || []).map((post: any) => ({
           id: post.id,
           userId: post.user_id,
           name: post.name,

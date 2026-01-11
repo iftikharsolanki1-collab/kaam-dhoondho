@@ -21,15 +21,16 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
   useEffect(() => {
     const loadPosts = async () => {
       try {
+        // Use posts_secure view to protect phone numbers - phone is only shown to owner or after chat
         const { data, error } = await supabase
-          .from('posts')
+          .from('posts_secure' as 'posts')
           .select('*')
           .neq('type', 'service')
           .order('created_at', { ascending: false }); // Newest first - new posts at top
 
         if (error) throw error;
 
-        const formattedJobs = (data || []).map((post) => ({
+        const formattedJobs = (data || []).map((post: any) => ({
           id: post.id,
           userId: post.user_id,
           name: post.name,

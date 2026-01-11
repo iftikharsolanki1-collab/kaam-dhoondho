@@ -219,8 +219,8 @@ const Index = () => {
       );
     }
 
-    const protectedPages = ['profile', 'settings', 'chat', 'notifications'];
-    if (!user && protectedPages.includes(currentPage)) {
+    // Show auth page first for unauthenticated users
+    if (!user) {
       return <AuthPage language={language} onSuccess={() => setCurrentPage('home')} />;
     }
 
