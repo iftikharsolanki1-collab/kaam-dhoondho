@@ -208,6 +208,13 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "post_contacts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       posts: {
@@ -375,6 +382,13 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       skills: {
@@ -436,6 +450,13 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_favorites_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_preferences: {
@@ -470,10 +491,94 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      posts_secure: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          description: string | null
+          experience: string | null
+          id: string | null
+          is_urgent: boolean | null
+          is_verified: boolean | null
+          location: string | null
+          name: string | null
+          phone: string | null
+          photos: string[] | null
+          rate: string | null
+          skill_id: string | null
+          title: string | null
+          type: string | null
+          updated_at: string | null
+          user_id: string | null
+          video_url: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          experience?: string | null
+          id?: string | null
+          is_urgent?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          name?: string | null
+          phone?: never
+          photos?: string[] | null
+          rate?: string | null
+          skill_id?: string | null
+          title?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          experience?: string | null
+          id?: string | null
+          is_urgent?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          name?: string | null
+          phone?: never
+          photos?: string[] | null
+          rate?: string | null
+          skill_id?: string | null
+          title?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_post_phone: {
+        Args: { post_phone: string; post_user_id: string }
+        Returns: string
+      }
+      has_contact_with_user: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
