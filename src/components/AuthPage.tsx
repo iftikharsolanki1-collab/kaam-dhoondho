@@ -135,7 +135,7 @@ export const AuthPage = ({ language, onSuccess }: AuthPageProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg border-primary/20">
+      <Card className="w-full max-w-md shadow-lg border-border">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 w-20 h-20 bg-background rounded-full flex items-center justify-center shadow-lg overflow-hidden">
             <img 
