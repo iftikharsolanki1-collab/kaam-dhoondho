@@ -17,9 +17,10 @@ interface ProfilePageProps {
   language: 'en' | 'hi';
   onLanguageChange?: (lang: 'en' | 'hi') => void;
   onLogout?: () => void;
+  onProfileUpdate?: () => void;
 }
 
-export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePageProps) => {
+export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
   const [profile, setProfile] = useState({
@@ -247,6 +248,11 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
         ...prev,
         profilePhoto: publicUrl
       }));
+
+      // Notify parent to refresh header
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
 
       toast({
         title: language === 'en' ? 'Success!' : 'सफलता!',

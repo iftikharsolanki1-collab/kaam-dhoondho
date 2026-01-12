@@ -27,6 +27,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showPostForm, setShowPostForm] = useState(false);
   const [postsRefreshKey, setPostsRefreshKey] = useState(0);
+  const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -276,6 +277,7 @@ const Index = () => {
                 language={language}
                 onLanguageChange={setLanguage}
                 onLogout={handleLogout}
+                onProfileUpdate={() => setProfileRefreshKey(k => k + 1)}
               />
             </div>
           </div>
@@ -393,6 +395,7 @@ const Index = () => {
         notificationCount={notificationCounts.notifications}
         isLoggedIn={!!user}
         onLoginClick={() => setCurrentPage('auth')}
+        refreshKey={profileRefreshKey}
       />
       {renderCurrentPage()}
       <BottomNavigation 

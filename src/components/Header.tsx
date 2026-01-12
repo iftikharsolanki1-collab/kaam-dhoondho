@@ -14,9 +14,10 @@ interface HeaderProps {
   notificationCount?: number;
   isLoggedIn?: boolean;
   onLoginClick?: () => void;
+  refreshKey?: number;
 }
 
-export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick, notificationCount = 0, isLoggedIn = false, onLoginClick }: HeaderProps) => {
+export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick, notificationCount = 0, isLoggedIn = false, onLoginClick, refreshKey = 0 }: HeaderProps) => {
   const { toast } = useToast();
   const [profilePhoto, setProfilePhoto] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
@@ -52,7 +53,7 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
     };
 
     loadProfile();
-  }, [isLoggedIn]);
+  }, [isLoggedIn, refreshKey]);
 
   const handleLanguageToggle = () => {
     const newLang = language === 'en' ? 'hi' : 'en';
