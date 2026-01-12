@@ -115,6 +115,7 @@ const Index = () => {
 
     try {
       const postType = activeTab === 'workers' ? 'service' : 'job';
+      const phoneNumber = data.mobile || data.phone || '';
 
       const payload = {
         user_id: user.id,
@@ -122,14 +123,25 @@ const Index = () => {
         description: data.details || '',
         location: data.location || '',
         name: data.name || '',
-        phone: data.mobile || '',
         is_urgent: !!data.isUrgent,
         type: postType,
         photos: null as string[] | null,
       };
 
-      const { error } = await supabase.from('posts').insert(payload);
+      // Insert post first
+      const { data: newPost, error } = await supabase.from('posts').insert(payload).select('id').single();
       if (error) throw error;
+
+      // Insert phone into separate secure table
+      if (phoneNumber && newPost?.id) {
+        const { error: phoneError } = await supabase.from('post_phone_numbers').insert({
+          post_id: newPost.id,
+          phone: phoneNumber
+        });
+        if (phoneError) {
+          console.error('Failed to save phone number:', phoneError);
+        }
+      }
 
       setPostsRefreshKey((k) => k + 1);
       setShowPostForm(false);

@@ -217,6 +217,42 @@ export type Database = {
           },
         ]
       }
+      post_phone_numbers: {
+        Row: {
+          created_at: string
+          id: string
+          phone: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          phone: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          phone?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_phone_numbers_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_phone_numbers_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "posts_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           category_id: string | null
@@ -511,46 +547,6 @@ export type Database = {
           updated_at: string | null
           user_id: string | null
           video_url: string | null
-        }
-        Insert: {
-          category_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          experience?: string | null
-          id?: string | null
-          is_urgent?: boolean | null
-          is_verified?: boolean | null
-          location?: string | null
-          name?: string | null
-          phone?: never
-          photos?: string[] | null
-          rate?: string | null
-          skill_id?: string | null
-          title?: string | null
-          type?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          video_url?: string | null
-        }
-        Update: {
-          category_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          experience?: string | null
-          id?: string | null
-          is_urgent?: boolean | null
-          is_verified?: boolean | null
-          location?: string | null
-          name?: string | null
-          phone?: never
-          photos?: string[] | null
-          rate?: string | null
-          skill_id?: string | null
-          title?: string | null
-          type?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          video_url?: string | null
         }
         Relationships: [
           {
