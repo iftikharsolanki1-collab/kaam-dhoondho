@@ -44,8 +44,8 @@ All colors MUST be HSL.
     --destructive: 0 85% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Border and input - Golden tint */
-    --border: 45 25% 88%;
+    /* Border and input - Visible golden tint */
+    --border: 45 30% 78%;
     --input: 45 10% 96%;
     --ring: 45 100% 50%;
 
