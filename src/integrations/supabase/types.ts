@@ -264,7 +264,6 @@ export type Database = {
           is_verified: boolean | null
           location: string | null
           name: string | null
-          phone: string | null
           photos: string[] | null
           rate: string | null
           skill_id: string | null
@@ -284,7 +283,6 @@ export type Database = {
           is_verified?: boolean | null
           location?: string | null
           name?: string | null
-          phone?: string | null
           photos?: string[] | null
           rate?: string | null
           skill_id?: string | null
@@ -304,7 +302,6 @@ export type Database = {
           is_verified?: boolean | null
           location?: string | null
           name?: string | null
-          phone?: string | null
           photos?: string[] | null
           rate?: string | null
           skill_id?: string | null
