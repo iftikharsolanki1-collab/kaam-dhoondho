@@ -579,6 +579,16 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      send_notification: {
+        Args: {
+          notif_message: string
+          notif_related_id?: string
+          notif_title: string
+          notif_type?: string
+          recipient_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
