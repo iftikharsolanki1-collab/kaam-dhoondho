@@ -1,6 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Globe, Bell, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import logoImage from '@/assets/rojgar-mela-logo-new.png';
 
 interface HeaderProps {
@@ -15,6 +18,41 @@ interface HeaderProps {
 
 export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick, notificationCount = 0, isLoggedIn = false, onLoginClick }: HeaderProps) => {
   const { toast } = useToast();
+  const [profilePhoto, setProfilePhoto] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
+
+  // Load user profile data for avatar
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!isLoggedIn) {
+        setProfilePhoto('');
+        setUserName('');
+        return;
+      }
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('avatar_url, name')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profileData) {
+          setProfilePhoto(profileData.avatar_url || '');
+          setUserName(profileData.name || '');
+        } else {
+          setUserName(user.user_metadata?.name || '');
+        }
+      } catch (error) {
+        console.error('Error loading profile for header:', error);
+      }
+    };
+
+    loadProfile();
+  }, [isLoggedIn]);
 
   const handleLanguageToggle = () => {
     const newLang = language === 'en' ? 'hi' : 'en';
@@ -102,14 +140,17 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
                 </Button>
 
                 {/* Profile */}
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <button
                   onClick={handleProfileClick}
-                  className="text-secondary hover:bg-secondary/10 transition-all w-9 h-9"
+                  className="hover:opacity-80 transition-all"
                 >
-                  <User className="w-5 h-5" />
-                </Button>
+                  <Avatar className="w-9 h-9 border-2 border-secondary/30">
+                    <AvatarImage src={profilePhoto} alt={userName} />
+                    <AvatarFallback className="bg-secondary/20 text-secondary text-sm font-bold">
+                      {userName.charAt(0).toUpperCase() || <User className="w-4 h-4" />}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
               </>
             ) : (
               <Button

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Mail, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun } from 'lucide-react';
+import { User, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun } from 'lucide-react';
 
 interface ProfilePageProps {
   language: 'en' | 'hi';
@@ -23,11 +23,10 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
   const [isEditing, setIsEditing] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
   const [profile, setProfile] = useState({
-    name: 'Rajesh Kumar',
-    email: 'rajesh.kumar@email.com',
-    phone: '+91 9876543210',
-    location: 'Delhi, India',
-    joinDate: '2024-01-15',
+    name: '',
+    phone: '',
+    location: '',
+    joinDate: '',
     profilePhoto: ''
   });
   const [notifications, setNotifications] = useState({
@@ -45,6 +44,47 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
     document.documentElement.classList.add(theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Load profile data from database
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+
+        if (profileData) {
+          setProfile({
+            name: profileData.name || '',
+            phone: profileData.phone || '',
+            location: profileData.location || '',
+            joinDate: profileData.created_at || '',
+            profilePhoto: profileData.avatar_url || ''
+          });
+        } else {
+          // Fallback to user metadata if profile not found
+          setProfile({
+            name: user.user_metadata?.name || '',
+            phone: user.user_metadata?.phone || '',
+            location: '',
+            joinDate: user.created_at || '',
+            profilePhoto: ''
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   // Load saved jobs from Supabase instead of localStorage for security
   useEffect(() => {
@@ -88,7 +128,6 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
       personalInfo: 'Personal Information',
       savedJobs: 'Saved Jobs',
       name: 'Name',
-      email: 'Email',
       phone: 'Phone',
       location: 'Location',
       joinDate: 'Member Since',
@@ -118,7 +157,6 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
       personalInfo: 'व्यक्तिगत जानकारी',
       savedJobs: 'सेव किए गए काम',
       name: 'नाम',
-      email: 'ईमेल',
       phone: 'फोन',
       location: 'स्थान',
       joinDate: 'सदस्य बनने की तारीख',
@@ -361,17 +399,6 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
               </div>
               
               <div>
-                <Label htmlFor="email">{texts[language].email}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profile.email}
-                  onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              
-              <div>
                 <Label htmlFor="phone">{texts[language].phone}</Label>
                 <Input
                   id="phone"
@@ -400,22 +427,17 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout }: ProfilePag
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <User className="w-4 h-4 text-muted-foreground" />
-                <span className="text-foreground">{profile.name}</span>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <Mail className="w-4 h-4 text-muted-foreground" />
-                <span className="text-foreground">{profile.email}</span>
+                <span className="text-foreground">{profile.name || '-'}</span>
               </div>
               
               <div className="flex items-center space-x-3">
                 <Phone className="w-4 h-4 text-muted-foreground" />
-                <span className="text-foreground">{profile.phone}</span>
+                <span className="text-foreground">{profile.phone || '-'}</span>
               </div>
               
               <div className="flex items-center space-x-3">
                 <MapPin className="w-4 h-4 text-muted-foreground" />
-                <span className="text-foreground">{profile.location}</span>
+                <span className="text-foreground">{profile.location || '-'}</span>
               </div>
             </div>
           )}
