@@ -565,6 +565,36 @@ export type Database = {
           },
         ]
       }
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          id: string | null
+          location: string | null
+          name: string | null
+          phone: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          location?: string | null
+          name?: string | null
+          phone?: never
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          location?: string | null
+          name?: string | null
+          phone?: never
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_post_phone: {
