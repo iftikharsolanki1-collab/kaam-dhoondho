@@ -279,15 +279,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
         title: texts[language].messageSent,
       });
 
-      // Create notification for receiver
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: activeChat,
-          title: language === 'en' ? 'New Message' : 'नया संदेश',
-          message: `${currentUser.user_metadata?.name || 'Someone'} sent you a message`,
-          type: 'message'
-        });
+      // Create notification for receiver using SECURITY DEFINER function
+      await supabase.rpc('send_notification', {
+        recipient_id: activeChat,
+        notif_title: language === 'en' ? 'New Message' : 'नया संदेश',
+        notif_message: `${currentUser.user_metadata?.name || 'Someone'} sent you a message`,
+        notif_type: 'message'
+      });
 
     } catch (error) {
       console.error('Error sending message:', error);
