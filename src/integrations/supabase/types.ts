@@ -565,7 +565,6 @@ export type Database = {
       profiles_public: {
         Row: {
           avatar_url: string | null
-          created_at: string | null
           id: string | null
           location: string | null
           name: string | null
@@ -574,7 +573,6 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
-          created_at?: string | null
           id?: string | null
           location?: string | null
           name?: string | null
@@ -583,7 +581,6 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
-          created_at?: string | null
           id?: string | null
           location?: string | null
           name?: string | null
@@ -597,6 +594,17 @@ export type Database = {
       get_post_phone: {
         Args: { post_phone: string; post_user_id: string }
         Returns: string
+      }
+      get_public_profile: {
+        Args: { target_user_id: string }
+        Returns: {
+          avatar_url: string
+          id: string
+          location: string
+          name: string
+          phone: string
+          user_id: string
+        }[]
       }
       has_contact_with_user: {
         Args: { target_user_id: string }
