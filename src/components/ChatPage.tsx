@@ -320,7 +320,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
     const messageGroups = groupMessagesByDate(messages);
     
     return (
-      <div className="flex flex-col h-[calc(100vh-4rem)] bg-[#0b141a] dark:bg-[#0b141a]">
+      <div className="flex flex-col h-full min-h-0 bg-[#0b141a] dark:bg-[#0b141a]">
         {/* WhatsApp Style Header */}
         <div className="bg-[#202c33] px-2 py-2 flex items-center gap-2 shadow-md">
           <Button 
@@ -375,9 +375,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
           </div>
         </div>
 
-        {/* Messages Area - WhatsApp wallpaper style */}
         <div 
-          className="flex-1 overflow-y-auto px-3 py-2"
+          className="flex-1 overflow-y-auto px-3 py-2 min-h-0"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23182229' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
             backgroundColor: '#0b141a'
@@ -512,9 +511,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
     );
   }
 
-  // Conversation List - WhatsApp Style
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-[#111b21]">
+    <div className="flex flex-col h-full min-h-0 bg-[#111b21]">
       {/* Header */}
       <div className="bg-[#202c33] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -562,7 +560,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {isLoading ? (
           <div className="flex items-center justify-center h-32">
             <div className="w-8 h-8 border-4 border-[#00a884] border-t-transparent rounded-full animate-spin"></div>
