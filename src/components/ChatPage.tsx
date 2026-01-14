@@ -18,7 +18,13 @@ import {
   Smile,
   Paperclip,
   Mic,
-  Camera
+  Camera,
+  Copy,
+  Trash2,
+  Forward,
+  Reply,
+  Star,
+  X
 } from 'lucide-react';
 
 interface ChatPageProps {
@@ -56,6 +62,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [showMessageOptions, setShowMessageOptions] = useState(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -79,7 +88,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       messageFailed: 'Failed to send message',
       noMessages: 'No messages yet',
       startChatting: 'Say hi to start the conversation!',
-      chats: 'Chats'
+      chats: 'Chats',
+      copy: 'Copy',
+      delete: 'Delete',
+      forward: 'Forward',
+      reply: 'Reply',
+      star: 'Star',
+      copied: 'Message copied',
+      deleted: 'Message deleted',
+      deleteConfirm: 'Delete this message?'
     },
     hi: {
       search: 'खोजें...',
@@ -100,7 +117,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       messageFailed: 'संदेश भेजने में विफल',
       noMessages: 'अभी कोई संदेश नहीं',
       startChatting: 'हाय कहें!',
-      chats: 'चैट्स'
+      chats: 'चैट्स',
+      copy: 'कॉपी',
+      delete: 'डिलीट',
+      forward: 'फॉरवर्ड',
+      reply: 'जवाब दें',
+      star: 'स्टार',
+      copied: 'संदेश कॉपी किया',
+      deleted: 'संदेश डिलीट किया',
+      deleteConfirm: 'यह संदेश डिलीट करें?'
     }
   };
 
@@ -314,6 +339,66 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
     return groups;
   };
 
+  // Message long press handlers
+  const handleMessageLongPressStart = (message: Message) => {
+    longPressTimer.current = setTimeout(() => {
+      setSelectedMessage(message);
+      setShowMessageOptions(true);
+    }, 500);
+  };
+
+  const handleMessageLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleCopyMessage = async () => {
+    if (selectedMessage) {
+      await navigator.clipboard.writeText(selectedMessage.content);
+      toast({ title: texts[language].copied });
+      setShowMessageOptions(false);
+      setSelectedMessage(null);
+    }
+  };
+
+  const handleDeleteMessage = async () => {
+    if (selectedMessage && currentUser) {
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .delete()
+          .eq('id', selectedMessage.id)
+          .eq('sender_id', currentUser.id);
+
+        if (error) throw error;
+        
+        setMessages(prev => prev.filter(m => m.id !== selectedMessage.id));
+        toast({ title: texts[language].deleted });
+      } catch (error) {
+        console.error('Error deleting message:', error);
+        toast({ title: texts[language].messageFailed, variant: 'destructive' });
+      }
+      setShowMessageOptions(false);
+      setSelectedMessage(null);
+    }
+  };
+
+  const handleForwardMessage = () => {
+    if (selectedMessage) {
+      setNewMessage(selectedMessage.content);
+      setShowMessageOptions(false);
+      setSelectedMessage(null);
+      setActiveChat(null);
+    }
+  };
+
+  const closeMessageOptions = () => {
+    setShowMessageOptions(false);
+    setSelectedMessage(null);
+  };
+
   // Chat View - WhatsApp Style
   if (activeChat) {
     const currentConversation = conversations.find(c => c.id === activeChat);
@@ -405,18 +490,26 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                   {group.messages.map((message, idx) => {
                     const isSent = message.sender_id === currentUser?.id;
                     const isFirst = idx === 0 || group.messages[idx - 1].sender_id !== message.sender_id;
+                    const isSelected = selectedMessage?.id === message.id;
                     
                     return (
                       <div
                         key={message.id}
                         className={`flex mb-1 ${isSent ? 'justify-end' : 'justify-start'}`}
+                        onTouchStart={() => handleMessageLongPressStart(message)}
+                        onTouchEnd={handleMessageLongPressEnd}
+                        onMouseDown={() => handleMessageLongPressStart(message)}
+                        onMouseUp={handleMessageLongPressEnd}
+                        onMouseLeave={handleMessageLongPressEnd}
                       >
                         <div
-                          className={`relative max-w-[75%] px-3 py-1.5 rounded-lg shadow ${
+                          className={`relative max-w-[75%] px-3 py-1.5 rounded-lg shadow transition-all ${
                             isSent
                               ? 'bg-[#005c4b] text-[#e9edef]'
                               : 'bg-[#202c33] text-[#e9edef]'
-                          } ${isFirst ? (isSent ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`}
+                          } ${isFirst ? (isSent ? 'rounded-tr-none' : 'rounded-tl-none') : ''} ${
+                            isSelected ? 'ring-2 ring-[#00a884] scale-[1.02]' : ''
+                          }`}
                         >
                           {/* Message bubble tail */}
                           {isFirst && (
@@ -429,7 +522,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                             />
                           )}
                           
-                          <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                          <p className="text-sm leading-relaxed break-words select-none">{message.content}</p>
                           
                           <div className={`flex items-center justify-end gap-1 mt-0.5 -mb-0.5`}>
                             <span className="text-[10px] text-[#8696a0]">
@@ -453,6 +546,86 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
             </>
           )}
         </div>
+
+        {/* Message Options Modal */}
+        {showMessageOptions && selectedMessage && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center"
+            onClick={closeMessageOptions}
+          >
+            <div 
+              className="bg-[#233138] w-full max-w-md rounded-t-2xl overflow-hidden animate-in slide-in-from-bottom-5 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Selected message preview */}
+              <div className="px-4 py-3 border-b border-[#374045]">
+                <p className="text-[#8696a0] text-xs mb-1">
+                  {selectedMessage.sender_id === currentUser?.id ? 'You' : conversations.find(c => c.id === activeChat)?.name}
+                </p>
+                <p className="text-[#e9edef] text-sm line-clamp-2">{selectedMessage.content}</p>
+              </div>
+              
+              {/* Options */}
+              <div className="py-2">
+                <button
+                  className="w-full px-4 py-3 flex items-center gap-4 hover:bg-[#374045] active:bg-[#374045] transition-colors"
+                  onClick={handleCopyMessage}
+                >
+                  <Copy className="w-5 h-5 text-[#8696a0]" />
+                  <span className="text-[#e9edef]">{texts[language].copy}</span>
+                </button>
+                
+                <button
+                  className="w-full px-4 py-3 flex items-center gap-4 hover:bg-[#374045] active:bg-[#374045] transition-colors"
+                  onClick={handleForwardMessage}
+                >
+                  <Forward className="w-5 h-5 text-[#8696a0]" />
+                  <span className="text-[#e9edef]">{texts[language].forward}</span>
+                </button>
+                
+                <button
+                  className="w-full px-4 py-3 flex items-center gap-4 hover:bg-[#374045] active:bg-[#374045] transition-colors"
+                  onClick={() => {
+                    setNewMessage(`> ${selectedMessage.content}\n`);
+                    closeMessageOptions();
+                  }}
+                >
+                  <Reply className="w-5 h-5 text-[#8696a0]" />
+                  <span className="text-[#e9edef]">{texts[language].reply}</span>
+                </button>
+                
+                <button
+                  className="w-full px-4 py-3 flex items-center gap-4 hover:bg-[#374045] active:bg-[#374045] transition-colors"
+                  onClick={closeMessageOptions}
+                >
+                  <Star className="w-5 h-5 text-[#8696a0]" />
+                  <span className="text-[#e9edef]">{texts[language].star}</span>
+                </button>
+                
+                {selectedMessage.sender_id === currentUser?.id && (
+                  <button
+                    className="w-full px-4 py-3 flex items-center gap-4 hover:bg-[#374045] active:bg-[#374045] transition-colors"
+                    onClick={handleDeleteMessage}
+                  >
+                    <Trash2 className="w-5 h-5 text-red-500" />
+                    <span className="text-red-500">{texts[language].delete}</span>
+                  </button>
+                )}
+              </div>
+              
+              {/* Cancel button */}
+              <div className="border-t border-[#374045]">
+                <button
+                  className="w-full px-4 py-4 flex items-center justify-center gap-2 hover:bg-[#374045] active:bg-[#374045] transition-colors"
+                  onClick={closeMessageOptions}
+                >
+                  <X className="w-5 h-5 text-[#8696a0]" />
+                  <span className="text-[#8696a0]">Cancel</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Message Input - WhatsApp Style */}
         <div className="bg-[#202c33] px-2 py-2">
