@@ -117,6 +117,32 @@ const Index = () => {
       const postType = activeTab === 'workers' ? 'service' : 'job';
       const phoneNumber = data.mobile || data.phone || '';
 
+      // Upload photos to storage if provided
+      let photoUrls: string[] = [];
+      if (data.photos && data.photos.length > 0) {
+        for (const file of data.photos) {
+          const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+          const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('profile-photos')
+            .upload(fileName, file, { upsert: false });
+
+          if (uploadError) {
+            console.error('Photo upload failed:', uploadError);
+            continue;
+          }
+
+          const { data: urlData } = supabase.storage
+            .from('profile-photos')
+            .getPublicUrl(fileName);
+          
+          if (urlData?.publicUrl) {
+            photoUrls.push(urlData.publicUrl);
+          }
+        }
+      }
+
       const payload = {
         user_id: user.id,
         title: data.work || '',
@@ -125,7 +151,7 @@ const Index = () => {
         name: data.name || '',
         is_urgent: !!data.isUrgent,
         type: postType,
-        photos: null as string[] | null,
+        photos: photoUrls.length > 0 ? photoUrls : null,
       };
 
       // Insert post first

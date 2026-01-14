@@ -630,26 +630,6 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
         </CardContent>
       </Card>
 
-      {/* Support & Help */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <HelpCircle className="w-5 h-5 mr-2 text-primary" />
-            {texts[language].support}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start transition-all duration-200 hover:scale-[1.02]" 
-            onClick={handleLiveChat}
-          >
-            <MessageSquare className="w-4 h-4 mr-3" />
-            {texts[language].liveChat}
-          </Button>
-        </CardContent>
-      </Card>
-
       {/* Logout */}
       <Card className="shadow-card border-destructive/20">
         <CardContent className="p-4">
