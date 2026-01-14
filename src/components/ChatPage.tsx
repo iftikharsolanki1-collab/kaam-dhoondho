@@ -320,7 +320,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
     const messageGroups = groupMessagesByDate(messages);
     
     return (
-      <div className="flex flex-col h-full min-h-0 bg-[#0b141a] dark:bg-[#0b141a]">
+      <div className="flex flex-col h-screen w-screen bg-[#0b141a]">
         {/* WhatsApp Style Header */}
         <div className="bg-[#202c33] px-2 py-2 flex items-center gap-2 shadow-md">
           <Button 
@@ -512,7 +512,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-[#111b21]">
+    <div className="flex flex-col h-screen w-screen bg-[#111b21]">
       {/* Header */}
       <div className="bg-[#202c33] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
