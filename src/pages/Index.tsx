@@ -281,17 +281,15 @@ const Index = () => {
       case 'chat':
         console.log('Rendering chat page');
         return (
-          <div className="min-h-screen bg-background pt-20 pb-20">
-            <div className="container mx-auto px-4 py-4">
-              <ChatPage 
-                language={language}
-                onBack={() => {
-                  setChatUserId(null);
-                  setCurrentPage('home');
-                }}
-                initialChatUserId={chatUserId}
-              />
-            </div>
+          <div className="fixed inset-0 z-50 bg-[#111b21]">
+            <ChatPage 
+              language={language}
+              onBack={() => {
+                setChatUserId(null);
+                setCurrentPage('home');
+              }}
+              initialChatUserId={chatUserId}
+            />
           </div>
         );
       
