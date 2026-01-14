@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +12,13 @@ import {
   Video, 
   MoreVertical, 
   Search,
-  MessageCircle
+  MessageCircle,
+  Check,
+  CheckCheck,
+  Smile,
+  Paperclip,
+  Mic,
+  Camera
 } from 'lucide-react';
 
 interface ChatPageProps {
@@ -56,14 +61,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
 
   const texts = {
     en: {
-      search: 'Search conversations...',
-      noConversations: 'No conversations yet',
+      search: 'Search...',
+      noConversations: 'No chats yet',
       startConversation: 'Start a new conversation',
-      typeMessage: 'Type a message...',
+      typeMessage: 'Message',
       send: 'Send',
-      online: 'Online',
-      offline: 'Offline',
-      lastSeen: 'Last seen',
+      online: 'online',
+      offline: 'offline',
+      lastSeen: 'last seen',
       delivered: 'Delivered',
       read: 'Read',
       sent: 'Sent',
@@ -73,44 +78,43 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       messageSent: 'Message sent',
       messageFailed: 'Failed to send message',
       noMessages: 'No messages yet',
-      startChatting: 'Start chatting with this user'
+      startChatting: 'Say hi to start the conversation!',
+      chats: 'Chats'
     },
     hi: {
-      search: 'बातचीत खोजें...',
-      noConversations: 'अभी तक कोई बातचीत नहीं',
+      search: 'खोजें...',
+      noConversations: 'अभी कोई चैट नहीं',
       startConversation: 'नई बातचीत शुरू करें',
-      typeMessage: 'संदेश लिखें...',
+      typeMessage: 'संदेश',
       send: 'भेजें',
       online: 'ऑनलाइन',
       offline: 'ऑफलाइन',
-      lastSeen: 'अंतिम बार देखा गया',
+      lastSeen: 'अंतिम बार',
       delivered: 'पहुंचाया गया',
       read: 'पढ़ा गया',
       sent: 'भेजा गया',
       today: 'आज',
       yesterday: 'कल',
-      callFailed: 'कॉल सुविधा जल्द आ रही है',
+      callFailed: 'कॉल जल्द आ रही है',
       messageSent: 'संदेश भेजा गया',
       messageFailed: 'संदेश भेजने में विफल',
-      noMessages: 'अभी तक कोई संदेश नहीं',
-      startChatting: 'इस उपयोगकर्ता के साथ चैट शुरू करें'
+      noMessages: 'अभी कोई संदेश नहीं',
+      startChatting: 'हाय कहें!',
+      chats: 'चैट्स'
     }
   };
 
-  // Load current user and conversations
   useEffect(() => {
     loadCurrentUser();
     loadConversations();
   }, []);
 
-  // Load messages when activeChat changes
   useEffect(() => {
     if (activeChat && currentUser) {
       loadMessages(activeChat);
     }
   }, [activeChat, currentUser]);
 
-  // Set up real-time message subscription
   useEffect(() => {
     if (!activeChat || !currentUser) return;
 
@@ -154,7 +158,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
         return;
       }
 
-      // Only load conversations where messages exist - not all profiles
       const { data: messages, error } = await supabase
         .from('messages')
         .select('sender_id, receiver_id')
@@ -163,14 +166,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
 
       if (error) throw error;
 
-      // Get unique user IDs from messages
       const userIds = new Set<string>();
       messages?.forEach(msg => {
         if (msg.sender_id !== user.id) userIds.add(msg.sender_id);
         if (msg.receiver_id !== user.id) userIds.add(msg.receiver_id);
       });
 
-      // If we have a specific user to chat with, add them
       if (initialChatUserId) {
         userIds.add(initialChatUserId);
       }
@@ -181,7 +182,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
         return;
       }
 
-      // Load only profiles we have conversations with (only name, no phone)
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('user_id, name, avatar_url')
@@ -189,15 +189,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
 
       if (profileError) throw profileError;
 
-      // Convert profiles to conversations format
       const conversationList: Conversation[] = (profiles || []).map(profile => ({
         id: profile.user_id,
         name: profile.name || 'Unknown User',
-        lastMessage: 'Start a conversation',
+        lastMessage: 'Tap to chat',
         timestamp: new Date().toISOString(),
         unreadCount: 0,
-        isOnline: false,
-        user_id: profile.user_id
+        isOnline: Math.random() > 0.5,
+        user_id: profile.user_id,
+        avatar: profile.avatar_url
       }));
 
       setConversations(conversationList);
@@ -221,7 +221,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       if (error) throw error;
       setMessages(data || []);
 
-      // Mark messages as read
       await supabase
         .from('messages')
         .update({ is_read: true })
@@ -234,26 +233,30 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
     }
   };
 
-  // Auto scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
+    return date.toLocaleTimeString(language === 'hi' ? 'hi-IN' : 'en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).toLowerCase();
+  };
+
+  const formatDate = (timestamp: string) => {
+    const date = new Date(timestamp);
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
     
-    if (diffInDays === 0) {
-      return date.toLocaleTimeString(language === 'hi' ? 'hi-IN' : 'en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } else if (diffInDays === 1) {
-      return texts[language].yesterday;
-    } else {
-      return date.toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-US');
-    }
+    if (diffInDays === 0) return texts[language].today;
+    if (diffInDays === 1) return texts[language].yesterday;
+    return date.toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-US', {
+      day: 'numeric',
+      month: 'short'
+    });
   };
 
   const sendMessage = async () => {
@@ -271,15 +274,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       if (error) throw error;
 
       setNewMessage('');
-      
-      // Reload messages to show the new message
       loadMessages(activeChat);
-      
-      toast({
-        title: texts[language].messageSent,
-      });
 
-      // Create notification for receiver using SECURITY DEFINER function
       await supabase.rpc('send_notification', {
         recipient_id: activeChat,
         notif_title: language === 'en' ? 'New Message' : 'नया संदेश',
@@ -300,89 +296,215 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
     conv.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Group messages by date
+  const groupMessagesByDate = (msgs: Message[]) => {
+    const groups: { date: string; messages: Message[] }[] = [];
+    let currentDate = '';
+    
+    msgs.forEach(msg => {
+      const msgDate = new Date(msg.created_at).toDateString();
+      if (msgDate !== currentDate) {
+        currentDate = msgDate;
+        groups.push({ date: msg.created_at, messages: [msg] });
+      } else {
+        groups[groups.length - 1].messages.push(msg);
+      }
+    });
+    
+    return groups;
+  };
+
+  // Chat View - WhatsApp Style
   if (activeChat) {
     const currentConversation = conversations.find(c => c.id === activeChat);
+    const messageGroups = groupMessagesByDate(messages);
     
     return (
-      <div className="flex flex-col h-[calc(100vh-8rem)]">
-        {/* Chat Header */}
-        <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => setActiveChat(null)}>
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <Avatar className="w-8 h-8">
-              <AvatarFallback>{currentConversation?.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-medium">{currentConversation?.name}</h3>
-              <p className="text-xs opacity-80">{currentConversation?.email}</p>
-            </div>
+      <div className="flex flex-col h-[calc(100vh-4rem)] bg-[#0b141a] dark:bg-[#0b141a]">
+        {/* WhatsApp Style Header */}
+        <div className="bg-[#202c33] px-2 py-2 flex items-center gap-2 shadow-md">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+            onClick={() => setActiveChat(null)}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          
+          <Avatar className="h-10 w-10 border-2 border-[#00a884]">
+            <AvatarImage src={currentConversation?.avatar} />
+            <AvatarFallback className="bg-[#00a884] text-white font-semibold">
+              {currentConversation?.name.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-[#e9edef] truncate text-base">
+              {currentConversation?.name}
+            </h3>
+            <p className="text-xs text-[#8696a0]">
+              {currentConversation?.isOnline ? texts[language].online : `${texts[language].lastSeen} today`}
+            </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => toast({ title: texts[language].callFailed })}>
-              <Phone className="w-4 h-4" />
+          
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+              onClick={() => toast({ title: texts[language].callFailed })}
+            >
+              <Video className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => toast({ title: texts[language].callFailed })}>
-              <Video className="w-4 h-4" />
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+              onClick={() => toast({ title: texts[language].callFailed })}
+            >
+              <Phone className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="w-4 h-4" />
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+            >
+              <MoreVertical className="w-5 h-5" />
             </Button>
           </div>
         </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Messages Area - WhatsApp wallpaper style */}
+        <div 
+          className="flex-1 overflow-y-auto px-3 py-2"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23182229' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundColor: '#0b141a'
+          }}
+        >
           {messages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              <MessageCircle className="w-12 h-12 mx-auto mb-4" />
-              <p className="text-lg font-medium mb-2">{texts[language].noMessages}</p>
-              <p className="text-sm">{texts[language].startChatting}</p>
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="bg-[#182229] rounded-lg px-4 py-3 shadow">
+                <p className="text-[#8696a0] text-sm">
+                  🔒 {language === 'en' ? 'Messages are end-to-end encrypted' : 'संदेश एंड-टू-एंड एन्क्रिप्टेड हैं'}
+                </p>
+              </div>
             </div>
           ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[70%] p-3 rounded-lg ${
-                    message.sender_id === currentUser?.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  <p className="text-sm">{message.content}</p>
-                  <div className={`flex items-center justify-end gap-1 mt-1 ${
-                    message.sender_id === currentUser?.id ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                  }`}>
-                    <span className="text-xs">{formatTime(message.created_at)}</span>
-                    {message.sender_id === currentUser?.id && (
-                      <span className="text-xs">
-                        {message.is_read ? '✓✓' : '✓'}
-                      </span>
-                    )}
+            <>
+              {messageGroups.map((group, groupIdx) => (
+                <div key={groupIdx}>
+                  {/* Date Divider */}
+                  <div className="flex justify-center my-3">
+                    <span className="bg-[#182229] text-[#8696a0] text-xs px-3 py-1 rounded-lg shadow">
+                      {formatDate(group.date)}
+                    </span>
                   </div>
+                  
+                  {/* Messages */}
+                  {group.messages.map((message, idx) => {
+                    const isSent = message.sender_id === currentUser?.id;
+                    const isFirst = idx === 0 || group.messages[idx - 1].sender_id !== message.sender_id;
+                    
+                    return (
+                      <div
+                        key={message.id}
+                        className={`flex mb-1 ${isSent ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`relative max-w-[75%] px-3 py-1.5 rounded-lg shadow ${
+                            isSent
+                              ? 'bg-[#005c4b] text-[#e9edef]'
+                              : 'bg-[#202c33] text-[#e9edef]'
+                          } ${isFirst ? (isSent ? 'rounded-tr-none' : 'rounded-tl-none') : ''}`}
+                        >
+                          {/* Message bubble tail */}
+                          {isFirst && (
+                            <div
+                              className={`absolute top-0 w-0 h-0 ${
+                                isSent
+                                  ? 'right-[-8px] border-l-[8px] border-l-[#005c4b] border-t-[8px] border-t-transparent'
+                                  : 'left-[-8px] border-r-[8px] border-r-[#202c33] border-t-[8px] border-t-transparent'
+                              }`}
+                            />
+                          )}
+                          
+                          <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                          
+                          <div className={`flex items-center justify-end gap-1 mt-0.5 -mb-0.5`}>
+                            <span className="text-[10px] text-[#8696a0]">
+                              {formatTime(message.created_at)}
+                            </span>
+                            {isSent && (
+                              message.is_read ? (
+                                <CheckCheck className="w-4 h-4 text-[#53bdeb]" />
+                              ) : (
+                                <Check className="w-4 h-4 text-[#8696a0]" />
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            ))
+              ))}
+              <div ref={messagesEndRef} />
+            </>
           )}
-          <div ref={messagesEndRef} />
         </div>
 
-        {/* Message Input */}
-        <div className="p-4 border-t">
-          <div className="flex gap-2">
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder={texts[language].typeMessage}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              className="flex-1"
-            />
-            <Button onClick={sendMessage} disabled={!newMessage.trim()}>
-              <Send className="w-4 h-4" />
+        {/* Message Input - WhatsApp Style */}
+        <div className="bg-[#202c33] px-2 py-2">
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-[#8696a0] hover:bg-[#374045] h-10 w-10 shrink-0"
+            >
+              <Smile className="w-6 h-6" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-[#8696a0] hover:bg-[#374045] h-10 w-10 shrink-0"
+            >
+              <Paperclip className="w-5 h-5" />
+            </Button>
+            
+            <div className="flex-1 relative">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder={texts[language].typeMessage}
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                className="bg-[#2a3942] border-none text-[#e9edef] placeholder:text-[#8696a0] rounded-lg h-10 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="absolute right-0 top-0 text-[#8696a0] hover:bg-transparent h-10 w-10"
+              >
+                <Camera className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            <Button 
+              size="icon"
+              className={`h-10 w-10 rounded-full shrink-0 ${
+                newMessage.trim() 
+                  ? 'bg-[#00a884] hover:bg-[#00a884]/90 text-white' 
+                  : 'bg-[#00a884] hover:bg-[#00a884]/90 text-white'
+              }`}
+              onClick={newMessage.trim() ? sendMessage : undefined}
+            >
+              {newMessage.trim() ? (
+                <Send className="w-5 h-5" />
+              ) : (
+                <Mic className="w-5 h-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -390,77 +512,116 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
     );
   }
 
+  // Conversation List - WhatsApp Style
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-[#111b21]">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <h1 className="text-2xl font-bold">
-          {language === 'en' ? 'Messages' : 'संदेश'}
-        </h1>
+      <div className="bg-[#202c33] px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+            onClick={onBack}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-xl font-semibold text-[#e9edef]">
+            {texts[language].chats}
+          </h1>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+          >
+            <Camera className="w-5 h-5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+          >
+            <MoreVertical className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder={texts[language].search}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search Bar */}
+      <div className="px-3 py-2 bg-[#111b21]">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8696a0]" />
+          <Input
+            placeholder={texts[language].search}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-[#202c33] border-none text-[#e9edef] placeholder:text-[#8696a0] rounded-lg h-10 focus-visible:ring-0"
+          />
+        </div>
       </div>
 
-      {/* Conversations */}
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-8 text-center">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p>Loading conversations...</p>
+      {/* Conversations List */}
+      <div className="flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-32">
+            <div className="w-8 h-8 border-4 border-[#00a884] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : filteredConversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+            <div className="w-20 h-20 bg-[#202c33] rounded-full flex items-center justify-center mb-4">
+              <MessageCircle className="w-10 h-10 text-[#8696a0]" />
             </div>
-          ) : filteredConversations.length === 0 ? (
-            <div className="p-8 text-center">
-              <MessageCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">{texts[language].noConversations}</p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {filteredConversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  className="p-4 hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => setActiveChat(conversation.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-1">
-                      <div className="text-sm font-medium">{conversation.name}</div>
-                      <div className="text-xs text-muted-foreground line-clamp-1">
-                        {conversation.email}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-muted-foreground">
-                        {formatTime(conversation.timestamp)}
-                      </div>
-                      {conversation.unreadCount > 0 && (
-                        <Badge variant="secondary" className="mt-1">
-                          {conversation.unreadCount}
-                        </Badge>
-                      )}
-                    </div>
+            <p className="text-[#8696a0] text-lg">{texts[language].noConversations}</p>
+            <p className="text-[#667781] text-sm mt-1">{texts[language].startConversation}</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-[#222d34]">
+            {filteredConversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-[#202c33] cursor-pointer transition-colors active:bg-[#2a3942]"
+                onClick={() => setActiveChat(conversation.id)}
+              >
+                <div className="relative">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={conversation.avatar} />
+                    <AvatarFallback className="bg-[#00a884] text-white font-semibold text-lg">
+                      {conversation.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {conversation.isOnline && (
+                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] rounded-full border-2 border-[#111b21]" />
+                  )}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <h3 className="font-medium text-[#e9edef] truncate">
+                      {conversation.name}
+                    </h3>
+                    <span className={`text-xs shrink-0 ml-2 ${
+                      conversation.unreadCount > 0 ? 'text-[#00a884]' : 'text-[#8696a0]'
+                    }`}>
+                      {formatTime(conversation.timestamp)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-[#8696a0] truncate">
+                      {conversation.lastMessage}
+                    </p>
+                    {conversation.unreadCount > 0 && (
+                      <Badge className="bg-[#00a884] text-white text-xs min-w-[20px] h-5 flex items-center justify-center rounded-full ml-2">
+                        {conversation.unreadCount}
+                      </Badge>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
