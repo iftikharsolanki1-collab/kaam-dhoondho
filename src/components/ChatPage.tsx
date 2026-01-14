@@ -64,7 +64,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [showMessageOptions, setShowMessageOptions] = useState(false);
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingChannelRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -96,7 +99,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       star: 'Star',
       copied: 'Message copied',
       deleted: 'Message deleted',
-      deleteConfirm: 'Delete this message?'
+      deleteConfirm: 'Delete this message?',
+      typing: 'typing...'
     },
     hi: {
       search: 'खोजें...',
@@ -125,7 +129,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       star: 'स्टार',
       copied: 'संदेश कॉपी किया',
       deleted: 'संदेश डिलीट किया',
-      deleteConfirm: 'यह संदेश डिलीट करें?'
+      deleteConfirm: 'यह संदेश डिलीट करें?',
+      typing: 'टाइप कर रहा है...'
     }
   };
 
@@ -165,6 +170,70 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
       supabase.removeChannel(channel);
     };
   }, [activeChat, currentUser]);
+
+  // Typing indicator realtime channel
+  useEffect(() => {
+    if (!activeChat || !currentUser) return;
+
+    const channelName = [currentUser.id, activeChat].sort().join('-');
+    const typingChannel = supabase.channel(`typing-${channelName}`);
+
+    typingChannel
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        if (payload.payload.userId === activeChat) {
+          setIsOtherTyping(true);
+          // Auto-hide after 3 seconds
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+          }
+          typingTimeoutRef.current = setTimeout(() => {
+            setIsOtherTyping(false);
+          }, 3000);
+        }
+      })
+      .on('broadcast', { event: 'stop_typing' }, (payload) => {
+        if (payload.payload.userId === activeChat) {
+          setIsOtherTyping(false);
+        }
+      })
+      .subscribe();
+
+    typingChannelRef.current = typingChannel;
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      supabase.removeChannel(typingChannel);
+    };
+  }, [activeChat, currentUser]);
+
+  // Broadcast typing status
+  const broadcastTyping = () => {
+    if (typingChannelRef.current && currentUser) {
+      typingChannelRef.current.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { userId: currentUser.id }
+      });
+    }
+  };
+
+  const broadcastStopTyping = () => {
+    if (typingChannelRef.current && currentUser) {
+      typingChannelRef.current.send({
+        type: 'broadcast',
+        event: 'stop_typing',
+        payload: { userId: currentUser.id }
+      });
+    }
+  };
+
+  // Handle input change with typing indicator
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    broadcastTyping();
+  };
 
   const loadCurrentUser = async () => {
     try {
@@ -428,9 +497,20 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
             <h3 className="font-medium text-[#e9edef] truncate text-base">
               {currentConversation?.name}
             </h3>
-            <p className="text-xs text-[#8696a0]">
-              {currentConversation?.isOnline ? texts[language].online : `${texts[language].lastSeen} today`}
-            </p>
+            {isOtherTyping ? (
+              <p className="text-xs text-[#00a884] animate-pulse flex items-center gap-1">
+                <span className="flex gap-0.5">
+                  <span className="w-1.5 h-1.5 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-1.5 h-1.5 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-1.5 h-1.5 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </span>
+                {texts[language].typing}
+              </p>
+            ) : (
+              <p className="text-xs text-[#8696a0]">
+                {currentConversation?.isOnline ? texts[language].online : `${texts[language].lastSeen} today`}
+              </p>
+            )}
           </div>
           
           <div className="flex items-center gap-1">
@@ -649,9 +729,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
             <div className="flex-1 relative">
               <Input
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={handleInputChange}
                 placeholder={texts[language].typeMessage}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    broadcastStopTyping();
+                    sendMessage();
+                  }
+                }}
+                onBlur={broadcastStopTyping}
                 className="bg-[#2a3942] border-none text-[#e9edef] placeholder:text-[#8696a0] rounded-lg h-10 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <Button 
@@ -670,7 +756,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                   ? 'bg-[#00a884] hover:bg-[#00a884]/90 text-white' 
                   : 'bg-[#00a884] hover:bg-[#00a884]/90 text-white'
               }`}
-              onClick={newMessage.trim() ? sendMessage : undefined}
+              onClick={() => {
+                if (newMessage.trim()) {
+                  broadcastStopTyping();
+                  sendMessage();
+                }
+              }}
             >
               {newMessage.trim() ? (
                 <Send className="w-5 h-5" />
