@@ -572,7 +572,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                     const isFirst = idx === 0 || group.messages[idx - 1].sender_id !== message.sender_id;
                     const isSelected = selectedMessage?.id === message.id;
                     
-                    return (
+                      return (
                       <div
                         key={message.id}
                         className={`flex mb-1 ${isSent ? 'justify-end' : 'justify-start'}`}
@@ -581,6 +581,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                         onMouseDown={() => handleMessageLongPressStart(message)}
                         onMouseUp={handleMessageLongPressEnd}
                         onMouseLeave={handleMessageLongPressEnd}
+                        onClick={() => {
+                          setSelectedMessage(message);
+                          setShowMessageOptions(true);
+                        }}
                       >
                         <div
                           className={`relative max-w-[75%] px-3 py-1.5 rounded-lg shadow transition-all ${
