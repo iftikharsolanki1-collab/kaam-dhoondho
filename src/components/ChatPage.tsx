@@ -712,12 +712,16 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
         )}
 
         {/* Message Input - WhatsApp Style */}
-        <div className="bg-[#202c33] px-2 py-2">
+        <div 
+          className="bg-[#202c33] px-2 py-2 pb-safe sticky bottom-0 z-50 border-t border-[#2a3942]"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center gap-1">
             <Button 
               variant="ghost" 
               size="icon"
               className="text-[#8696a0] hover:bg-[#374045] h-10 w-10 shrink-0"
+              onClick={(e) => e.stopPropagation()}
             >
               <Smile className="w-6 h-6" />
             </Button>
@@ -726,11 +730,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
               variant="ghost" 
               size="icon"
               className="text-[#8696a0] hover:bg-[#374045] h-10 w-10 shrink-0"
+              onClick={(e) => e.stopPropagation()}
             >
               <Paperclip className="w-5 h-5" />
             </Button>
             
-            <div className="flex-1 relative">
+            <div className="flex-1 relative" onClick={(e) => e.stopPropagation()}>
               <Input
                 value={newMessage}
                 onChange={handleInputChange}
@@ -742,12 +747,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                   }
                 }}
                 onBlur={broadcastStopTyping}
+                onClick={(e) => e.stopPropagation()}
+                autoComplete="off"
                 className="bg-[#2a3942] border-none text-[#e9edef] placeholder:text-[#8696a0] rounded-lg h-10 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <Button 
                 variant="ghost" 
                 size="icon"
                 className="absolute right-0 top-0 text-[#8696a0] hover:bg-transparent h-10 w-10"
+                onClick={(e) => e.stopPropagation()}
               >
                 <Camera className="w-5 h-5" />
               </Button>
@@ -760,7 +768,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                   ? 'bg-[#00a884] hover:bg-[#00a884]/90 text-white' 
                   : 'bg-[#00a884] hover:bg-[#00a884]/90 text-white'
               }`}
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 if (newMessage.trim()) {
                   broadcastStopTyping();
                   sendMessage();
