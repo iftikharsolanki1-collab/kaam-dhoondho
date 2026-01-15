@@ -252,47 +252,86 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
         return;
       }
 
-      const { data: messages, error } = await supabase
-        .from('messages')
-        .select('sender_id, receiver_id')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const userIds = new Set<string>();
-      messages?.forEach(msg => {
-        if (msg.sender_id !== user.id) userIds.add(msg.sender_id);
-        if (msg.receiver_id !== user.id) userIds.add(msg.receiver_id);
-      });
-
-      if (initialChatUserId) {
-        userIds.add(initialChatUserId);
-      }
-
-      if (userIds.size === 0) {
-        setConversations([]);
-        setIsLoading(false);
-        return;
-      }
-
+      // Load ALL profiles (contacts) except current user
       const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
+        .from('profiles_public')
         .select('user_id, name, avatar_url')
-        .in('user_id', Array.from(userIds));
+        .neq('user_id', user.id);
 
       if (profileError) throw profileError;
 
+      // Get last messages for each contact
+      const { data: messages } = await supabase
+        .from('messages')
+        .select('sender_id, receiver_id, content, created_at, is_read')
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
+
+      // Count unread messages per user
+      const unreadCounts: Record<string, number> = {};
+      const lastMessages: Record<string, { content: string; timestamp: string }> = {};
+      
+      messages?.forEach(msg => {
+        const otherUserId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
+        
+        // Track last message
+        if (!lastMessages[otherUserId]) {
+          lastMessages[otherUserId] = {
+            content: msg.content,
+            timestamp: msg.created_at
+          };
+        }
+        
+        // Count unread messages (where current user is receiver)
+        if (msg.receiver_id === user.id && !msg.is_read) {
+          unreadCounts[otherUserId] = (unreadCounts[otherUserId] || 0) + 1;
+        }
+      });
+
       const conversationList: Conversation[] = (profiles || []).map(profile => ({
-        id: profile.user_id,
+        id: profile.user_id || '',
         name: profile.name || 'Unknown User',
-        lastMessage: 'Tap to chat',
-        timestamp: new Date().toISOString(),
-        unreadCount: 0,
+        lastMessage: lastMessages[profile.user_id || '']?.content || 'Tap to start chat',
+        timestamp: lastMessages[profile.user_id || '']?.timestamp || new Date().toISOString(),
+        unreadCount: unreadCounts[profile.user_id || ''] || 0,
         isOnline: Math.random() > 0.5,
-        user_id: profile.user_id,
-        avatar: profile.avatar_url
+        user_id: profile.user_id || '',
+        avatar: profile.avatar_url || undefined
       }));
+
+      // Sort: users with messages first (by timestamp), then others
+      conversationList.sort((a, b) => {
+        const aHasMessages = lastMessages[a.user_id];
+        const bHasMessages = lastMessages[b.user_id];
+        if (aHasMessages && !bHasMessages) return -1;
+        if (!aHasMessages && bHasMessages) return 1;
+        if (aHasMessages && bHasMessages) {
+          return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        }
+        return a.name.localeCompare(b.name);
+      });
+
+      // If initialChatUserId provided, ensure that user is in the list
+      if (initialChatUserId && !conversationList.find(c => c.user_id === initialChatUserId)) {
+        const { data: initialProfile } = await supabase
+          .from('profiles_public')
+          .select('user_id, name, avatar_url')
+          .eq('user_id', initialChatUserId)
+          .single();
+          
+        if (initialProfile) {
+          conversationList.unshift({
+            id: initialProfile.user_id || '',
+            name: initialProfile.name || 'Unknown User',
+            lastMessage: 'Tap to start chat',
+            timestamp: new Date().toISOString(),
+            unreadCount: 0,
+            isOnline: Math.random() > 0.5,
+            user_id: initialProfile.user_id || '',
+            avatar: initialProfile.avatar_url || undefined
+          });
+        }
+      }
 
       setConversations(conversationList);
       setIsLoading(false);
