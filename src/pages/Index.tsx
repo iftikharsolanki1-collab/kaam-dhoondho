@@ -434,12 +434,16 @@ const Index = () => {
         refreshKey={profileRefreshKey}
       />
       {renderCurrentPage()}
-      <BottomNavigation 
-        activeTab={currentPage}
-        onTabChange={handlePageChange}
-        language={language}
-        notificationCounts={notificationCounts}
-      />
+
+      {/* Hide bottom navigation when chat is open (chat is full-screen) */}
+      {currentPage !== 'chat' && (
+        <BottomNavigation 
+          activeTab={currentPage}
+          onTabChange={handlePageChange}
+          language={language}
+          notificationCounts={notificationCounts}
+        />
+      )}
       
       {/* Post Forms */}
       {showPostForm && (
