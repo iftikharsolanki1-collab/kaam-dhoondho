@@ -513,50 +513,27 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
     const messageGroups = groupMessagesByDate(messages);
     
     return (
-      <div className="flex flex-col h-screen w-screen bg-[#0b141a]">
-        {/* WhatsApp Style Header */}
-        <div className="bg-[#202c33] px-2 py-2 flex items-center gap-2 shadow-md">
+      <div className="flex flex-col h-screen w-screen bg-[#ECE5DD]">
+        {/* Green Header like reference */}
+        <div className="bg-[#075E54] px-3 py-3 flex items-center gap-3 shadow-md">
           <Button 
             variant="ghost" 
             size="icon"
-            className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+            className="text-white hover:bg-white/10 h-10 w-10"
             onClick={() => setActiveChat(null)}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           
-          <Avatar className="h-10 w-10 border-2 border-[#00a884]">
-            <AvatarImage src={currentConversation?.avatar} />
-            <AvatarFallback className="bg-[#00a884] text-white font-semibold">
-              {currentConversation?.name.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-[#e9edef] truncate text-base">
-              {currentConversation?.name}
-            </h3>
-            {isOtherTyping ? (
-              <p className="text-xs text-[#00a884] animate-pulse flex items-center gap-1">
-                <span className="flex gap-0.5">
-                  <span className="w-1.5 h-1.5 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                  <span className="w-1.5 h-1.5 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                  <span className="w-1.5 h-1.5 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                </span>
-                {texts[language].typing}
-              </p>
-            ) : (
-              <p className="text-xs text-[#8696a0]">
-                {currentConversation?.isOnline ? texts[language].online : `${texts[language].lastSeen} today`}
-              </p>
-            )}
-          </div>
+          <h2 className="flex-1 font-semibold text-white text-lg truncate">
+            {currentConversation?.name}
+          </h2>
           
           <div className="flex items-center gap-1">
             <Button 
               variant="ghost" 
               size="icon"
-              className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+              className="text-white hover:bg-white/10 h-10 w-10"
               onClick={() => toast({ title: texts[language].callFailed })}
             >
               <Video className="w-5 h-5" />
@@ -564,7 +541,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
             <Button 
               variant="ghost" 
               size="icon"
-              className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+              className="text-white hover:bg-white/10 h-10 w-10"
               onClick={() => toast({ title: texts[language].callFailed })}
             >
               <Phone className="w-5 h-5" />
@@ -572,25 +549,22 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
             <Button 
               variant="ghost" 
               size="icon"
-              className="text-[#aebac1] hover:bg-[#374045] h-10 w-10"
+              className="text-white hover:bg-white/10 h-10 w-10"
             >
               <MoreVertical className="w-5 h-5" />
             </Button>
           </div>
         </div>
 
+        {/* Light background messages area */}
         <div 
-          className="flex-1 overflow-y-auto px-3 py-2 min-h-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23182229' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundColor: '#0b141a'
-          }}
+          className="flex-1 overflow-y-auto px-3 py-2 min-h-0 bg-[#ECE5DD]"
         >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="bg-[#182229] rounded-lg px-4 py-3 shadow">
-                <p className="text-[#8696a0] text-sm">
-                  🔒 {language === 'en' ? 'Messages are end-to-end encrypted' : 'संदेश एंड-टू-एंड एन्क्रिप्टेड हैं'}
+              <div className="bg-white/80 rounded-lg px-4 py-3 shadow">
+                <p className="text-gray-600 text-sm">
+                  {language === 'en' ? 'Start a conversation!' : 'बातचीत शुरू करें!'}
                 </p>
               </div>
             </div>
@@ -600,7 +574,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                 <div key={groupIdx}>
                   {/* Date Divider */}
                   <div className="flex justify-center my-3">
-                    <span className="bg-[#182229] text-[#8696a0] text-xs px-3 py-1 rounded-lg shadow">
+                    <span className="bg-white/90 text-gray-500 text-xs px-3 py-1 rounded-lg shadow">
                       {formatDate(group.date)}
                     </span>
                   </div>
@@ -611,10 +585,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                     const isFirst = idx === 0 || group.messages[idx - 1].sender_id !== message.sender_id;
                     const isSelected = selectedMessage?.id === message.id;
                     
-                      return (
+                    return (
                       <div
                         key={message.id}
-                        className={`flex mb-1 ${isSent ? 'justify-end' : 'justify-start'}`}
+                        className={`flex mb-2 items-end gap-2 ${isSent ? 'justify-end' : 'justify-start'}`}
                         onTouchStart={() => handleMessageLongPressStart(message)}
                         onTouchEnd={handleMessageLongPressEnd}
                         onMouseDown={() => handleMessageLongPressStart(message)}
@@ -625,37 +599,35 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                           setShowMessageOptions(true);
                         }}
                       >
+                        {/* Avatar for received messages */}
+                        {!isSent && isFirst && (
+                          <Avatar className="h-8 w-8 shrink-0">
+                            <AvatarImage src={currentConversation?.avatar} />
+                            <AvatarFallback className="bg-[#075E54] text-white text-xs">
+                              {currentConversation?.name?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        {!isSent && !isFirst && <div className="w-8 shrink-0" />}
+                        
                         <div
-                          className={`relative max-w-[75%] px-3 py-1.5 rounded-lg shadow transition-all ${
+                          className={`relative max-w-[70%] px-3 py-2 rounded-2xl shadow transition-all ${
                             isSent
-                              ? 'bg-[#005c4b] text-[#e9edef]'
-                              : 'bg-[#202c33] text-[#e9edef]'
-                          } ${isFirst ? (isSent ? 'rounded-tr-none' : 'rounded-tl-none') : ''} ${
-                            isSelected ? 'ring-2 ring-[#00a884] scale-[1.02]' : ''
-                          }`}
+                              ? 'bg-[#DCF8C6] text-gray-800 rounded-br-md'
+                              : 'bg-white text-gray-800 rounded-bl-md'
+                          } ${isSelected ? 'ring-2 ring-[#075E54] scale-[1.02]' : ''}`}
                         >
-                          {/* Message bubble tail */}
-                          {isFirst && (
-                            <div
-                              className={`absolute top-0 w-0 h-0 ${
-                                isSent
-                                  ? 'right-[-8px] border-l-[8px] border-l-[#005c4b] border-t-[8px] border-t-transparent'
-                                  : 'left-[-8px] border-r-[8px] border-r-[#202c33] border-t-[8px] border-t-transparent'
-                              }`}
-                            />
-                          )}
-                          
                           <p className="text-sm leading-relaxed break-words select-none">{message.content}</p>
                           
-                          <div className={`flex items-center justify-end gap-1 mt-0.5 -mb-0.5`}>
-                            <span className="text-[10px] text-[#8696a0]">
+                          <div className="flex items-center justify-end gap-1 mt-1">
+                            <span className="text-[10px] text-gray-500">
                               {formatTime(message.created_at)}
                             </span>
                             {isSent && (
                               message.is_read ? (
-                                <CheckCheck className="w-4 h-4 text-[#53bdeb]" />
+                                <CheckCheck className="w-3.5 h-3.5 text-[#34B7F1]" />
                               ) : (
-                                <Check className="w-4 h-4 text-[#8696a0]" />
+                                <Check className="w-3.5 h-3.5 text-gray-400" />
                               )
                             )}
                           </div>
@@ -750,35 +722,27 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
           </div>
         )}
 
-        {/* Message Input - WhatsApp Style */}
+        {/* Clean Message Input Bar */}
         <div 
-          className="bg-[#202c33] px-2 py-2 pb-safe sticky bottom-0 z-50 border-t border-[#2a3942]"
+          className="bg-[#F0F0F0] px-3 py-2 pb-safe sticky bottom-0 z-50 border-t border-gray-200"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center gap-1">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="text-[#8696a0] hover:bg-[#374045] h-10 w-10 shrink-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Smile className="w-6 h-6" />
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="text-[#8696a0] hover:bg-[#374045] h-10 w-10 shrink-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Paperclip className="w-5 h-5" />
-            </Button>
-            
-            <div className="flex-1 relative" onClick={(e) => e.stopPropagation()}>
-              <Input
+          <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center bg-white rounded-full px-4 py-2 shadow-sm">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="text-gray-400 hover:bg-transparent h-8 w-8 shrink-0 -ml-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Smile className="w-5 h-5" />
+              </Button>
+              
+              <input
+                type="text"
                 value={newMessage}
                 onChange={handleInputChange}
-                placeholder={texts[language].typeMessage}
+                placeholder={language === 'en' ? 'Type a message' : 'संदेश लिखें'}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
                     broadcastStopTyping();
@@ -788,25 +752,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                 onBlur={broadcastStopTyping}
                 onClick={(e) => e.stopPropagation()}
                 autoComplete="off"
-                className="bg-[#2a3942] border-none text-[#e9edef] placeholder:text-[#8696a0] rounded-lg h-10 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="flex-1 bg-transparent border-none text-gray-800 placeholder:text-gray-400 outline-none text-sm"
               />
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="absolute right-0 top-0 text-[#8696a0] hover:bg-transparent h-10 w-10"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Camera className="w-5 h-5" />
-              </Button>
             </div>
             
             <Button 
               size="icon"
-              className={`h-10 w-10 rounded-full shrink-0 ${
-                newMessage.trim() 
-                  ? 'bg-[#00a884] hover:bg-[#00a884]/90 text-white' 
-                  : 'bg-[#00a884] hover:bg-[#00a884]/90 text-white'
-              }`}
+              className="h-10 w-10 rounded-full shrink-0 bg-gray-400 hover:bg-gray-500 text-white"
               onClick={(e) => {
                 e.stopPropagation();
                 if (newMessage.trim()) {
@@ -815,11 +767,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ language, onBack, initialChatUserId
                 }
               }}
             >
-              {newMessage.trim() ? (
-                <Send className="w-5 h-5" />
-              ) : (
-                <Mic className="w-5 h-5" />
-              )}
+              <Mic className="w-5 h-5" />
             </Button>
           </div>
         </div>
