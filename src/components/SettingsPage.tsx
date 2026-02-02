@@ -14,16 +14,18 @@ import {
   Palette, 
   LogOut, 
   Moon,
-  Sun
+  Sun,
+  Shield
 } from 'lucide-react';
 
 interface SettingsPageProps {
   language: 'en' | 'hi';
   onLanguageChange: (lang: 'en' | 'hi') => void;
   onLogout?: () => void;
+  onAdminClick?: () => void;
 }
 
-export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsPageProps) => {
+export const SettingsPage = ({ language, onLanguageChange, onLogout, onAdminClick }: SettingsPageProps) => {
   const [notifications, setNotifications] = useState({
     newJobs: true,
     messages: true,
@@ -46,6 +48,7 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
       title: 'Settings',
       account: 'Account Settings',
       profile: 'Edit Profile',
+      adminPanel: 'Admin Panel',
       notifications: 'Notifications',
       newJobs: 'New Job Notifications',
       messages: 'Message Notifications', 
@@ -62,6 +65,7 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
       title: 'सेटिंग्स',
       account: 'खाता सेटिंग्स',
       profile: 'प्रोफ़ाइल संपादित करें',
+      adminPanel: 'एडमिन पैनल',
       notifications: 'सूचनाएं',
       newJobs: 'नए काम की सूचनाएं',
       messages: 'संदेश सूचनाएं',
@@ -154,6 +158,17 @@ export const SettingsPage = ({ language, onLanguageChange, onLogout }: SettingsP
             <User className="w-4 h-4 mr-3" />
             {texts[language].profile}
           </Button>
+          
+          {onAdminClick && (
+            <Button 
+              variant="outline" 
+              className="w-full justify-start transition-all duration-200 hover:scale-[1.02]"
+              onClick={onAdminClick}
+            >
+              <Shield className="w-4 h-4 mr-3" />
+              {texts[language].adminPanel}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
