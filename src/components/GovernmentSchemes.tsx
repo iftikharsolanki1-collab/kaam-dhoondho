@@ -1,23 +1,47 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, FileText, Users, Banknote } from 'lucide-react';
+import { ExternalLink, FileText, Users, Banknote, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GovernmentSchemesProps {
   language: 'en' | 'hi';
 }
 
+interface Scheme {
+  id: string;
+  title: string;
+  title_hi: string | null;
+  description: string | null;
+  description_hi: string | null;
+  eligibility: string | null;
+  eligibility_hi: string | null;
+  benefits: string | null;
+  benefits_hi: string | null;
+  link: string | null;
+  category: string | null;
+  is_active: boolean | null;
+  created_at: string;
+}
+
 export const GovernmentSchemes = ({ language }: GovernmentSchemesProps) => {
+  const [schemes, setSchemes] = useState<Scheme[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const texts = {
     en: {
       title: 'Government Schemes',
       subtitle: 'Schemes for workers and entrepreneurs',
       viewDetails: 'View Details',
       newScheme: 'New',
+      noSchemes: 'No schemes available',
+      noSchemesDesc: 'Check back later for new government schemes',
       categories: {
         employment: 'Employment',
         skill: 'Skill Development',
-        loan: 'Financial Aid'
+        loan: 'Financial Aid',
+        default: 'General'
       }
     },
     hi: {
@@ -25,94 +49,60 @@ export const GovernmentSchemes = ({ language }: GovernmentSchemesProps) => {
       subtitle: 'कारीगरों और उद्यमियों के लिए योजनाएं',
       viewDetails: 'विवरण देखें',
       newScheme: 'नई',
+      noSchemes: 'कोई योजना उपलब्ध नहीं',
+      noSchemesDesc: 'नई सरकारी योजनाओं के लिए बाद में जांचें',
       categories: {
         employment: 'रोजगार',
         skill: 'कौशल विकास',
-        loan: 'वित्तीय सहायता'
+        loan: 'वित्तीय सहायता',
+        default: 'सामान्य'
       }
     }
   };
 
-  const schemes = [
-    {
-      id: '1',
-      name: {
-        en: 'Pradhan Mantri Kaushal Vikas Yojana (PMKVY)',
-        hi: 'प्रधानमंत्री कौशल विकास योजना (PMKVY)'
-      },
-      description: {
-        en: 'Skill development training program with certification and monetary rewards.',
-        hi: 'प्रमाणन और मौद्रिक पुरस्कारों के साथ कौशल विकास प्रशिक्षण कार्यक्रम।'
-      },
-      category: 'skill',
-      url: 'https://www.pmkvyofficial.org/',
-      isNew: false,
-      icon: FileText
-    },
-    {
-      id: '2',
-      name: {
-        en: 'Mudra Yojana',
-        hi: 'मुद्रा योजना'
-      },
-      description: {
-        en: 'Micro-finance scheme providing loans up to ₹10 lakhs for small businesses.',
-        hi: 'छोटे व्यवसायों के लिए ₹10 लाख तक के लोन प्रदान करने वाली माइक्रो-फाइनेंस योजना।'
-      },
-      category: 'loan',
-      url: 'https://www.mudra.org.in/',
-      isNew: false,
-      icon: Banknote
-    },
-    {
-      id: '3',
-      name: {
-        en: 'Mahatma Gandhi National Rural Employment Guarantee Act (MGNREGA)',
-        hi: 'महात्मा गांधी राष्ट्रीय ग्रामीण रोजगार गारंटी अधिनियम (MGNREGA)'
-      },
-      description: {
-        en: '100 days guaranteed employment for rural households.',
-        hi: 'ग्रामीण परिवारों के लिए 100 दिन का गारंटीशुदा रोजगार।'
-      },
-      category: 'employment',
-      url: 'https://nrega.nic.in/',
-      isNew: false,
-      icon: Users
-    },
-    {
-      id: '4',
-      name: {
-        en: 'Stand Up India',
-        hi: 'स्टैंड अप इंडिया'
-      },
-      description: {
-        en: 'Bank loans for SC/ST and women entrepreneurs to start greenfield enterprises.',
-        hi: 'नए उद्यम शुरू करने के लिए SC/ST और महिला उद्यमियों के लिए बैंक लोन।'
-      },
-      category: 'loan',
-      url: 'https://www.standupmitra.in/',
-      isNew: true,
-      icon: Banknote
-    },
-    {
-      id: '5',
-      name: {
-        en: 'Deen Dayal Upadhyaya Grameen Kaushalya Yojana (DDU-GKY)',
-        hi: 'दीन दयाल उपाध्याय ग्रामीण कौशल्या योजना (DDU-GKY)'
-      },
-      description: {
-        en: 'Rural skill development program with placement guarantee.',
-        hi: 'प्लेसमेंट गारंटी के साथ ग्रामीण कौशल विकास कार्यक्रम।'
-      },
-      category: 'skill',
-      url: 'https://ddugky.gov.in/',
-      isNew: true,
-      icon: FileText
-    }
-  ];
+  useEffect(() => {
+    loadSchemes();
+    
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('govt-schemes-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'govt_schemes'
+        },
+        () => {
+          loadSchemes();
+        }
+      )
+      .subscribe();
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const loadSchemes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('govt_schemes')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSchemes(data || []);
+    } catch (error) {
+      console.error('Error loading schemes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getCategoryIcon = (category: string | null) => {
+    switch (category?.toLowerCase()) {
       case 'employment':
         return <Users className="w-4 h-4" />;
       case 'skill':
@@ -124,8 +114,8 @@ export const GovernmentSchemes = ({ language }: GovernmentSchemesProps) => {
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
+  const getCategoryColor = (category: string | null) => {
+    switch (category?.toLowerCase()) {
       case 'employment':
         return 'bg-primary/10 text-primary';
       case 'skill':
@@ -136,6 +126,26 @@ export const GovernmentSchemes = ({ language }: GovernmentSchemesProps) => {
         return 'bg-muted text-muted-foreground';
     }
   };
+
+  const getCategoryText = (category: string | null) => {
+    const cat = category?.toLowerCase() as keyof typeof texts.en.categories;
+    return texts[language].categories[cat] || texts[language].categories.default;
+  };
+
+  const isNewScheme = (createdAt: string) => {
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays <= 7; // Consider schemes less than 7 days old as "new"
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -148,25 +158,32 @@ export const GovernmentSchemes = ({ language }: GovernmentSchemesProps) => {
         </p>
       </div>
 
-      <div className="space-y-4">
-        {schemes.map((scheme) => {
-          const Icon = scheme.icon;
-          return (
+      {schemes.length === 0 ? (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">{texts[language].noSchemes}</h3>
+            <p className="text-muted-foreground">{texts[language].noSchemesDesc}</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {schemes.map((scheme) => (
             <Card key={scheme.id} className="shadow-card hover:shadow-md transition-all duration-200">
               <CardContent className="p-4">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-primary" />
+                      {getCategoryIcon(scheme.category)}
                     </div>
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-foreground text-sm">
-                        {scheme.name[language]}
+                        {language === 'hi' && scheme.title_hi ? scheme.title_hi : scheme.title}
                       </h3>
-                      {scheme.isNew && (
+                      {isNewScheme(scheme.created_at) && (
                         <Badge variant="secondary" className="bg-urgent text-urgent-foreground text-xs ml-2">
                           {texts[language].newScheme}
                         </Badge>
@@ -174,32 +191,34 @@ export const GovernmentSchemes = ({ language }: GovernmentSchemesProps) => {
                     </div>
                     
                     <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-                      {scheme.description[language]}
+                      {language === 'hi' && scheme.description_hi ? scheme.description_hi : scheme.description}
                     </p>
                     
                     <div className="flex items-center justify-between">
                       <Badge variant="outline" className={`text-xs ${getCategoryColor(scheme.category)}`}>
                         {getCategoryIcon(scheme.category)}
-                        <span className="ml-1">{texts[language].categories[scheme.category as keyof typeof texts[typeof language]['categories']]}</span>
+                        <span className="ml-1">{getCategoryText(scheme.category)}</span>
                       </Badge>
                       
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(scheme.url, '_blank')}
-                        className="text-xs"
-                      >
-                        <ExternalLink className="w-3 h-3 mr-1" />
-                        {texts[language].viewDetails}
-                      </Button>
+                      {scheme.link && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(scheme.link!, '_blank')}
+                          className="text-xs"
+                        >
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          {texts[language].viewDetails}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
