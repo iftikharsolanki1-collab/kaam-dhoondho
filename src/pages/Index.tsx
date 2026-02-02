@@ -10,6 +10,8 @@ import { PostServiceForm } from '@/components/PostServiceForm';
 import { PostDetailPage } from '@/components/PostDetailPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
+import { AdminPanel } from '@/components/AdminPanel';
+import { StickyBannerAd } from '@/components/BannerAd';
 import ChatPage from '@/components/ChatPage';
 import { AuthPage } from '@/components/AuthPage';
 import { NotificationPage } from '@/components/NotificationPage';
@@ -327,9 +329,18 @@ const Index = () => {
                 language={language} 
                 onLanguageChange={setLanguage}
                 onLogout={handleLogout}
+                onAdminClick={() => setCurrentPage('admin')}
               />
             </div>
           </div>
+        );
+      
+      case 'admin':
+        return (
+          <AdminPanel
+            language={language}
+            onBack={() => setCurrentPage('settings')}
+          />
         );
       
       default:
@@ -412,10 +423,13 @@ const Index = () => {
             {/* FAB */}
             <button
               onClick={handleFloatingActionClick}
-              className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-fab rounded-full shadow-glow flex items-center justify-center text-white z-40 transition-all duration-300 hover:scale-110 active:scale-95"
+              className="fixed bottom-36 right-4 w-14 h-14 bg-gradient-fab rounded-full shadow-glow flex items-center justify-center text-white z-40 transition-all duration-300 hover:scale-110 active:scale-95"
             >
               <Plus className="w-6 h-6" />
             </button>
+
+            {/* Sticky Banner Ad */}
+            <StickyBannerAd />
           </>
         );
     }

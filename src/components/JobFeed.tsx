@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { JobCard } from './JobCard';
+import { BannerAd } from './BannerAd';
 import { calculateDistance, CITY_COORDINATES, type Coordinates } from '@/lib/location';
 import { supabase } from '@/integrations/supabase/client';
+import { useRealtimePosts } from '@/hooks/useRealtimePosts';
 
 interface JobFeedProps {
   language: 'en' | 'hi';
@@ -18,35 +20,51 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
   const [jobs, setJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const formatPost = useCallback((post: any) => ({
+    id: post.id,
+    userId: post.user_id,
+    name: post.name,
+    work: post.title || '',
+    location: post.location,
+    coordinates: CITY_COORDINATES[post.location as keyof typeof CITY_COORDINATES],
+    rate: post.rate || '',
+    details: post.description || '',
+    photo: Array.isArray(post.photos) ? post.photos[0] : '',
+    phone: post.phone || '',
+    isUrgent: post.is_urgent || false,
+    isVerified: false,
+    postType: 'giver' as const,
+  }), []);
+
+  // Real-time updates
+  useRealtimePosts({
+    language,
+    onNewPost: (post) => {
+      if (post.type !== 'service') {
+        setJobs(prev => [formatPost(post), ...prev]);
+      }
+    },
+    onUpdatePost: (post) => {
+      if (post.type !== 'service') {
+        setJobs(prev => prev.map(j => j.id === post.id ? formatPost(post) : j));
+      }
+    },
+    onDeletePost: (postId) => {
+      setJobs(prev => prev.filter(j => j.id !== postId));
+    }
+  });
+
   useEffect(() => {
     const loadPosts = async () => {
       try {
-        // Use posts_secure view to protect phone numbers - phone is only shown to owner or after chat
         const { data, error } = await supabase
           .from('posts_secure' as 'posts')
           .select('*')
           .neq('type', 'service')
-          .order('created_at', { ascending: false }); // Newest first - new posts at top
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
-
-        const formattedJobs = (data || []).map((post: any) => ({
-          id: post.id,
-          userId: post.user_id,
-          name: post.name,
-          work: post.title || '',
-          location: post.location,
-          coordinates: CITY_COORDINATES[post.location as keyof typeof CITY_COORDINATES],
-          rate: post.rate || '',
-          details: post.description || '',
-          photo: Array.isArray(post.photos) ? post.photos[0] : '',
-          phone: post.phone || '',
-          isUrgent: post.is_urgent || false,
-          isVerified: false,
-          postType: 'giver' as const,
-        }));
-
-        setJobs(formattedJobs);
+        setJobs((data || []).map(formatPost));
       } catch (error) {
         console.error('Error loading posts:', error);
       } finally {
@@ -55,7 +73,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
     };
 
     loadPosts();
-  }, [refreshKey]);
+  }, [refreshKey, formatPost]);
 
   // Filter and sort jobs
   const filteredJobs = jobs.filter(job => {
@@ -102,7 +120,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
   }
 
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-4 pb-24">
       {filteredJobs.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
@@ -110,26 +128,31 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
           </p>
         </div>
       ) : (
-        filteredJobs.map((job) => (
-          <JobCard
-            key={job.id}
-            id={job.id}
-            userId={job.userId}
-            name={job.name}
-            work={job.work}
-            location={job.location}
-            rate={job.rate}
-            details={job.details}
-            photo={job.photo}
-            phone={job.phone}
-            isUrgent={job.isUrgent}
-            isVerified={job.isVerified}
-            postType={job.postType}
-            language={language}
-            onChatClick={onChatClick}
-            onCardClick={() => onCardClick?.(job)}
-          />
-        ))
+        <>
+          {filteredJobs.map((job, index) => (
+            <div key={job.id}>
+              <JobCard
+                id={job.id}
+                userId={job.userId}
+                name={job.name}
+                work={job.work}
+                location={job.location}
+                rate={job.rate}
+                details={job.details}
+                photo={job.photo}
+                phone={job.phone}
+                isUrgent={job.isUrgent}
+                isVerified={job.isVerified}
+                postType={job.postType}
+                language={language}
+                onChatClick={onChatClick}
+                onCardClick={() => onCardClick?.(job)}
+              />
+              {/* Show inline ad after every 5 posts */}
+              {(index + 1) % 5 === 0 && <BannerAd position="feed_inline" />}
+            </div>
+          ))}
+        </>
       )}
     </div>
   );

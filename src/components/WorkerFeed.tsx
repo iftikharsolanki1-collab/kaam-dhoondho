@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { JobCard } from './JobCard';
+import { BannerAd } from './BannerAd';
 import { calculateDistance, CITY_COORDINATES, type Coordinates } from '@/lib/location';
 import { supabase } from '@/integrations/supabase/client';
+import { useRealtimePosts } from '@/hooks/useRealtimePosts';
 
 interface WorkerFeedProps {
   language: 'en' | 'hi';
@@ -27,10 +29,42 @@ export const WorkerFeed = ({
   const [workers, setWorkers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const formatPost = useCallback((post: any) => ({
+    id: post.id,
+    userId: post.user_id,
+    name: post.name,
+    work: post.title || '',
+    location: post.location,
+    coordinates: CITY_COORDINATES[post.location as keyof typeof CITY_COORDINATES],
+    details: post.description || '',
+    photo: Array.isArray(post.photos) ? post.photos[0] : '',
+    phone: post.phone || '',
+    isUrgent: post.is_urgent || false,
+    isVerified: false,
+    postType: 'seeker' as const,
+  }), []);
+
+  // Real-time updates
+  useRealtimePosts({
+    language,
+    onNewPost: (post) => {
+      if (post.type === 'service') {
+        setWorkers(prev => [formatPost(post), ...prev]);
+      }
+    },
+    onUpdatePost: (post) => {
+      if (post.type === 'service') {
+        setWorkers(prev => prev.map(w => w.id === post.id ? formatPost(post) : w));
+      }
+    },
+    onDeletePost: (postId) => {
+      setWorkers(prev => prev.filter(w => w.id !== postId));
+    }
+  });
+
   useEffect(() => {
     const loadPosts = async () => {
       try {
-        // Use posts_secure view to protect phone numbers - phone is only shown to owner or after chat
         const { data, error } = await supabase
           .from('posts_secure' as 'posts')
           .select('*')
@@ -38,23 +72,7 @@ export const WorkerFeed = ({
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-
-        const formatted = (data || []).map((post: any) => ({
-          id: post.id,
-          userId: post.user_id,
-          name: post.name,
-          work: post.title || '',
-          location: post.location,
-          coordinates: CITY_COORDINATES[post.location as keyof typeof CITY_COORDINATES],
-          details: post.description || '',
-          photo: Array.isArray(post.photos) ? post.photos[0] : '',
-          phone: post.phone || '',
-          isUrgent: post.is_urgent || false,
-          isVerified: false,
-          postType: 'seeker' as const,
-        }));
-
-        setWorkers(formatted);
+        setWorkers((data || []).map(formatPost));
       } catch (err) {
         console.error('Error loading service posts:', err);
       } finally {
@@ -63,7 +81,7 @@ export const WorkerFeed = ({
     };
 
     loadPosts();
-  }, [refreshKey]);
+  }, [refreshKey, formatPost]);
 
   if (isLoading) {
     return (
@@ -113,7 +131,7 @@ export const WorkerFeed = ({
     });
 
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-4 pb-24">
       {filteredWorkers.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
@@ -123,25 +141,30 @@ export const WorkerFeed = ({
           </p>
         </div>
       ) : (
-        filteredWorkers.map((worker) => (
-          <JobCard
-            key={worker.id}
-            id={worker.id}
-            userId={worker.userId}
-            name={worker.name}
-            work={worker.work}
-            location={worker.location}
-            details={worker.details}
-            photo={worker.photo}
-            phone={worker.phone}
-            isUrgent={worker.isUrgent}
-            isVerified={worker.isVerified}
-            postType={worker.postType}
-            language={language}
-            onChatClick={onChatClick}
-            onCardClick={() => onCardClick?.(worker)}
-          />
-        ))
+        <>
+          {filteredWorkers.map((worker, index) => (
+            <div key={worker.id}>
+              <JobCard
+                id={worker.id}
+                userId={worker.userId}
+                name={worker.name}
+                work={worker.work}
+                location={worker.location}
+                details={worker.details}
+                photo={worker.photo}
+                phone={worker.phone}
+                isUrgent={worker.isUrgent}
+                isVerified={worker.isVerified}
+                postType={worker.postType}
+                language={language}
+                onChatClick={onChatClick}
+                onCardClick={() => onCardClick?.(worker)}
+              />
+              {/* Show inline ad after every 5 posts */}
+              {(index + 1) % 5 === 0 && <BannerAd position="feed_inline" />}
+            </div>
+          ))}
+        </>
       )}
     </div>
   );
