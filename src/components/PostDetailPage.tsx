@@ -164,7 +164,7 @@ export const PostDetailPage = ({ post, language, onBack, onChatClick }: PostDeta
                 {texts[language].chat}
               </Button>
               
-              {post.phone && (
+              {post.phone && post.phone !== 'Contact to view' && (
                 <Button 
                   variant="secondary" 
                   onClick={handleCall}

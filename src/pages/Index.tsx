@@ -10,7 +10,7 @@ import { PostServiceForm } from '@/components/PostServiceForm';
 import { PostDetailPage } from '@/components/PostDetailPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
-import { AdminPanel } from '@/components/AdminPanel';
+
 import { StickyBannerAd } from '@/components/BannerAd';
 import ChatPage from '@/components/ChatPage';
 import { AuthPage } from '@/components/AuthPage';
@@ -335,13 +335,6 @@ const Index = () => {
           </div>
         );
       
-      case 'admin':
-        return (
-          <AdminPanel
-            language={language}
-            onBack={() => setCurrentPage('settings')}
-          />
-        );
       
       default:
         return (
