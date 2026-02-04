@@ -1,8 +1,11 @@
+import { useEffect, useMemo, useState } from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ArrowLeft, Phone, MessageCircle, MapPin, CheckCircle, Clock, Briefcase, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PostDetailPageProps {
   post: {
@@ -26,6 +29,8 @@ interface PostDetailPageProps {
 }
 
 export const PostDetailPage = ({ post, language, onBack, onChatClick }: PostDetailPageProps) => {
+  const [resolvedPhone, setResolvedPhone] = useState<string | null>(null);
+
   const texts = {
     en: {
       urgent: 'Urgent',
@@ -55,9 +60,49 @@ export const PostDetailPage = ({ post, language, onBack, onChatClick }: PostDeta
     }
   };
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPhone = async () => {
+      // Always re-check from the secure view so phone updates after chat/contact.
+      try {
+        const { data, error } = await (supabase as any)
+          .from('posts_secure')
+          .select('phone')
+          .eq('id', post.id)
+          .maybeSingle();
+
+        if (!cancelled) {
+          if (error) {
+            console.error('Failed to load post phone:', error);
+            setResolvedPhone(null);
+          } else {
+            setResolvedPhone((data?.phone as string | null) ?? null);
+          }
+        }
+      } catch (e) {
+        if (!cancelled) setResolvedPhone(null);
+      }
+    };
+
+    loadPhone();
+    return () => {
+      cancelled = true;
+    };
+  }, [post.id]);
+
+  const dialablePhone = useMemo(() => {
+    const raw = (resolvedPhone ?? post.phone ?? '').trim();
+    if (!raw || raw === 'Contact to view') return null;
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length === 10) return digits;
+    if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+    return null;
+  }, [post.phone, resolvedPhone]);
+
   const handleCall = () => {
-    if (post.phone) {
-      window.open(`tel:+91${post.phone}`, '_self');
+    if (dialablePhone) {
+      window.open(`tel:+91${dialablePhone}`, '_self');
     }
   };
 
@@ -164,7 +209,7 @@ export const PostDetailPage = ({ post, language, onBack, onChatClick }: PostDeta
                 {texts[language].chat}
               </Button>
               
-              {post.phone && post.phone !== 'Contact to view' && (
+              {dialablePhone && (
                 <Button 
                   variant="secondary" 
                   onClick={handleCall}

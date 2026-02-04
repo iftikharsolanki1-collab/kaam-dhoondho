@@ -21,6 +21,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationBadges } from '@/hooks/useNotificationBadges';
 
+const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'notifications', 'profile', 'settings', 'auth']);
+
 const Index = () => {
   const [language, setLanguage] = useState<'en' | 'hi'>('hi');
   const [activeTab, setActiveTab] = useState<'employers' | 'workers'>('employers');
@@ -87,7 +89,8 @@ const Index = () => {
     window.history.pushState({ page: 'home' }, '');
 
     const onPopState = (e: PopStateEvent) => {
-      const page = (e.state as any)?.page ?? 'home';
+      const rawPage = (e.state as any)?.page ?? 'home';
+      const page = ALLOWED_PAGES.has(rawPage) ? rawPage : 'home';
 
       if (page === 'home') {
         setCurrentPage('home');
@@ -329,7 +332,6 @@ const Index = () => {
                 language={language} 
                 onLanguageChange={setLanguage}
                 onLogout={handleLogout}
-                onAdminClick={() => setCurrentPage('admin')}
               />
             </div>
           </div>
