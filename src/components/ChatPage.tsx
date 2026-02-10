@@ -624,14 +624,6 @@ const ChatPage: React.FC<ChatPageProps> = ({
             {texts[language].chats}
           </h1>
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="text-[#aebac1] hover:bg-[#374045] h-10 w-10">
-            <Camera className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-[#aebac1] hover:bg-[#374045] h-10 w-10">
-            <MoreVertical className="w-5 h-5" />
-          </Button>
-        </div>
       </div>
 
       {/* Search Bar */}
