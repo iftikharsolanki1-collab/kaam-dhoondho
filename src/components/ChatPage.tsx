@@ -607,7 +607,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
               sendMessage();
             }
           }}>
-              <Mic className="w-5 h-5" />
+              <Send className="w-5 h-5" />
             </Button>
           </div>
         </div>
