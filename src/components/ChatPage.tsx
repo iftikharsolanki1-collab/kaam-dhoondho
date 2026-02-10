@@ -600,12 +600,10 @@ const ChatPage: React.FC<ChatPageProps> = ({
             }} onBlur={broadcastStopTyping} onClick={e => e.stopPropagation()} autoComplete="off" className="flex-1 bg-transparent border-none text-gray-800 placeholder:text-gray-400 outline-none text-sm" />
             </div>
             
-            <Button size="icon" className="h-10 w-10 rounded-full shrink-0 bg-gray-400 hover:bg-gray-500 text-white" onClick={e => {
+            <Button size="icon" className={`h-10 w-10 rounded-full shrink-0 text-white ${newMessage.trim() ? 'bg-[#00a884] hover:bg-[#00a884]/90' : 'bg-gray-400 hover:bg-gray-500'}`} onClick={e => {
             e.stopPropagation();
-            if (newMessage.trim()) {
-              broadcastStopTyping();
-              sendMessage();
-            }
+            broadcastStopTyping();
+            sendMessage();
           }}>
               <Send className="w-5 h-5" />
             </Button>
