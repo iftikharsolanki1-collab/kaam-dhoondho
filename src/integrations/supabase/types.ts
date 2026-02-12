@@ -492,6 +492,48 @@ export type Database = {
           },
         ]
       }
+      trending_items: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          description_hi: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          is_new: boolean | null
+          prompt: string
+          title: string
+          title_hi: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          description_hi?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          is_new?: boolean | null
+          prompt: string
+          title: string
+          title_hi?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          description_hi?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          is_new?: boolean | null
+          prompt?: string
+          title?: string
+          title_hi?: string | null
+        }
+        Relationships: []
+      }
       user_favorites: {
         Row: {
           created_at: string
