@@ -13,6 +13,7 @@ import { SettingsPage } from '@/components/SettingsPage';
 
 import { StickyBannerAd } from '@/components/BannerAd';
 import ChatPage from '@/components/ChatPage';
+import TrendingPage from '@/components/TrendingPage';
 import { AuthPage } from '@/components/AuthPage';
 import { NotificationPage } from '@/components/NotificationPage';
 import { Input } from '@/components/ui/input';
@@ -21,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationBadges } from '@/hooks/useNotificationBadges';
 
-const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'notifications', 'profile', 'settings', 'auth']);
+const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'trending', 'notifications', 'profile', 'settings', 'auth']);
 
 const Index = () => {
   const [language, setLanguage] = useState<'en' | 'hi'>('hi');
@@ -308,6 +309,14 @@ const Index = () => {
               />
             </div>
           </div>
+        );
+      
+      case 'trending':
+        return (
+          <TrendingPage 
+            language={language}
+            onBack={() => setCurrentPage('home')}
+          />
         );
       
       case 'profile':
