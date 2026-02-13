@@ -14,6 +14,7 @@ import { SettingsPage } from '@/components/SettingsPage';
 import { StickyBannerAd } from '@/components/BannerAd';
 import ChatPage from '@/components/ChatPage';
 import TrendingPage from '@/components/TrendingPage';
+import AdminPostForm from '@/components/AdminPostForm';
 import { AuthPage } from '@/components/AuthPage';
 import { NotificationPage } from '@/components/NotificationPage';
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationBadges } from '@/hooks/useNotificationBadges';
 
-const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'trending', 'notifications', 'profile', 'settings', 'auth']);
+const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'trending', 'notifications', 'profile', 'settings', 'auth', 'adminPost']);
 
 const Index = () => {
   const [language, setLanguage] = useState<'en' | 'hi'>('hi');
@@ -319,6 +320,14 @@ const Index = () => {
           />
         );
       
+      case 'adminPost':
+        return (
+          <AdminPostForm
+            language={language}
+            onBack={() => setCurrentPage('home')}
+          />
+        );
+      
       case 'profile':
         return (
           <div className="min-h-screen bg-background pt-20 pb-20">
@@ -328,6 +337,7 @@ const Index = () => {
                 onLanguageChange={setLanguage}
                 onLogout={handleLogout}
                 onProfileUpdate={() => setProfileRefreshKey(k => k + 1)}
+                onAdminPost={() => setCurrentPage('adminPost')}
               />
             </div>
           </div>
