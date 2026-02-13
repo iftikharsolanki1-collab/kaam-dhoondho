@@ -11,17 +11,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun } from 'lucide-react';
+import { User, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun, Shield } from 'lucide-react';
 
 interface ProfilePageProps {
   language: 'en' | 'hi';
   onLanguageChange?: (lang: 'en' | 'hi') => void;
   onLogout?: () => void;
   onProfileUpdate?: () => void;
+  onAdminPost?: () => void;
 }
 
-export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate }: ProfilePageProps) => {
+export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
   const [profile, setProfile] = useState({
     name: '',
@@ -84,7 +86,15 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
       }
     };
 
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
+      setIsAdmin(!!data);
+    };
+
     loadProfile();
+    checkAdmin();
   }, []);
 
   // Load saved jobs from Supabase instead of localStorage for security
@@ -629,6 +639,22 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
           )}
         </CardContent>
       </Card>
+
+      {/* Admin Panel */}
+      {isAdmin && onAdminPost && (
+        <Card className="shadow-card border-primary/20">
+          <CardContent className="p-4">
+            <Button 
+              variant="outline" 
+              className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              onClick={onAdminPost}
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              {language === 'hi' ? 'एडमिन: कंटेंट भेजें' : 'Admin: Send Content'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Logout */}
       <Card className="shadow-card border-destructive/20">
