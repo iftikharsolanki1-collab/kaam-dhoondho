@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ArrowLeft, Send, Loader2, Image as ImageIcon } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { ArrowLeft, Send, Loader2, Image as ImageIcon, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,6 +24,15 @@ const TABLE_OPTIONS: { value: TargetTable; labelEn: string; labelHi: string }[] 
   { value: 'trending_items', labelEn: 'Trending Item', labelHi: 'ट्रेंडिंग आइटम' },
 ];
 
+const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
+  const [target, setTarget] = useState<TargetTable>('posts');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
   const [target, setTarget] = useState<TargetTable>('posts');
   const [title, setTitle] = useState('');
@@ -94,11 +103,40 @@ const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
     setTitle('');
     setDescription('');
     setImageUrl('');
+    setImageFile(null);
+    setImagePreview(null);
     setLinkUrl('');
     setPrompt('');
     setCategory('');
     setIsUrgent(false);
     setIsNew(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      toast({ title: language === 'hi' ? 'सिर्फ PNG, JPG, WEBP allowed' : 'Only PNG, JPG, WEBP allowed', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: language === 'hi' ? 'फाइल 5MB से छोटी होनी चाहिए' : 'File must be under 5MB', variant: 'destructive' });
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setImageUrl(''); // clear URL if file selected
+  };
+
+  const uploadImage = async (): Promise<string> => {
+    if (!imageFile) return imageUrl.trim() || 'https://placehold.co/600x400';
+    const ext = imageFile.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from('trending-images').upload(fileName, imageFile);
+    if (error) throw new Error('Image upload failed: ' + error.message);
+    const { data } = supabase.storage.from('trending-images').getPublicUrl(fileName);
+    return data.publicUrl;
   };
 
   const handleSend = async () => {
@@ -160,10 +198,13 @@ const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
           break;
         }
         case 'trending_items': {
+          setUploading(true);
+          const uploadedUrl = await uploadImage();
+          setUploading(false);
           const res = await supabase.from('trending_items').insert({
             title: title.trim(),
             description: description.trim() || null,
-            image_url: imageUrl.trim() || 'https://placehold.co/600x400',
+            image_url: uploadedUrl,
             prompt: prompt.trim() || title.trim(),
             category: category.trim() || 'Corporate',
             is_new: isNew,
@@ -243,13 +284,35 @@ const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
           </div>
         )}
 
-        {/* Image URL */}
+        {/* Image Upload / URL */}
         {showField('imageUrl') && (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-sm font-medium flex items-center gap-1.5">
-              <ImageIcon className="w-4 h-4" /> {txt.imageUrl}
+              <ImageIcon className="w-4 h-4" /> {language === 'hi' ? 'फोटो अपलोड करें (PNG/JPG)' : 'Upload Image (PNG/JPG)'}
             </Label>
-            <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 border-dashed"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-5 h-5 mr-2" />
+              {imageFile ? imageFile.name : (language === 'hi' ? 'फोटो चुनें' : 'Choose Image')}
+            </Button>
+            {imagePreview && (
+              <img src={imagePreview} alt="Preview" className="w-full max-h-48 object-cover rounded-lg border border-border" />
+            )}
+            <div className="text-xs text-muted-foreground text-center">
+              {language === 'hi' ? 'या URL paste करें' : 'Or paste URL'}
+            </div>
+            <Input value={imageUrl} onChange={(e) => { setImageUrl(e.target.value); setImageFile(null); setImagePreview(null); }} placeholder="https://..." />
           </div>
         )}
 
@@ -293,9 +356,9 @@ const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
         )}
 
         {/* Send Button */}
-        <Button className="w-full h-12 text-base" onClick={handleSend} disabled={sending}>
-          {sending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Send className="w-5 h-5 mr-2" />}
-          {txt.send}
+        <Button className="w-full h-12 text-base" onClick={handleSend} disabled={sending || uploading}>
+          {(sending || uploading) ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Send className="w-5 h-5 mr-2" />}
+          {uploading ? (language === 'hi' ? 'अपलोड हो रहा है...' : 'Uploading...') : txt.send}
         </Button>
       </div>
     </div>
