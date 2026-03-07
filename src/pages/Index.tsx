@@ -357,6 +357,8 @@ const Index = () => {
                 onLogout={handleLogout}
                 onProfileUpdate={() => setProfileRefreshKey(k => k + 1)}
                 onAdminPost={() => setCurrentPage('adminPost')}
+                onModeration={() => setCurrentPage('moderation')}
+                onSafetyCenter={() => setCurrentPage('safety')}
               />
             </div>
           </div>
