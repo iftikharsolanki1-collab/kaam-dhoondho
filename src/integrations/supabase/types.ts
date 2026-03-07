@@ -424,6 +424,51 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          post_id: string
+          reason: string
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          post_id: string
+          reason: string
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          post_id?: string
+          reason?: string
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_posts: {
         Row: {
           created_at: string
@@ -617,6 +662,39 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_strikes: {
+        Row: {
+          admin_id: string | null
+          ban_until: string | null
+          created_at: string
+          id: string
+          is_permanent: boolean
+          reason: string
+          strike_number: number
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          ban_until?: string | null
+          created_at?: string
+          id?: string
+          is_permanent?: boolean
+          reason: string
+          strike_number?: number
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          ban_until?: string | null
+          created_at?: string
+          id?: string
+          is_permanent?: boolean
+          reason?: string
+          strike_number?: number
           user_id?: string
         }
         Relationships: []
