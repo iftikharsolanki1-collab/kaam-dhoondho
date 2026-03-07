@@ -33,11 +33,6 @@ const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
-  const [target, setTarget] = useState<TargetTable>('posts');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [prompt, setPrompt] = useState('');
   const [category, setCategory] = useState('');
