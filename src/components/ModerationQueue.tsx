@@ -115,7 +115,7 @@ const ModerationQueue = ({ language, onBack }: ModerationQueueProps) => {
       if (error) throw error;
 
       // Enrich with post titles
-      const postIds = [...new Set((data || []).map((r: any) => r.post_id))];
+      const postIds = [...new Set((data || []).map((r: any) => r.post_id))] as string[];
       let postMap: Record<string, any> = {};
       if (postIds.length > 0) {
         const { data: posts } = await supabase.from('posts').select('id, title, user_id').in('id', postIds);
