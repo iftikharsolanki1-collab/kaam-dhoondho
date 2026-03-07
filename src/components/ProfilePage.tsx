@@ -19,9 +19,11 @@ interface ProfilePageProps {
   onLogout?: () => void;
   onProfileUpdate?: () => void;
   onAdminPost?: () => void;
+  onModeration?: () => void;
+  onSafetyCenter?: () => void;
 }
 
-export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost }: ProfilePageProps) => {
+export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost, onModeration, onSafetyCenter }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
@@ -640,10 +642,24 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
         </CardContent>
       </Card>
 
+      {/* Safety Center - visible to all */}
+      <Card className="shadow-card">
+        <CardContent className="p-4">
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={onSafetyCenter}
+          >
+            <Shield className="w-4 h-4 mr-2" />
+            {language === 'hi' ? 'सुरक्षा केंद्र' : 'Safety Center'}
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Admin Panel */}
       {isAdmin && onAdminPost && (
         <Card className="shadow-card border-primary/20">
-          <CardContent className="p-4">
+          <CardContent className="p-4 space-y-2">
             <Button 
               variant="outline" 
               className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
@@ -651,6 +667,14 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
             >
               <Shield className="w-4 h-4 mr-2" />
               {language === 'hi' ? 'एडमिन: कंटेंट भेजें' : 'Admin: Send Content'}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white"
+              onClick={onModeration}
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              {language === 'hi' ? 'मॉडरेशन कतार' : 'Moderation Queue'}
             </Button>
           </CardContent>
         </Card>

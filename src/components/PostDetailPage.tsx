@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Phone, MessageCircle, MapPin, CheckCircle, Clock, Briefcase, User } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, MapPin, CheckCircle, Clock, Briefcase, User, Flag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { ReportPostSheet } from '@/components/ReportPostSheet';
 
 interface PostDetailPageProps {
   post: {
@@ -30,6 +31,7 @@ interface PostDetailPageProps {
 
 export const PostDetailPage = ({ post, language, onBack, onChatClick }: PostDetailPageProps) => {
   const [resolvedPhone, setResolvedPhone] = useState<string | null>(null);
+  const [showReport, setShowReport] = useState(false);
 
   const texts = {
     en: {
@@ -220,9 +222,30 @@ export const PostDetailPage = ({ post, language, onBack, onChatClick }: PostDeta
                 </Button>
               )}
             </div>
+
+            {/* Report Button */}
+            <div className="pt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground hover:text-destructive"
+                onClick={() => setShowReport(true)}
+              >
+                <Flag className="w-4 h-4 mr-2" />
+                {language === 'hi' ? 'इस पोस्ट की रिपोर्ट करें' : 'Report this post'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Report Sheet */}
+      <ReportPostSheet
+        open={showReport}
+        onOpenChange={setShowReport}
+        postId={post.id}
+        language={language}
+      />
     </div>
   );
 };

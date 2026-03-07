@@ -15,7 +15,8 @@ import { StickyBannerAd } from '@/components/BannerAd';
 import ChatPage from '@/components/ChatPage';
 import TrendingPage from '@/components/TrendingPage';
 import AdminPostForm from '@/components/AdminPostForm';
-import { AuthPage } from '@/components/AuthPage';
+import ModerationQueue from '@/components/ModerationQueue';
+import SafetyCenter from '@/components/SafetyCenter';
 import { NotificationPage } from '@/components/NotificationPage';
 import { Input } from '@/components/ui/input';
 import { Search, Plus } from 'lucide-react';
@@ -23,7 +24,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationBadges } from '@/hooks/useNotificationBadges';
 
-const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'trending', 'notifications', 'profile', 'settings', 'auth', 'adminPost']);
+import { AuthPage } from '@/components/AuthPage';
+
+const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'trending', 'notifications', 'profile', 'settings', 'auth', 'adminPost', 'moderation', 'safety']);
 
 const Index = () => {
   const [language, setLanguage] = useState<'en' | 'hi'>('hi');
@@ -327,6 +330,22 @@ const Index = () => {
             onBack={() => setCurrentPage('home')}
           />
         );
+
+      case 'moderation':
+        return (
+          <ModerationQueue
+            language={language}
+            onBack={() => setCurrentPage('profile')}
+          />
+        );
+
+      case 'safety':
+        return (
+          <SafetyCenter
+            language={language}
+            onBack={() => setCurrentPage('home')}
+          />
+        );
       
       case 'profile':
         return (
@@ -338,6 +357,8 @@ const Index = () => {
                 onLogout={handleLogout}
                 onProfileUpdate={() => setProfileRefreshKey(k => k + 1)}
                 onAdminPost={() => setCurrentPage('adminPost')}
+                onModeration={() => setCurrentPage('moderation')}
+                onSafetyCenter={() => setCurrentPage('safety')}
               />
             </div>
           </div>
