@@ -68,7 +68,9 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setJobs((data || []).map(formatPost));
+        const formatted = (data || []).map(formatPost);
+        const deduped = Array.from(new Map(formatted.map(item => [item.id, item])).values());
+        setJobs(deduped);
       } catch (error) {
         console.error('Error loading posts:', error);
       } finally {

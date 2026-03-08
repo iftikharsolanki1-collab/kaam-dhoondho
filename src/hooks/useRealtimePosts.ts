@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,39 +17,21 @@ export const useRealtimePosts = ({
 }: UseRealtimePostsOptions) => {
   const { toast } = useToast();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-
-  // Store callbacks in refs to avoid re-subscriptions
   const onNewPostRef = useRef(onNewPost);
   const onUpdatePostRef = useRef(onUpdatePost);
   const onDeletePostRef = useRef(onDeletePost);
-  
-  useEffect(() => { onNewPostRef.current = onNewPost; }, [onNewPost]);
-  useEffect(() => { onUpdatePostRef.current = onUpdatePost; }, [onUpdatePost]);
-  useEffect(() => { onDeletePostRef.current = onDeletePost; }, [onDeletePost]);
-
-  const handlePostChange = useCallback((payload: any) => {
-    console.log('Realtime post change:', payload);
-
-    if (payload.eventType === 'INSERT') {
-      onNewPostRef.current?.(payload.new);
-      toast({
-        title: language === 'en' ? '🆕 New Post!' : '🆕 नई पोस्ट!',
-        description: language === 'en' 
-          ? `New ${payload.new.type === 'service' ? 'service' : 'job'} posted: ${payload.new.title}`
-          : `नई ${payload.new.type === 'service' ? 'सेवा' : 'नौकरी'} पोस्ट हुई: ${payload.new.title}`,
-        duration: 4000,
-      });
-    } else if (payload.eventType === 'UPDATE') {
-      onUpdatePostRef.current?.(payload.new);
-    } else if (payload.eventType === 'DELETE') {
-      onDeletePostRef.current?.(payload.old.id);
-    }
-  }, [language, toast]);
+  const languageRef = useRef(language);
 
   useEffect(() => {
-    // Subscribe to posts table changes
+    onNewPostRef.current = onNewPost;
+    onUpdatePostRef.current = onUpdatePost;
+    onDeletePostRef.current = onDeletePost;
+    languageRef.current = language;
+  }, [onNewPost, onUpdatePost, onDeletePost, language]);
+
+  useEffect(() => {
     const channel = supabase
-      .channel('posts-realtime')
+      .channel(`posts-realtime-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -57,7 +39,24 @@ export const useRealtimePosts = ({
           schema: 'public',
           table: 'posts'
         },
-        handlePostChange
+        (payload: any) => {
+          console.log('Realtime post change:', payload);
+
+          if (payload.eventType === 'INSERT') {
+            onNewPostRef.current?.(payload.new);
+            toast({
+              title: languageRef.current === 'en' ? '🆕 New Post!' : '🆕 नई पोस्ट!',
+              description: languageRef.current === 'en'
+                ? `New ${payload.new.type === 'service' ? 'service' : 'job'} posted: ${payload.new.title}`
+                : `नई ${payload.new.type === 'service' ? 'सेवा' : 'नौकरी'} पोस्ट हुई: ${payload.new.title}`,
+              duration: 4000,
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            onUpdatePostRef.current?.(payload.new);
+          } else if (payload.eventType === 'DELETE') {
+            onDeletePostRef.current?.(payload.old.id);
+          }
+        }
       )
       .subscribe((status) => {
         console.log('Realtime subscription status:', status);
@@ -70,7 +69,7 @@ export const useRealtimePosts = ({
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, [handlePostChange]);
+  }, [toast]);
 
   return {
     channel: channelRef.current
@@ -78,3 +77,4 @@ export const useRealtimePosts = ({
 };
 
 export default useRealtimePosts;
+
