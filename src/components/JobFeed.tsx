@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { JobCard } from './JobCard';
-import { BannerAd } from './BannerAd';
+import { NativeAdCard } from './NativeAdCard';
 import { calculateDistance, CITY_COORDINATES, type Coordinates } from '@/lib/location';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimePosts } from '@/hooks/useRealtimePosts';
@@ -149,7 +149,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
                 onCardClick={() => onCardClick?.(job)}
               />
               {/* Show inline ad after every 5 posts */}
-              {(index + 1) % 5 === 0 && <BannerAd position="feed_inline" />}
+              {(index + 1) % 5 === 0 && <NativeAdCard />}
             </div>
           ))}
         </>
