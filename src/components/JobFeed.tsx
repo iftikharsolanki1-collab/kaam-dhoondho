@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { JobCard } from './JobCard';
-import { BannerAd } from './BannerAd';
+import { NativeAdCard } from './NativeAdCard';
 import { calculateDistance, CITY_COORDINATES, type Coordinates } from '@/lib/location';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimePosts } from '@/hooks/useRealtimePosts';
