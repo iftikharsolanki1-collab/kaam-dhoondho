@@ -149,7 +149,7 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
                 onCardClick={() => onCardClick?.(job)}
               />
               {/* Show inline ad after every 5 posts */}
-              {(index + 1) % 5 === 0 && <BannerAd position="feed_inline" />}
+              {(index + 1) % 5 === 0 && <NativeAdCard />}
             </div>
           ))}
         </>

@@ -161,7 +161,7 @@ export const WorkerFeed = ({
                 onCardClick={() => onCardClick?.(worker)}
               />
               {/* Show inline ad after every 5 posts */}
-              {(index + 1) % 5 === 0 && <BannerAd position="feed_inline" />}
+              {(index + 1) % 5 === 0 && <NativeAdCard />}
             </div>
           ))}
         </>
