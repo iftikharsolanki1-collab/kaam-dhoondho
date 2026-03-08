@@ -18,11 +18,20 @@ export const useRealtimePosts = ({
   const { toast } = useToast();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  // Store callbacks in refs to avoid re-subscriptions
+  const onNewPostRef = useRef(onNewPost);
+  const onUpdatePostRef = useRef(onUpdatePost);
+  const onDeletePostRef = useRef(onDeletePost);
+  
+  useEffect(() => { onNewPostRef.current = onNewPost; }, [onNewPost]);
+  useEffect(() => { onUpdatePostRef.current = onUpdatePost; }, [onUpdatePost]);
+  useEffect(() => { onDeletePostRef.current = onDeletePost; }, [onDeletePost]);
+
   const handlePostChange = useCallback((payload: any) => {
     console.log('Realtime post change:', payload);
 
     if (payload.eventType === 'INSERT') {
-      onNewPost?.(payload.new);
+      onNewPostRef.current?.(payload.new);
       toast({
         title: language === 'en' ? '🆕 New Post!' : '🆕 नई पोस्ट!',
         description: language === 'en' 
@@ -31,11 +40,11 @@ export const useRealtimePosts = ({
         duration: 4000,
       });
     } else if (payload.eventType === 'UPDATE') {
-      onUpdatePost?.(payload.new);
+      onUpdatePostRef.current?.(payload.new);
     } else if (payload.eventType === 'DELETE') {
-      onDeletePost?.(payload.old.id);
+      onDeletePostRef.current?.(payload.old.id);
     }
-  }, [onNewPost, onUpdatePost, onDeletePost, language, toast]);
+  }, [language, toast]);
 
   useEffect(() => {
     // Subscribe to posts table changes

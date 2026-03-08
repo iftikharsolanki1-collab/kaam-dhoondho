@@ -49,7 +49,10 @@ export const WorkerFeed = ({
     language,
     onNewPost: (post) => {
       if (post.type === 'service') {
-        setWorkers(prev => [formatPost(post), ...prev]);
+        setWorkers(prev => {
+          if (prev.some(w => w.id === post.id)) return prev;
+          return [formatPost(post), ...prev];
+        });
       }
     },
     onUpdatePost: (post) => {

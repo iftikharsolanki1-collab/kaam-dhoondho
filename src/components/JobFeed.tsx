@@ -41,7 +41,11 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
     language,
     onNewPost: (post) => {
       if (post.type !== 'service') {
-        setJobs(prev => [formatPost(post), ...prev]);
+        setJobs(prev => {
+          // Prevent duplicates
+          if (prev.some(j => j.id === post.id)) return prev;
+          return [formatPost(post), ...prev];
+        });
       }
     },
     onUpdatePost: (post) => {
