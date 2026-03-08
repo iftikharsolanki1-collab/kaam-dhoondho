@@ -231,7 +231,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
       const {
         data: profiles,
         error: profileError
-      } = await supabase.from('profiles_public' as any).select('user_id, name, avatar_url').neq('user_id', user.id);
+      } = await supabase.from('profiles_public').select('user_id, name, avatar_url').neq('user_id', user.id);
       if (profileError) throw profileError;
 
       // Get last messages for each contact
