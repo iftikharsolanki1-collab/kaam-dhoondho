@@ -125,16 +125,35 @@ const ChatPage: React.FC<ChatPageProps> = ({
   }, [activeChat, currentUser]);
   useEffect(() => {
     if (!activeChat || !currentUser) return;
-    const channel = supabase.channel('messages-channel').on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'messages',
-      filter: `receiver_id=eq.${currentUser.id}`
-    }, payload => {
-      if (payload.new.sender_id === activeChat) {
-        setMessages(prev => [...prev, payload.new as Message]);
-      }
-    }).subscribe();
+
+    const channel = supabase
+      .channel(`messages-channel-${currentUser.id}-${activeChat}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_id=eq.${currentUser.id}`
+      }, payload => {
+        if (payload.new.sender_id === activeChat) {
+          setMessages(prev => {
+            if (prev.some(msg => msg.id === payload.new.id)) return prev;
+            return [...prev, payload.new as Message];
+          });
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: `sender_id=eq.${currentUser.id}`
+      }, payload => {
+        const updated = payload.new as Message;
+        if (updated.receiver_id === activeChat && updated.is_read) {
+          setMessages(prev => prev.map(msg => msg.id === updated.id ? { ...msg, is_read: true } : msg));
+        }
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };

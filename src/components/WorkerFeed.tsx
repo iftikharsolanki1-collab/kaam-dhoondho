@@ -75,7 +75,9 @@ export const WorkerFeed = ({
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setWorkers((data || []).map(formatPost));
+        const formatted = (data || []).map(formatPost);
+        const deduped = Array.from(new Map(formatted.map(item => [item.id, item])).values());
+        setWorkers(deduped);
       } catch (err) {
         console.error('Error loading service posts:', err);
       } finally {
