@@ -290,7 +290,7 @@ const ChatPage: React.FC<ChatPageProps> = ({
       if (initialChatUserId && !conversationList.find(c => c.user_id === initialChatUserId)) {
         const {
           data: initialProfile
-        } = await supabase.from('profiles_public').select('user_id, name, avatar_url').eq('user_id', initialChatUserId).single();
+        } = await supabase.from('profiles_public' as any).select('user_id, name, avatar_url').eq('user_id', initialChatUserId).single();
         if (initialProfile) {
           conversationList.unshift({
             id: initialProfile.user_id || '',
