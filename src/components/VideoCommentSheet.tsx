@@ -191,15 +191,20 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder={language === 'hi' ? 'कमेंट लिखें...' : 'Add a comment...'}
+            placeholder={
+              !isCommentSupported
+                ? (language === 'hi' ? 'डेमो वीडियो पर कमेंट सेव नहीं होते' : 'Comments are disabled for demo videos')
+                : (language === 'hi' ? 'कमेंट लिखें...' : 'Add a comment...')
+            }
             className="bg-neutral-800 border-neutral-700 text-white placeholder:text-white/40 text-sm rounded-full"
             maxLength={500}
+            disabled={!isCommentSupported || sending}
           />
           <Button
             size="icon"
             variant="ghost"
             onClick={handleSend}
-            disabled={sending || !newComment.trim()}
+            disabled={sending || !newComment.trim() || !isCommentSupported}
             className="shrink-0 text-primary hover:text-primary"
           >
             {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
