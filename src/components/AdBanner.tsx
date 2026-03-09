@@ -54,7 +54,9 @@ const AdBanner = ({
 
   const showAdMob = async (unitId: string) => {
     try {
-      const { AdMob, BannerAdSize, BannerAdPosition } = await import('@capacitor-community/admob');
+      // Dynamic import — only works when @capacitor-community/admob is installed in native build
+      const admobModule = await (import(/* @vite-ignore */ '@capacitor-community/admob') as Promise<any>);
+      const { AdMob, BannerAdSize, BannerAdPosition } = admobModule;
       await AdMob.initialize({ initializeForTesting: false });
       await AdMob.showBanner({
         adId: unitId,
