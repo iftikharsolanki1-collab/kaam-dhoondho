@@ -370,6 +370,97 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
     });
   };
 
+  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: language === 'en' ? 'Invalid file type' : 'अमान्य फ़ाइल प्रकार',
+        description: language === 'en' ? 'Only MP4, WEBM videos are allowed' : 'केवल MP4, WEBM वीडियो अनुमत हैं',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      toast({
+        title: language === 'en' ? 'File too large' : 'फ़ाइल बहुत बड़ी है',
+        description: language === 'en' ? 'Maximum video size is 50MB' : 'अधिकतम वीडियो आकार 50MB है',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsUploadingVideo(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const fileExt = file.name.split('.').pop() || 'mp4';
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('user-videos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('user-videos')
+        .getPublicUrl(fileName);
+
+      const { data: videoData, error: insertError } = await supabase
+        .from('user_videos')
+        .insert({
+          user_id: user.id,
+          video_url: publicUrl,
+          caption: ''
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      setMyVideos(prev => [videoData, ...prev]);
+
+      toast({
+        title: language === 'en' ? 'Video Uploaded!' : 'वीडियो अपलोड हो गया!',
+        description: language === 'en' ? 'Your video is now live on Trending' : 'आपका वीडियो अब ट्रेंडिंग पर लाइव है',
+      });
+    } catch (error: any) {
+      console.error('Video upload error:', error);
+      toast({
+        title: language === 'en' ? 'Upload Failed' : 'अपलोड विफल',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUploadingVideo(false);
+      if (videoInputRef.current) videoInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteVideo = async (videoId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_videos')
+        .delete()
+        .eq('id', videoId);
+
+      if (error) throw error;
+      setMyVideos(prev => prev.filter(v => v.id !== videoId));
+      toast({
+        title: language === 'en' ? 'Deleted' : 'हटा दिया गया',
+        description: language === 'en' ? 'Video removed' : 'वीडियो हटा दिया गया',
+      });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Profile Header */}
