@@ -138,6 +138,29 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
     loadSavedPosts();
   }, [toast]);
 
+  // Load user's uploaded videos
+  useEffect(() => {
+    const loadMyVideos = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('user_videos')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setMyVideos(data || []);
+      } catch (error) {
+        console.error('Error loading videos:', error);
+      }
+    };
+
+    loadMyVideos();
+  }, []);
+
   const texts = {
     en: {
       title: 'My Profile',
