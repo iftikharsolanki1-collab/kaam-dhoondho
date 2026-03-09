@@ -29,6 +29,9 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
   const [myVideos, setMyVideos] = useState<any[]>([]);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState({
     name: '',
@@ -59,6 +62,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+        setCurrentUserId(user.id);
 
         const { data: profileData, error } = await supabase
           .from('profiles')
@@ -101,6 +105,50 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
     loadProfile();
     checkAdmin();
   }, []);
+
+  // Load followers/following counts
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const loadFollowCounts = async () => {
+      // Followers - people who follow me
+      const { count: followers } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', currentUserId);
+
+      // Following - people I follow
+      const { count: following } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', currentUserId);
+
+      setFollowersCount(followers || 0);
+      setFollowingCount(following || 0);
+    };
+
+    loadFollowCounts();
+
+    // Realtime subscription for follows changes
+    const channel = supabase
+      .channel('profile_follows')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'follows',
+        },
+        () => {
+          loadFollowCounts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId]);
 
   // Load saved jobs from Supabase instead of localStorage for security
   useEffect(() => {
@@ -463,12 +511,12 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
 
   return (
     <div className="space-y-6">
-      {/* Profile Header */}
+      {/* Profile Header - Instagram Style */}
       <Card className="shadow-card">
         <CardContent className="p-6">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Avatar className="w-20 h-20">
+          <div className="flex items-center gap-6">
+            <div className="relative flex-shrink-0">
+              <Avatar className="w-20 h-20 ring-2 ring-primary/20">
                 <AvatarImage src={profile.profilePhoto} alt={profile.name} />
                 <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
                   {profile.name.charAt(0)}
@@ -492,23 +540,53 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
             </div>
             
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-foreground mb-1">
-                {profile.name}
-              </h2>
-              <p className="text-muted-foreground mb-2">
-                <Calendar className="w-4 h-4 inline mr-1" />
-                {texts[language].joinDate}: {formatDate(profile.joinDate)}
-              </p>
-              <Button
-                variant={isEditing ? "outline" : "default"}
-                size="sm"
-                onClick={() => isEditing ? setIsEditing(false) : setIsEditing(true)}
-              >
-                <Edit className="w-4 h-4 mr-1" />
-                {isEditing ? texts[language].cancel : texts[language].edit}
-              </Button>
+              <h2 className="text-xl font-bold text-foreground">{profile.name}</h2>
+              
+              {/* Followers/Following Stats - Instagram Style */}
+              <div className="flex gap-6 mt-3">
+                <div className="text-center">
+                  <p className="text-lg font-bold text-foreground">{myVideos.length}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'hi' ? 'वीडियो' : 'Videos'}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold text-foreground">{followersCount}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'hi' ? 'फॉलोअर्स' : 'Followers'}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold text-foreground">{followingCount}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'hi' ? 'फॉलोइंग' : 'Following'}
+                  </p>
+                </div>
+              </div>
+
+              {profile.location && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1 mt-2">
+                  <MapPin className="w-3 h-3" />
+                  {profile.location}
+                </p>
+              )}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Edit Profile Button */}
+      <Card className="shadow-card">
+        <CardContent className="p-4">
+          <Button
+            variant={isEditing ? "outline" : "default"}
+            size="sm"
+            className="w-full"
+            onClick={() => isEditing ? setIsEditing(false) : setIsEditing(true)}
+          >
+            <Edit className="w-4 h-4 mr-1" />
+            {isEditing ? texts[language].cancel : texts[language].edit}
+          </Button>
         </CardContent>
       </Card>
 
