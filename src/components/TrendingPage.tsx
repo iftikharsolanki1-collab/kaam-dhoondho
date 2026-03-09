@@ -460,7 +460,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
               <VideoOverlay
                 video={video}
                 user={user}
-                isLiked={likedVideos.has(video.id)}
+                isLiked={likedVideos.has(video.id.replace('db-', ''))}
                 isFollowed={followedUsers.has(user.id)}
                 onLike={() => toggleLike(video.id)}
                 onFollow={() => toggleFollow(user.id)}
