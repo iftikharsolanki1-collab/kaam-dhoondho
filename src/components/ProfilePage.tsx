@@ -588,6 +588,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
             {isEditing ? texts[language].cancel : texts[language].edit}
           </Button>
         </CardContent>
+      </Card>
 
       {/* Personal Information */}
       <Card className="shadow-card">
