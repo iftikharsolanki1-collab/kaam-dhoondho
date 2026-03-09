@@ -6,6 +6,7 @@ import VideoPlayer from './trending/VideoPlayer';
 import VideoOverlay from './trending/VideoOverlay';
 import VideoCommentSheet from './VideoCommentSheet';
 import VideoProfilePage from './trending/VideoProfilePage';
+import AdBanner from './AdBanner';
 import { mockVideos, mockUsers, type MockVideo, type MockUser, formatCount } from './trending/mockData';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -410,8 +411,16 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-neutral-950">
+      {/* Top Ad Banner */}
+      <div className="absolute top-0 left-0 right-0 z-40">
+        <AdBanner
+          adSlot="7585413024"
+          adUnitId="ca-app-pub-2230245159991674/7585413024"
+        />
+      </div>
+
       {/* Back button */}
-      <div className="absolute top-3 left-3 z-30">
+      <div className="absolute top-14 left-3 z-30">
         <Button
           variant="ghost"
           size="icon"
@@ -424,7 +433,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
 
       {/* Title - double tap to refresh */}
       <div 
-        className="absolute top-3 left-1/2 -translate-x-1/2 z-30 cursor-pointer select-none"
+        className="absolute top-14 left-1/2 -translate-x-1/2 z-30 cursor-pointer select-none"
         onClick={handleTitleTap}
       >
         <h1 className="text-white font-bold text-lg drop-shadow-lg flex items-center gap-2">
