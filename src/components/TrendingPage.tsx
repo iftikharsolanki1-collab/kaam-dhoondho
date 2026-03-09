@@ -453,6 +453,8 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
                 onShare={handleShare}
                 onProfileClick={() => setSelectedUserId(user.id)}
                 showHeartBurst={heartBursts.has(video.id)}
+                realCommentCount={video.id.startsWith('db-') ? commentCounts.get(video.id.replace('db-', '')) : undefined}
+                realLikeCount={video.id.startsWith('db-') ? likeCounts.get(video.id.replace('db-', '')) : undefined}
               />
             </div>
           );
