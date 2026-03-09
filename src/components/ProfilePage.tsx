@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun, Shield, Video, Play, Trash2, Upload, Grid3x3, Loader2 } from 'lucide-react';
+import ProfileVideoPlayer from './ProfileVideoPlayer';
 
 interface ProfilePageProps {
   language: 'en' | 'hi';
