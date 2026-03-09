@@ -759,19 +759,18 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
           ) : (
             <div className="grid grid-cols-3 gap-1 rounded-lg overflow-hidden">
               {myVideos.map((video) => (
-                <div key={video.id} className="relative aspect-[9/16] group bg-muted">
-                  <video
-                    src={video.video_url}
-                    className="w-full h-full object-cover"
-                    muted
-                    preload="metadata"
-                  />
+                <div 
+                  key={video.id} 
+                  className="relative aspect-[9/16] group bg-muted cursor-pointer"
+                  onClick={() => setSelectedVideo({ url: video.video_url, caption: video.caption || '' })}
+                >
+                  <VideoThumbnail videoUrl={video.video_url} />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
                   <div className="absolute bottom-1 left-1 flex items-center gap-0.5">
-                    <Play className="w-3 h-3 text-white" fill="white" />
+                    <Play className="w-3 h-3 text-white drop-shadow-md" fill="white" />
                   </div>
                   <button
-                    onClick={() => handleDeleteVideo(video.id)}
+                    onClick={(e) => { e.stopPropagation(); handleDeleteVideo(video.id); }}
                     className="absolute top-1 right-1 w-6 h-6 rounded-full bg-destructive/80 text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Trash2 className="w-3 h-3" />
