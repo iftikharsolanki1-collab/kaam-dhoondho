@@ -463,7 +463,22 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
 
       <VideoCommentSheet
         open={commentOpen}
-        onOpenChange={setCommentOpen}
+        onOpenChange={(open) => {
+          setCommentOpen(open);
+          if (!open) {
+            // Refresh counts when comment sheet closes
+            const vid = allVideos[activeIndex]?.id?.replace('db-', '');
+            if (vid && isValidUUID(vid)) {
+              supabase.from('video_comments').select('video_id').eq('video_id', vid).then(({ data }) => {
+                setCommentCounts(prev => {
+                  const next = new Map(prev);
+                  next.set(vid, data?.length || 0);
+                  return next;
+                });
+              });
+            }
+          }
+        }}
         videoId={allVideos[activeIndex]?.id?.replace('db-', '') || null}
         language={language}
       />
