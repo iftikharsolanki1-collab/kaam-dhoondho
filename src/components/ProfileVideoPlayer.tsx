@@ -13,7 +13,7 @@ interface ProfileVideoPlayerProps {
   videoId?: string;
 }
 
-const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language }: ProfileVideoPlayerProps) => {
+const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language, videoId }: ProfileVideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(false);
