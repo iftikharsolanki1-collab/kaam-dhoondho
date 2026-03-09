@@ -76,7 +76,7 @@ const VideoOverlay = ({
         {/* Comment */}
         <button onClick={onComment} className="flex flex-col items-center gap-1">
           <MessageCircle className="w-8 h-8 text-white" strokeWidth={2} />
-          <span className="text-white text-[11px] font-semibold">{formatCount(video.comments)}</span>
+          <span className="text-white text-[11px] font-semibold">{formatCount(realCommentCount ?? video.comments)}</span>
         </button>
 
         {/* Share */}
