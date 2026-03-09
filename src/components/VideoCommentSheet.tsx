@@ -44,8 +44,10 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
 
   const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
+  const isCommentSupported = !!videoId && isValidUUID(videoId);
+
   const fetchComments = async () => {
-    if (!videoId || !isValidUUID(videoId)) {
+    if (!isCommentSupported) {
       setComments([]);
       setLoading(false);
       return;
