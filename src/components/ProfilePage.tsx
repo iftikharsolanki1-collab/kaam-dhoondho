@@ -540,25 +540,54 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
             </div>
             
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-foreground mb-1">
-                {profile.name}
-              </h2>
-              <p className="text-muted-foreground mb-2">
-                <Calendar className="w-4 h-4 inline mr-1" />
-                {texts[language].joinDate}: {formatDate(profile.joinDate)}
-              </p>
-              <Button
-                variant={isEditing ? "outline" : "default"}
-                size="sm"
-                onClick={() => isEditing ? setIsEditing(false) : setIsEditing(true)}
-              >
-                <Edit className="w-4 h-4 mr-1" />
-                {isEditing ? texts[language].cancel : texts[language].edit}
-              </Button>
+              <h2 className="text-xl font-bold text-foreground">{profile.name}</h2>
+              
+              {/* Followers/Following Stats - Instagram Style */}
+              <div className="flex gap-6 mt-3">
+                <div className="text-center">
+                  <p className="text-lg font-bold text-foreground">{myVideos.length}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'hi' ? 'वीडियो' : 'Videos'}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold text-foreground">{followersCount}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'hi' ? 'फॉलोअर्स' : 'Followers'}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold text-foreground">{followingCount}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'hi' ? 'फॉलोइंग' : 'Following'}
+                  </p>
+                </div>
+              </div>
+
+              {profile.location && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1 mt-2">
+                  <MapPin className="w-3 h-3" />
+                  {profile.location}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Profile Button */}
+      <Card className="shadow-card">
+        <CardContent className="p-4">
+          <Button
+            variant={isEditing ? "outline" : "default"}
+            size="sm"
+            className="w-full"
+            onClick={() => isEditing ? setIsEditing(false) : setIsEditing(true)}
+          >
+            <Edit className="w-4 h-4 mr-1" />
+            {isEditing ? texts[language].cancel : texts[language].edit}
+          </Button>
+        </CardContent>
 
       {/* Personal Information */}
       <Card className="shadow-card">
