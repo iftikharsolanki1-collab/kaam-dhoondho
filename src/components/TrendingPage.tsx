@@ -96,9 +96,40 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     }
   }, [language, toast]);
 
-  // Fetch on mount
+  // Fetch on mount and setup realtime subscription
   useEffect(() => {
     fetchUserVideos();
+
+    // Realtime subscription for new videos
+    const channel = supabase
+      .channel('user_videos_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'user_videos',
+        },
+        () => {
+          fetchUserVideos();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'user_videos',
+        },
+        () => {
+          fetchUserVideos();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchUserVideos]);
 
   // Handle double-tap on title to refresh
