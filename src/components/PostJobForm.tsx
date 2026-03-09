@@ -79,6 +79,7 @@ export const PostJobForm = ({ language, onClose, onSubmit, isSubmitting = false 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     const finalWork = formData.work === 'Other' ? formData.customWork : formData.work;
     
     // Basic validation
