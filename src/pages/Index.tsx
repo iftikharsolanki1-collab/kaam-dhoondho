@@ -40,8 +40,10 @@ const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmittingPost, setIsSubmittingPost] = useState(false);
   const [chatUserId, setChatUserId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
+  const postSubmitLockRef = useRef(false);
   const { toast } = useToast();
   const { counts: notificationCounts, clearBadge } = useNotificationBadges(user?.id);
 
