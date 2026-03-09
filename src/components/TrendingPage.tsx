@@ -23,66 +23,93 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [dbVideos, setDbVideos] = useState<MockVideo[]>([]);
   const [dbUsers, setDbUsers] = useState<MockUser[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastTapRef = useRef<number>(0);
   const { toast } = useToast();
 
   // Fetch user-uploaded videos from database
-  useEffect(() => {
-    const fetchUserVideos = async () => {
-      const { data, error } = await supabase
-        .from('user_videos')
-        .select('*')
-        .order('created_at', { ascending: false });
+  const fetchUserVideos = useCallback(async (showToast = false) => {
+    if (showToast) setIsRefreshing(true);
+    
+    const { data, error } = await supabase
+      .from('user_videos')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-      if (error || !data) return;
+    if (error || !data) {
+      setIsRefreshing(false);
+      return;
+    }
 
-      // Get unique user_ids
-      const userIds = [...new Set(data.map(v => v.user_id))];
-      
-      // Fetch profiles for these users
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, name, avatar_url, location')
-        .in('user_id', userIds);
+    // Get unique user_ids
+    const userIds = [...new Set(data.map(v => v.user_id))];
+    
+    // Fetch profiles for these users
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, name, avatar_url, location')
+      .in('user_id', userIds);
 
-      const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+    const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
 
-      const usersFromDb: MockUser[] = userIds.map(uid => {
-        const p = profileMap.get(uid);
-        return {
-          id: `db-${uid}`,
-          username: (p?.name || 'User').toLowerCase().replace(/\s+/g, '_'),
-          name: p?.name || 'User',
-          avatar: p?.avatar_url || `https://i.pravatar.cc/150?u=${uid}`,
-          bio: p?.location || '',
-          followers: 0,
-          following: 0,
-          likes: 0,
-          isFollowed: false,
-        };
-      });
-
-      const videosFromDb: MockVideo[] = data.map((v, i) => ({
-        id: `db-${v.id}`,
-        userId: `db-${v.user_id}`,
-        videoUrl: v.video_url,
-        thumbnail: '',
-        caption: v.caption || '',
-        trackName: 'Original',
-        artist: profileMap.get(v.user_id)?.name || 'User',
+    const usersFromDb: MockUser[] = userIds.map(uid => {
+      const p = profileMap.get(uid);
+      return {
+        id: `db-${uid}`,
+        username: (p?.name || 'User').toLowerCase().replace(/\s+/g, '_'),
+        name: p?.name || 'User',
+        avatar: p?.avatar_url || `https://i.pravatar.cc/150?u=${uid}`,
+        bio: p?.location || '',
+        followers: 0,
+        following: 0,
         likes: 0,
-        comments: 0,
-        shares: 0,
-        views: 0,
-        isLiked: false,
-      }));
+        isFollowed: false,
+      };
+    });
 
-      setDbUsers(usersFromDb);
-      setDbVideos(videosFromDb);
-    };
+    const videosFromDb: MockVideo[] = data.map((v) => ({
+      id: `db-${v.id}`,
+      userId: `db-${v.user_id}`,
+      videoUrl: v.video_url,
+      thumbnail: '',
+      caption: v.caption || '',
+      trackName: 'Original',
+      artist: profileMap.get(v.user_id)?.name || 'User',
+      likes: 0,
+      comments: 0,
+      shares: 0,
+      views: 0,
+      isLiked: false,
+    }));
 
+    setDbUsers(usersFromDb);
+    setDbVideos(videosFromDb);
+    setIsRefreshing(false);
+
+    if (showToast) {
+      toast({
+        title: language === 'hi' ? '🔄 रिफ्रेश हो गया!' : '🔄 Refreshed!',
+        description: language === 'hi' ? 'नए वीडियो लोड हो गए' : 'New videos loaded',
+        duration: 2000,
+      });
+    }
+  }, [language, toast]);
+
+  // Fetch on mount
+  useEffect(() => {
     fetchUserVideos();
-  }, []);
+  }, [fetchUserVideos]);
+
+  // Handle double-tap on title to refresh
+  const handleTitleTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      // Double tap detected - refresh
+      fetchUserVideos(true);
+    }
+    lastTapRef.current = now;
+  }, [fetchUserVideos]);
 
   // Combine mock + real videos
   const allVideos = [...dbVideos, ...mockVideos];
