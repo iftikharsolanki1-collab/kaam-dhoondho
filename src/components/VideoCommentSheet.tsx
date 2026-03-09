@@ -151,7 +151,9 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
             </div>
           ) : comments.length === 0 ? (
             <p className="text-center text-white/40 text-sm py-8">
-              {language === 'hi' ? 'पहला कमेंट करें!' : 'Be the first to comment!'}
+              {!isCommentSupported
+                ? (language === 'hi' ? 'यह डेमो वीडियो है। कमेंट सेव करने के लिए अपलोड किए हुए वीडियो पर जाएँ।' : 'This is a demo video. Open an uploaded video to save comments.')
+                : (language === 'hi' ? 'पहला कमेंट करें!' : 'Be the first to comment!')}
             </p>
           ) : (
             comments.map((c) => (
