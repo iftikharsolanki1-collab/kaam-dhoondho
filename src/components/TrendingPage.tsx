@@ -20,6 +20,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
   const [heartBursts, setHeartBursts] = useState<Set<string>>(new Set());
   const [commentOpen, setCommentOpen] = useState(false);
+  const [commentCounts, setCommentCounts] = useState<Map<string, number>>(new Map());
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [dbVideos, setDbVideos] = useState<MockVideo[]>([]);
   const [dbUsers, setDbUsers] = useState<MockUser[]>([]);

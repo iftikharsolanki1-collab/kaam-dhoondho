@@ -13,6 +13,8 @@ interface VideoOverlayProps {
   onShare: () => void;
   onProfileClick: () => void;
   showHeartBurst: boolean;
+  realCommentCount?: number;
+  realLikeCount?: number;
 }
 
 const VideoOverlay = ({
