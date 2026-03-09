@@ -29,6 +29,9 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
   const [myVideos, setMyVideos] = useState<any[]>([]);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState({
     name: '',
