@@ -44,8 +44,10 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
 
   const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
+  const isCommentSupported = !!videoId && isValidUUID(videoId);
+
   const fetchComments = async () => {
-    if (!videoId || !isValidUUID(videoId)) {
+    if (!isCommentSupported) {
       setComments([]);
       setLoading(false);
       return;
@@ -86,14 +88,23 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
   };
 
   const handleSend = async () => {
-    if (!newComment.trim() || !videoId || !isValidUUID(videoId) || !currentUserId) {
-      if (!currentUserId) {
-        toast({
-          title: language === 'hi' ? 'लॉगिन करें' : 'Please login',
-          description: language === 'hi' ? 'कमेंट करने के लिए लॉगिन ज़रूरी है' : 'Login required to comment',
-          variant: 'destructive'
-        });
-      }
+    if (!newComment.trim()) return;
+
+    if (!currentUserId) {
+      toast({
+        title: language === 'hi' ? 'लॉगिन करें' : 'Please login',
+        description: language === 'hi' ? 'कमेंट करने के लिए लॉगिन ज़रूरी है' : 'Login required to comment',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!isCommentSupported) {
+      toast({
+        title: language === 'hi' ? 'डेमो वीडियो' : 'Demo video',
+        description: language === 'hi' ? 'इस वीडियो पर कमेंट सेव नहीं होंगे। अपलोड किए हुए वीडियो पर कमेंट करें।' : 'Comments are not saved on this demo video. Please comment on uploaded videos.',
+        variant: 'destructive'
+      });
       return;
     }
     setSending(true);
@@ -140,7 +151,9 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
             </div>
           ) : comments.length === 0 ? (
             <p className="text-center text-white/40 text-sm py-8">
-              {language === 'hi' ? 'पहला कमेंट करें!' : 'Be the first to comment!'}
+              {!isCommentSupported
+                ? (language === 'hi' ? 'यह डेमो वीडियो है। कमेंट सेव करने के लिए अपलोड किए हुए वीडियो पर जाएँ।' : 'This is a demo video. Open an uploaded video to save comments.')
+                : (language === 'hi' ? 'पहला कमेंट करें!' : 'Be the first to comment!')}
             </p>
           ) : (
             comments.map((c) => (
@@ -178,15 +191,20 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder={language === 'hi' ? 'कमेंट लिखें...' : 'Add a comment...'}
+            placeholder={
+              !isCommentSupported
+                ? (language === 'hi' ? 'डेमो वीडियो पर कमेंट सेव नहीं होते' : 'Comments are disabled for demo videos')
+                : (language === 'hi' ? 'कमेंट लिखें...' : 'Add a comment...')
+            }
             className="bg-neutral-800 border-neutral-700 text-white placeholder:text-white/40 text-sm rounded-full"
             maxLength={500}
+            disabled={!isCommentSupported || sending}
           />
           <Button
             size="icon"
             variant="ghost"
             onClick={handleSend}
-            disabled={sending || !newComment.trim()}
+            disabled={sending || !newComment.trim() || !isCommentSupported}
             className="shrink-0 text-primary hover:text-primary"
           >
             {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
