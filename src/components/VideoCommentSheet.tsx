@@ -88,14 +88,23 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
   };
 
   const handleSend = async () => {
-    if (!newComment.trim() || !videoId || !isValidUUID(videoId) || !currentUserId) {
-      if (!currentUserId) {
-        toast({
-          title: language === 'hi' ? 'लॉगिन करें' : 'Please login',
-          description: language === 'hi' ? 'कमेंट करने के लिए लॉगिन ज़रूरी है' : 'Login required to comment',
-          variant: 'destructive'
-        });
-      }
+    if (!newComment.trim()) return;
+
+    if (!currentUserId) {
+      toast({
+        title: language === 'hi' ? 'लॉगिन करें' : 'Please login',
+        description: language === 'hi' ? 'कमेंट करने के लिए लॉगिन ज़रूरी है' : 'Login required to comment',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!isCommentSupported) {
+      toast({
+        title: language === 'hi' ? 'डेमो वीडियो' : 'Demo video',
+        description: language === 'hi' ? 'इस वीडियो पर कमेंट सेव नहीं होंगे। अपलोड किए हुए वीडियो पर कमेंट करें।' : 'Comments are not saved on this demo video. Please comment on uploaded videos.',
+        variant: 'destructive'
+      });
       return;
     }
     setSending(true);
