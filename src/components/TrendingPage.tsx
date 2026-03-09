@@ -444,7 +444,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
       <VideoCommentSheet
         open={commentOpen}
         onOpenChange={setCommentOpen}
-        videoId={allVideos[activeIndex]?.id || null}
+        videoId={allVideos[activeIndex]?.id?.replace('db-', '') || null}
         language={language}
       />
     </div>
