@@ -520,6 +520,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
       isOpen={!!selectedVideo}
       onClose={() => setSelectedVideo(null)}
       language={language}
+      videoId={selectedVideo?.id}
     />
     <div className="space-y-6">
       {/* Profile Header - Instagram Style */}
