@@ -15,9 +15,10 @@ interface PostJobFormProps {
   language: 'en' | 'hi';
   onClose: () => void;
   onSubmit: (jobData: any) => void;
+  isSubmitting?: boolean;
 }
 
-export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) => {
+export const PostJobForm = ({ language, onClose, onSubmit, isSubmitting = false }: PostJobFormProps) => {
   const { toast } = useToast();
   const jobCategories = getJobCategories().filter(c => c.id !== '0'); // Exclude "All"
   
@@ -78,6 +79,7 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     const finalWork = formData.work === 'Other' ? formData.customWork : formData.work;
     
     // Basic validation
@@ -365,11 +367,11 @@ export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) =
 
             {/* Submit Buttons */}
             <div className="flex space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={isSubmitting}>
                 {texts[language].cancel}
               </Button>
-              <Button type="submit" className="flex-1">
-                {texts[language].submit}
+              <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                {isSubmitting ? (language === 'en' ? 'Posting...' : 'पोस्ट हो रही है...') : texts[language].submit}
               </Button>
             </div>
           </form>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Header } from '@/components/Header';
 import { TabNavigation } from '@/components/TabNavigation';
 import { SkillChips } from '@/components/SkillChips';
@@ -40,8 +40,10 @@ const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmittingPost, setIsSubmittingPost] = useState(false);
   const [chatUserId, setChatUserId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
+  const postSubmitLockRef = useRef(false);
   const { toast } = useToast();
   const { counts: notificationCounts, clearBadge } = useNotificationBadges(user?.id);
 
@@ -121,7 +123,10 @@ const Index = () => {
   }, [currentPage]);
 
   const handlePostSubmit = async (data: any) => {
-    if (!user) return;
+    if (!user || postSubmitLockRef.current || isSubmittingPost) return;
+
+    postSubmitLockRef.current = true;
+    setIsSubmittingPost(true);
 
     try {
       const postType = activeTab === 'workers' ? 'service' : 'job';
@@ -196,6 +201,9 @@ const Index = () => {
         description: err?.message || (language === 'en' ? 'Please try again.' : 'कृपया फिर से कोशिश करें।'),
         variant: 'destructive',
       });
+    } finally {
+      postSubmitLockRef.current = false;
+      setIsSubmittingPost(false);
     }
   };
 
@@ -502,12 +510,14 @@ const Index = () => {
               language={language}
               onClose={() => setShowPostForm(false)}
               onSubmit={handlePostSubmit}
+              isSubmitting={isSubmittingPost}
             />
           ) : (
             <PostServiceForm
               language={language}
               onClose={() => setShowPostForm(false)}
               onSubmit={handlePostSubmit}
+              isSubmitting={isSubmittingPost}
             />
           )}
         </>

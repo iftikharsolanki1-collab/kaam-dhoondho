@@ -14,9 +14,10 @@ interface PostServiceFormProps {
   language: 'en' | 'hi';
   onClose: () => void;
   onSubmit: (serviceData: any) => void;
+  isSubmitting?: boolean;
 }
 
-export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceFormProps) => {
+export const PostServiceForm = ({ language, onClose, onSubmit, isSubmitting = false }: PostServiceFormProps) => {
   const { toast } = useToast();
   const jobCategories = getJobCategories().filter(c => c.id !== '0');
   
@@ -75,6 +76,7 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     const finalSkill = formData.skill === 'Other' ? formData.customSkill : formData.skill;
     
     // Basic validation
@@ -358,11 +360,11 @@ export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceForm
 
             {/* Submit Buttons */}
             <div className="flex space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={isSubmitting}>
                 {texts[language].cancel}
               </Button>
-              <Button type="submit" className="flex-1">
-                {texts[language].submit}
+              <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                {isSubmitting ? (language === 'en' ? 'Posting...' : 'पोस्ट हो रही है...') : texts[language].submit}
               </Button>
             </div>
           </form>
