@@ -76,6 +76,7 @@ export const PostServiceForm = ({ language, onClose, onSubmit, isSubmitting = fa
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     const finalSkill = formData.skill === 'Other' ? formData.customSkill : formData.skill;
     
     // Basic validation
