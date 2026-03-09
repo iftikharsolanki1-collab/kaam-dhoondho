@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, MessageCircle, Share2, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import VideoCommentSheet from './VideoCommentSheet';
 
 interface ProfileVideoPlayerProps {
   videoUrl: string;
@@ -9,9 +10,10 @@ interface ProfileVideoPlayerProps {
   isOpen: boolean;
   onClose: () => void;
   language: 'en' | 'hi';
+  videoId?: string;
 }
 
-const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language }: ProfileVideoPlayerProps) => {
+const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language, videoId }: ProfileVideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -19,6 +21,7 @@ const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language }: Pr
   const [likeCount, setLikeCount] = useState(0);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
   const [showHeartBurst, setShowHeartBurst] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const lastTapRef = useRef(0);
   const { toast } = useToast();
 
@@ -67,10 +70,7 @@ const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language }: Pr
   };
 
   const handleComment = () => {
-    toast({
-      title: language === 'hi' ? 'जल्द आ रहा है' : 'Coming Soon',
-      description: language === 'hi' ? 'कमेंट फीचर जल्द आएगा' : 'Comment feature coming soon',
-    });
+    setShowComments(true);
   };
 
   const handleShare = () => {
@@ -198,6 +198,14 @@ const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language }: Pr
             <p className="text-white/90 text-sm leading-snug line-clamp-2">{caption}</p>
           </div>
         )}
+
+        {/* Comment Sheet */}
+        <VideoCommentSheet
+          open={showComments}
+          onOpenChange={setShowComments}
+          videoId={videoId || null}
+          language={language}
+        />
       </motion.div>
     </AnimatePresence>
   );

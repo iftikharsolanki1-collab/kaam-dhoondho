@@ -33,7 +33,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<{ url: string; caption: string } | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; caption: string; id?: string } | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailRefs = useRef<Map<string, string>>(new Map());
   const [profile, setProfile] = useState({
@@ -520,6 +520,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
       isOpen={!!selectedVideo}
       onClose={() => setSelectedVideo(null)}
       language={language}
+      videoId={selectedVideo?.id}
     />
     <div className="space-y-6">
       {/* Profile Header - Instagram Style */}
@@ -770,7 +771,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
                 <div 
                   key={video.id} 
                   className="relative aspect-[9/16] group bg-muted cursor-pointer"
-                  onClick={() => setSelectedVideo({ url: video.video_url, caption: video.caption || '' })}
+                  onClick={() => setSelectedVideo({ url: video.video_url, caption: video.caption || '', id: video.id })}
                 >
                   <VideoThumbnail videoUrl={video.video_url} />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
