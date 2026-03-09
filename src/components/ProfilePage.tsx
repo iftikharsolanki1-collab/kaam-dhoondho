@@ -62,6 +62,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+        setCurrentUserId(user.id);
 
         const { data: profileData, error } = await supabase
           .from('profiles')
@@ -104,6 +105,50 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
     loadProfile();
     checkAdmin();
   }, []);
+
+  // Load followers/following counts
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const loadFollowCounts = async () => {
+      // Followers - people who follow me
+      const { count: followers } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', currentUserId);
+
+      // Following - people I follow
+      const { count: following } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', currentUserId);
+
+      setFollowersCount(followers || 0);
+      setFollowingCount(following || 0);
+    };
+
+    loadFollowCounts();
+
+    // Realtime subscription for follows changes
+    const channel = supabase
+      .channel('profile_follows')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'follows',
+        },
+        () => {
+          loadFollowCounts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId]);
 
   // Load saved jobs from Supabase instead of localStorage for security
   useEffect(() => {
