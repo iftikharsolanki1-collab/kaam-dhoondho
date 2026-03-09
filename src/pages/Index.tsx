@@ -123,7 +123,10 @@ const Index = () => {
   }, [currentPage]);
 
   const handlePostSubmit = async (data: any) => {
-    if (!user) return;
+    if (!user || postSubmitLockRef.current || isSubmittingPost) return;
+
+    postSubmitLockRef.current = true;
+    setIsSubmittingPost(true);
 
     try {
       const postType = activeTab === 'workers' ? 'service' : 'job';
@@ -198,6 +201,9 @@ const Index = () => {
         description: err?.message || (language === 'en' ? 'Please try again.' : 'कृपया फिर से कोशिश करें।'),
         variant: 'destructive',
       });
+    } finally {
+      postSubmitLockRef.current = false;
+      setIsSubmittingPost(false);
     }
   };
 
