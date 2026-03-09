@@ -511,12 +511,12 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
 
   return (
     <div className="space-y-6">
-      {/* Profile Header */}
+      {/* Profile Header - Instagram Style */}
       <Card className="shadow-card">
         <CardContent className="p-6">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Avatar className="w-20 h-20">
+          <div className="flex items-center gap-6">
+            <div className="relative flex-shrink-0">
+              <Avatar className="w-20 h-20 ring-2 ring-primary/20">
                 <AvatarImage src={profile.profilePhoto} alt={profile.name} />
                 <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
                   {profile.name.charAt(0)}
