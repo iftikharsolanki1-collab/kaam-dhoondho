@@ -227,11 +227,20 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
         </Button>
       </div>
 
-      {/* Title */}
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30">
-        <h1 className="text-white font-bold text-lg drop-shadow-lg">
+      {/* Title - double tap to refresh */}
+      <div 
+        className="absolute top-3 left-1/2 -translate-x-1/2 z-30 cursor-pointer select-none"
+        onClick={handleTitleTap}
+      >
+        <h1 className="text-white font-bold text-lg drop-shadow-lg flex items-center gap-2">
           {language === 'hi' ? 'ट्रेंडिंग' : 'Trending'}
+          {isRefreshing && (
+            <span className="animate-spin">🔄</span>
+          )}
         </h1>
+        <p className="text-white/60 text-[10px] text-center">
+          {language === 'hi' ? 'रिफ्रेश के लिए डबल टैप करें' : 'Double tap to refresh'}
+        </p>
       </div>
 
       {/* Video feed */}
