@@ -9,6 +9,7 @@ interface ProfileVideoPlayerProps {
   isOpen: boolean;
   onClose: () => void;
   language: 'en' | 'hi';
+  videoId?: string;
 }
 
 const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language }: ProfileVideoPlayerProps) => {
