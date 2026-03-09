@@ -124,6 +124,22 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     setDbVideos(videosFromDb);
     setIsRefreshing(false);
 
+    // Fetch real comment & like counts for DB videos
+    const videoIds = data.map(v => v.id);
+    if (videoIds.length > 0) {
+      const [commentsRes, likesRes] = await Promise.all([
+        supabase.from('video_comments').select('video_id').in('video_id', videoIds),
+        supabase.from('video_likes').select('video_id').in('video_id', videoIds),
+      ]);
+
+      const cMap = new Map<string, number>();
+      const lMap = new Map<string, number>();
+      (commentsRes.data || []).forEach(r => cMap.set(r.video_id, (cMap.get(r.video_id) || 0) + 1));
+      (likesRes.data || []).forEach(r => lMap.set(r.video_id, (lMap.get(r.video_id) || 0) + 1));
+      setCommentCounts(cMap);
+      setLikeCounts(lMap);
+    }
+
     if (showToast) {
       toast({
         title: language === 'hi' ? '🔄 रिफ्रेश हो गया!' : '🔄 Refreshed!',
