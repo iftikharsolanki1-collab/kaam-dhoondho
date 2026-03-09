@@ -68,8 +68,7 @@ const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language, vide
     if (now - lastTapRef.current < 300) {
       // Double tap - like
       if (!liked) {
-        setLiked(true);
-        setLikeCount(prev => prev + 1);
+        persistLike(true);
       }
       setShowHeartBurst(true);
       setTimeout(() => setShowHeartBurst(false), 800);
@@ -94,9 +93,27 @@ const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language, vide
     }, 310);
   };
 
+  const persistLike = async (newLikedState: boolean) => {
+    setLiked(newLikedState);
+    setLikeCount(prev => newLikedState ? prev + 1 : prev - 1);
+
+    if (videoId && isValidUUID(videoId) && currentUserId) {
+      try {
+        if (newLikedState) {
+          await supabase.from('video_likes').insert({ video_id: videoId, user_id: currentUserId });
+        } else {
+          await supabase.from('video_likes').delete().eq('video_id', videoId).eq('user_id', currentUserId);
+        }
+      } catch {
+        // Revert
+        setLiked(!newLikedState);
+        setLikeCount(prev => newLikedState ? prev - 1 : prev + 1);
+      }
+    }
+  };
+
   const handleLike = () => {
-    setLiked(!liked);
-    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+    persistLike(!liked);
   };
 
   const handleComment = () => {
