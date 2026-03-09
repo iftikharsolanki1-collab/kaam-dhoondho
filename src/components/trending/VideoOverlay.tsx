@@ -70,7 +70,7 @@ const VideoOverlay = ({
               strokeWidth={2}
             />
           </motion.div>
-          <span className="text-white text-[11px] font-semibold">{formatCount(video.likes + (isLiked ? 1 : 0))}</span>
+          <span className="text-white text-[11px] font-semibold">{formatCount(realLikeCount ?? (video.likes + (isLiked ? 1 : 0)))}</span>
         </button>
 
         {/* Comment */}
