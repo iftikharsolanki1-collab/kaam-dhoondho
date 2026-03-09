@@ -187,15 +187,12 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     };
   }, [fetchUserVideos]);
 
-  // Handle double-tap on title to refresh
+  // Handle tap on title to refresh
   const handleTitleTap = useCallback(() => {
-    const now = Date.now();
-    if (now - lastTapRef.current < 300) {
-      // Double tap detected - refresh
+    if (!isRefreshing) {
       fetchUserVideos(true);
     }
-    lastTapRef.current = now;
-  }, [fetchUserVideos]);
+  }, [fetchUserVideos, isRefreshing]);
 
   // Combine mock + real videos
   const allVideos = [...dbVideos, ...mockVideos];
