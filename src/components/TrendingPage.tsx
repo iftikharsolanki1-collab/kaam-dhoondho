@@ -425,7 +425,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
 
       {/* Title - double tap to refresh */}
       <div 
-        className="absolute top-14 left-1/2 -translate-x-1/2 z-30 cursor-pointer select-none"
+        className="absolute top-3 left-1/2 -translate-x-1/2 z-30 cursor-pointer select-none"
         onClick={handleTitleTap}
       >
         <h1 className="text-white font-bold text-lg drop-shadow-lg flex items-center gap-2">
