@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun, Shield } from 'lucide-react';
+import { User, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun, Shield, Video, Play, Trash2, Upload, Grid3x3, Loader2 } from 'lucide-react';
 
 interface ProfilePageProps {
   language: 'en' | 'hi';
