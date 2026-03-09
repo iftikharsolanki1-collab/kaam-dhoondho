@@ -20,7 +20,7 @@ interface VideoOverlayProps {
 const VideoOverlay = ({
   video, user, isLiked, isFollowed,
   onLike, onFollow, onComment, onShare, onProfileClick,
-  showHeartBurst,
+  showHeartBurst, realCommentCount, realLikeCount,
 }: VideoOverlayProps) => {
   return (
     <div className="absolute inset-0 pointer-events-none z-10">
