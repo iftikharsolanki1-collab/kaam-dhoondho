@@ -70,10 +70,7 @@ const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language, vide
   };
 
   const handleComment = () => {
-    toast({
-      title: language === 'hi' ? 'जल्द आ रहा है' : 'Coming Soon',
-      description: language === 'hi' ? 'कमेंट फीचर जल्द आएगा' : 'Comment feature coming soon',
-    });
+    setShowComments(true);
   };
 
   const handleShare = () => {
