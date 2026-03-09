@@ -24,9 +24,32 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   const [dbVideos, setDbVideos] = useState<MockVideo[]>([]);
   const [dbUsers, setDbUsers] = useState<MockUser[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<number>(0);
   const { toast } = useToast();
+
+  // Get current user and load their follows
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+        
+        // Load existing follows
+        const { data: follows } = await supabase
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', user.id);
+        
+        if (follows) {
+          const followedSet = new Set(follows.map(f => `db-${f.following_id}`));
+          setFollowedUsers(followedSet);
+        }
+      }
+    };
+    loadCurrentUser();
+  }, []);
 
   // Fetch user-uploaded videos from database
   const fetchUserVideos = useCallback(async (showToast = false) => {
