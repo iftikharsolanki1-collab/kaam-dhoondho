@@ -6,7 +6,7 @@ import VideoPlayer from './trending/VideoPlayer';
 import VideoOverlay from './trending/VideoOverlay';
 import VideoCommentSheet from './VideoCommentSheet';
 import VideoProfilePage from './trending/VideoProfilePage';
-import AdBanner from './AdBanner';
+
 import { mockVideos, mockUsers, type MockVideo, type MockUser, formatCount } from './trending/mockData';
 import { supabase } from '@/integrations/supabase/client';
 
