@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import VideoPlayer from './trending/VideoPlayer';
 import VideoOverlay from './trending/VideoOverlay';
-import CommentSheet from './trending/CommentSheet';
+import VideoCommentSheet from './VideoCommentSheet';
 import VideoProfilePage from './trending/VideoProfilePage';
 import { mockVideos, mockUsers, type MockVideo, type MockUser, formatCount } from './trending/mockData';
 import { supabase } from '@/integrations/supabase/client';
@@ -401,10 +401,11 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
         })}
       </div>
 
-      <CommentSheet
+      <VideoCommentSheet
         open={commentOpen}
         onOpenChange={setCommentOpen}
-        commentCount={allVideos[activeIndex]?.comments ?? 0}
+        videoId={allVideos[activeIndex]?.id || null}
+        language={language}
       />
     </div>
   );
