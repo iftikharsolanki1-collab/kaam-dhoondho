@@ -367,11 +367,11 @@ export const PostJobForm = ({ language, onClose, onSubmit, isSubmitting = false 
 
             {/* Submit Buttons */}
             <div className="flex space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={isSubmitting}>
                 {texts[language].cancel}
               </Button>
-              <Button type="submit" className="flex-1">
-                {texts[language].submit}
+              <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                {isSubmitting ? (language === 'en' ? 'Posting...' : 'पोस्ट हो रही है...') : texts[language].submit}
               </Button>
             </div>
           </form>
