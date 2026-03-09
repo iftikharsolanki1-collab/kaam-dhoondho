@@ -13,12 +13,14 @@ interface VideoOverlayProps {
   onShare: () => void;
   onProfileClick: () => void;
   showHeartBurst: boolean;
+  realCommentCount?: number;
+  realLikeCount?: number;
 }
 
 const VideoOverlay = ({
   video, user, isLiked, isFollowed,
   onLike, onFollow, onComment, onShare, onProfileClick,
-  showHeartBurst,
+  showHeartBurst, realCommentCount, realLikeCount,
 }: VideoOverlayProps) => {
   return (
     <div className="absolute inset-0 pointer-events-none z-10">
@@ -68,13 +70,13 @@ const VideoOverlay = ({
               strokeWidth={2}
             />
           </motion.div>
-          <span className="text-white text-[11px] font-semibold">{formatCount(video.likes + (isLiked ? 1 : 0))}</span>
+          <span className="text-white text-[11px] font-semibold">{formatCount(realLikeCount ?? (video.likes + (isLiked ? 1 : 0)))}</span>
         </button>
 
         {/* Comment */}
         <button onClick={onComment} className="flex flex-col items-center gap-1">
           <MessageCircle className="w-8 h-8 text-white" strokeWidth={2} />
-          <span className="text-white text-[11px] font-semibold">{formatCount(video.comments)}</span>
+          <span className="text-white text-[11px] font-semibold">{formatCount(realCommentCount ?? video.comments)}</span>
         </button>
 
         {/* Share */}

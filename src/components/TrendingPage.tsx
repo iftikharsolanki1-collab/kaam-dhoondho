@@ -20,6 +20,8 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
   const [heartBursts, setHeartBursts] = useState<Set<string>>(new Set());
   const [commentOpen, setCommentOpen] = useState(false);
+  const [commentCounts, setCommentCounts] = useState<Map<string, number>>(new Map());
+  const [likeCounts, setLikeCounts] = useState<Map<string, number>>(new Map());
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [dbVideos, setDbVideos] = useState<MockVideo[]>([]);
   const [dbUsers, setDbUsers] = useState<MockUser[]>([]);
@@ -123,6 +125,22 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     setDbVideos(videosFromDb);
     setIsRefreshing(false);
 
+    // Fetch real comment & like counts for DB videos
+    const videoIds = data.map(v => v.id);
+    if (videoIds.length > 0) {
+      const [commentsRes, likesRes] = await Promise.all([
+        supabase.from('video_comments').select('video_id').in('video_id', videoIds),
+        supabase.from('video_likes').select('video_id').in('video_id', videoIds),
+      ]);
+
+      const cMap = new Map<string, number>();
+      const lMap = new Map<string, number>();
+      (commentsRes.data || []).forEach(r => cMap.set(r.video_id, (cMap.get(r.video_id) || 0) + 1));
+      (likesRes.data || []).forEach(r => lMap.set(r.video_id, (lMap.get(r.video_id) || 0) + 1));
+      setCommentCounts(cMap);
+      setLikeCounts(lMap);
+    }
+
     if (showToast) {
       toast({
         title: language === 'hi' ? '🔄 रिफ्रेश हो गया!' : '🔄 Refreshed!',
@@ -214,26 +232,36 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   }, [setupObserver, selectedUserId, allVideos.length]);
 
   const toggleLike = async (videoId: string) => {
-    const isCurrentlyLiked = likedVideos.has(videoId);
+    const rawId = videoId.replace('db-', '');
+    const isCurrentlyLiked = likedVideos.has(rawId);
 
     // Optimistic update
     setLikedVideos((prev) => {
       const next = new Set(prev);
-      if (next.has(videoId)) next.delete(videoId);
-      else next.add(videoId);
+      if (next.has(rawId)) next.delete(rawId);
+      else next.add(rawId);
       return next;
     });
 
+    // Update like count optimistically for DB videos
+    if (isValidUUID(rawId)) {
+      setLikeCounts(prev => {
+        const next = new Map(prev);
+        next.set(rawId, (prev.get(rawId) || 0) + (isCurrentlyLiked ? -1 : 1));
+        return next;
+      });
+    }
+
     // Persist to DB for real videos
-    if (isValidUUID(videoId) && currentUserId) {
+    if (isValidUUID(rawId) && currentUserId) {
       try {
         if (isCurrentlyLiked) {
           await supabase.from('video_likes').delete()
-            .eq('video_id', videoId)
+            .eq('video_id', rawId)
             .eq('user_id', currentUserId);
         } else {
           await supabase.from('video_likes').insert({
-            video_id: videoId,
+            video_id: rawId,
             user_id: currentUserId,
           });
         }
@@ -241,8 +269,13 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
         // Revert on error
         setLikedVideos((prev) => {
           const next = new Set(prev);
-          if (isCurrentlyLiked) next.add(videoId);
-          else next.delete(videoId);
+          if (isCurrentlyLiked) next.add(rawId);
+          else next.delete(rawId);
+          return next;
+        });
+        setLikeCounts(prev => {
+          const next = new Map(prev);
+          next.set(rawId, (prev.get(rawId) || 0) + (isCurrentlyLiked ? 1 : -1));
           return next;
         });
       }
@@ -326,7 +359,8 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   };
 
   const triggerHeartBurst = (videoId: string) => {
-    if (!likedVideos.has(videoId)) toggleLike(videoId);
+    const rawId = videoId.replace('db-', '');
+    if (!likedVideos.has(rawId)) toggleLike(videoId);
     setHeartBursts((prev) => new Set(prev).add(videoId));
     setTimeout(() => {
       setHeartBursts((prev) => {
@@ -427,7 +461,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
               <VideoOverlay
                 video={video}
                 user={user}
-                isLiked={likedVideos.has(video.id)}
+                isLiked={likedVideos.has(video.id.replace('db-', ''))}
                 isFollowed={followedUsers.has(user.id)}
                 onLike={() => toggleLike(video.id)}
                 onFollow={() => toggleFollow(user.id)}
@@ -435,6 +469,8 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
                 onShare={handleShare}
                 onProfileClick={() => setSelectedUserId(user.id)}
                 showHeartBurst={heartBursts.has(video.id)}
+                realCommentCount={video.id.startsWith('db-') ? commentCounts.get(video.id.replace('db-', '')) : undefined}
+                realLikeCount={video.id.startsWith('db-') ? likeCounts.get(video.id.replace('db-', '')) : undefined}
               />
             </div>
           );
@@ -443,7 +479,22 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
 
       <VideoCommentSheet
         open={commentOpen}
-        onOpenChange={setCommentOpen}
+        onOpenChange={(open) => {
+          setCommentOpen(open);
+          if (!open) {
+            // Refresh counts when comment sheet closes
+            const vid = allVideos[activeIndex]?.id?.replace('db-', '');
+            if (vid && isValidUUID(vid)) {
+              supabase.from('video_comments').select('video_id').eq('video_id', vid).then(({ data }) => {
+                setCommentCounts(prev => {
+                  const next = new Map(prev);
+                  next.set(vid, data?.length || 0);
+                  return next;
+                });
+              });
+            }
+          }
+        }}
         videoId={allVideos[activeIndex]?.id?.replace('db-', '') || null}
         language={language}
       />
