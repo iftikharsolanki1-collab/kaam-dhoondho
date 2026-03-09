@@ -42,8 +42,14 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
     }
   }, [open, videoId]);
 
+  const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
   const fetchComments = async () => {
-    if (!videoId) return;
+    if (!videoId || !isValidUUID(videoId)) {
+      setComments([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -54,7 +60,6 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
 
       if (error) throw error;
 
-      // Fetch profiles for comment authors
       const userIds = [...new Set((data || []).map(c => c.user_id))];
       const profileMap = new Map<string, { name: string; avatar_url: string | null }>();
 
