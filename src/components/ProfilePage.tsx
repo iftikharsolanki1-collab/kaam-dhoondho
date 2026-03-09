@@ -513,6 +513,14 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   };
 
   return (
+    <>
+    <ProfileVideoPlayer
+      videoUrl={selectedVideo?.url || ''}
+      caption={selectedVideo?.caption || ''}
+      isOpen={!!selectedVideo}
+      onClose={() => setSelectedVideo(null)}
+      language={language}
+    />
     <div className="space-y-6">
       {/* Profile Header - Instagram Style */}
       <Card className="shadow-card">
