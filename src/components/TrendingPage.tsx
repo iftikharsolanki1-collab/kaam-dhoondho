@@ -6,7 +6,8 @@ import VideoPlayer from './trending/VideoPlayer';
 import VideoOverlay from './trending/VideoOverlay';
 import CommentSheet from './trending/CommentSheet';
 import VideoProfilePage from './trending/VideoProfilePage';
-import { mockVideos, mockUsers, type MockVideo } from './trending/mockData';
+import { mockVideos, mockUsers, type MockVideo, type MockUser, formatCount } from './trending/mockData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TrendingPageProps {
   language: 'en' | 'hi';
@@ -20,8 +21,72 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   const [heartBursts, setHeartBursts] = useState<Set<string>>(new Set());
   const [commentOpen, setCommentOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [dbVideos, setDbVideos] = useState<MockVideo[]>([]);
+  const [dbUsers, setDbUsers] = useState<MockUser[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Fetch user-uploaded videos from database
+  useEffect(() => {
+    const fetchUserVideos = async () => {
+      const { data, error } = await supabase
+        .from('user_videos')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error || !data) return;
+
+      // Get unique user_ids
+      const userIds = [...new Set(data.map(v => v.user_id))];
+      
+      // Fetch profiles for these users
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, name, avatar_url, location')
+        .in('user_id', userIds);
+
+      const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+
+      const usersFromDb: MockUser[] = userIds.map(uid => {
+        const p = profileMap.get(uid);
+        return {
+          id: `db-${uid}`,
+          username: (p?.name || 'User').toLowerCase().replace(/\s+/g, '_'),
+          name: p?.name || 'User',
+          avatar: p?.avatar_url || `https://i.pravatar.cc/150?u=${uid}`,
+          bio: p?.location || '',
+          followers: 0,
+          following: 0,
+          likes: 0,
+          isFollowed: false,
+        };
+      });
+
+      const videosFromDb: MockVideo[] = data.map((v, i) => ({
+        id: `db-${v.id}`,
+        userId: `db-${v.user_id}`,
+        videoUrl: v.video_url,
+        thumbnail: '',
+        caption: v.caption || '',
+        trackName: 'Original',
+        artist: profileMap.get(v.user_id)?.name || 'User',
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        views: 0,
+        isLiked: false,
+      }));
+
+      setDbUsers(usersFromDb);
+      setDbVideos(videosFromDb);
+    };
+
+    fetchUserVideos();
+  }, []);
+
+  // Combine mock + real videos
+  const allVideos = [...dbVideos, ...mockVideos];
+  const allUsers = [...dbUsers, ...mockUsers];
 
   // Intersection observer for active video detection
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -52,7 +117,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   useEffect(() => {
     setupObserver();
     return () => observerRef.current?.disconnect();
-  }, [setupObserver, selectedUserId]);
+  }, [setupObserver, selectedUserId, allVideos.length]);
 
   const toggleLike = (videoId: string) => {
     setLikedVideos((prev) => {
@@ -92,7 +157,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   };
 
   const scrollToVideo = (videoId: string) => {
-    const idx = mockVideos.findIndex((v) => v.id === videoId);
+    const idx = allVideos.findIndex((v) => v.id === videoId);
     if (idx >= 0) {
       setSelectedUserId(null);
       setTimeout(() => {
@@ -107,8 +172,8 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
 
   // Profile page view
   if (selectedUserId) {
-    const user = mockUsers.find((u) => u.id === selectedUserId)!;
-    const userVideos = mockVideos.filter((v) => v.userId === selectedUserId);
+    const user = allUsers.find((u) => u.id === selectedUserId)!;
+    const userVideos = allVideos.filter((v) => v.userId === selectedUserId);
     return (
       <VideoProfilePage
         user={user}
@@ -148,8 +213,9 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
         className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory scrollbar-none"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {mockVideos.map((video, index) => {
-          const user = mockUsers.find((u) => u.id === video.userId)!;
+        {allVideos.map((video, index) => {
+          const user = allUsers.find((u) => u.id === video.userId)!;
+          if (!user) return null;
           return (
             <div
               key={video.id}
@@ -181,7 +247,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
       <CommentSheet
         open={commentOpen}
         onOpenChange={setCommentOpen}
-        commentCount={mockVideos[activeIndex]?.comments ?? 0}
+        commentCount={allVideos[activeIndex]?.comments ?? 0}
       />
     </div>
   );

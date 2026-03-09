@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun, Shield } from 'lucide-react';
+import { User, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun, Shield, Video, Play, Trash2, Upload, Grid3x3, Loader2 } from 'lucide-react';
 
 interface ProfilePageProps {
   language: 'en' | 'hi';
@@ -27,6 +27,9 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   const [isEditing, setIsEditing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
+  const [myVideos, setMyVideos] = useState<any[]>([]);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState({
     name: '',
     phone: '',
@@ -134,6 +137,29 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
 
     loadSavedPosts();
   }, [toast]);
+
+  // Load user's uploaded videos
+  useEffect(() => {
+    const loadMyVideos = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('user_videos')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setMyVideos(data || []);
+      } catch (error) {
+        console.error('Error loading videos:', error);
+      }
+    };
+
+    loadMyVideos();
+  }, []);
 
   const texts = {
     en: {
@@ -344,6 +370,97 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
     });
   };
 
+  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: language === 'en' ? 'Invalid file type' : 'अमान्य फ़ाइल प्रकार',
+        description: language === 'en' ? 'Only MP4, WEBM videos are allowed' : 'केवल MP4, WEBM वीडियो अनुमत हैं',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      toast({
+        title: language === 'en' ? 'File too large' : 'फ़ाइल बहुत बड़ी है',
+        description: language === 'en' ? 'Maximum video size is 50MB' : 'अधिकतम वीडियो आकार 50MB है',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsUploadingVideo(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const fileExt = file.name.split('.').pop() || 'mp4';
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('user-videos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('user-videos')
+        .getPublicUrl(fileName);
+
+      const { data: videoData, error: insertError } = await supabase
+        .from('user_videos')
+        .insert({
+          user_id: user.id,
+          video_url: publicUrl,
+          caption: ''
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      setMyVideos(prev => [videoData, ...prev]);
+
+      toast({
+        title: language === 'en' ? 'Video Uploaded!' : 'वीडियो अपलोड हो गया!',
+        description: language === 'en' ? 'Your video is now live on Trending' : 'आपका वीडियो अब ट्रेंडिंग पर लाइव है',
+      });
+    } catch (error: any) {
+      console.error('Video upload error:', error);
+      toast({
+        title: language === 'en' ? 'Upload Failed' : 'अपलोड विफल',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUploadingVideo(false);
+      if (videoInputRef.current) videoInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteVideo = async (videoId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_videos')
+        .delete()
+        .eq('id', videoId);
+
+      if (error) throw error;
+      setMyVideos(prev => prev.filter(v => v.id !== videoId));
+      toast({
+        title: language === 'en' ? 'Deleted' : 'हटा दिया गया',
+        description: language === 'en' ? 'Video removed' : 'वीडियो हटा दिया गया',
+      });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Profile Header */}
@@ -516,7 +633,76 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
         </CardContent>
       </Card>
 
-      {/* Notifications */}
+      {/* My Videos - Instagram Style Grid */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center">
+              <Video className="w-5 h-5 mr-2 text-primary" />
+              {language === 'hi' ? 'मेरे वीडियो' : 'My Videos'}
+            </CardTitle>
+            <Button
+              size="sm"
+              onClick={() => videoInputRef.current?.click()}
+              disabled={isUploadingVideo}
+            >
+              {isUploadingVideo ? (
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4 mr-1" />
+              )}
+              {isUploadingVideo
+                ? (language === 'hi' ? 'अपलोड हो रहा...' : 'Uploading...')
+                : (language === 'hi' ? 'वीडियो अपलोड' : 'Upload Video')}
+            </Button>
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime"
+              onChange={handleVideoUpload}
+              className="hidden"
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          {myVideos.length === 0 ? (
+            <div className="text-center py-8">
+              <Video className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                {language === 'hi' ? 'अभी तक कोई वीडियो नहीं' : 'No videos yet'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {language === 'hi' ? 'वीडियो अपलोड करें, ट्रेंडिंग पर दिखेगा!' : 'Upload a video and it will show on Trending!'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-1 rounded-lg overflow-hidden">
+              {myVideos.map((video) => (
+                <div key={video.id} className="relative aspect-[9/16] group bg-muted">
+                  <video
+                    src={video.video_url}
+                    className="w-full h-full object-cover"
+                    muted
+                    preload="metadata"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+                  <div className="absolute bottom-1 left-1 flex items-center gap-0.5">
+                    <Play className="w-3 h-3 text-white" fill="white" />
+                  </div>
+                  <button
+                    onClick={() => handleDeleteVideo(video.id)}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-destructive/80 text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center">
