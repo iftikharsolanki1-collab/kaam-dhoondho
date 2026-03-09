@@ -86,7 +86,7 @@ const VideoCommentSheet = ({ open, onOpenChange, videoId, language }: VideoComme
   };
 
   const handleSend = async () => {
-    if (!newComment.trim() || !videoId || !currentUserId) {
+    if (!newComment.trim() || !videoId || !isValidUUID(videoId) || !currentUserId) {
       if (!currentUserId) {
         toast({
           title: language === 'hi' ? 'लॉगिन करें' : 'Please login',
