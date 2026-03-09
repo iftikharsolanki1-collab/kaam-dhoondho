@@ -359,7 +359,8 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   };
 
   const triggerHeartBurst = (videoId: string) => {
-    if (!likedVideos.has(videoId)) toggleLike(videoId);
+    const rawId = videoId.replace('db-', '');
+    if (!likedVideos.has(rawId)) toggleLike(videoId);
     setHeartBursts((prev) => new Set(prev).add(videoId));
     setTimeout(() => {
       setHeartBursts((prev) => {
