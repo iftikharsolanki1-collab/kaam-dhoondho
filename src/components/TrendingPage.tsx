@@ -457,30 +457,44 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
           const user = allUsers.find((u) => u.id === video.userId)!;
           if (!user) return null;
           return (
-            <div
-              key={video.id}
-              data-index={index}
-              className="h-screen w-screen snap-start snap-always relative"
-            >
-              <VideoPlayer
-                src={video.videoUrl}
-                isActive={activeIndex === index}
-                onDoubleTap={() => triggerHeartBurst(video.id)}
-              />
-              <VideoOverlay
-                video={video}
-                user={user}
-                isLiked={likedVideos.has(video.id.replace('db-', ''))}
-                isFollowed={followedUsers.has(user.id)}
-                onLike={() => toggleLike(video.id)}
-                onFollow={() => toggleFollow(user.id)}
-                onComment={() => setCommentOpen(true)}
-                onShare={handleShare}
-                onProfileClick={() => setSelectedUserId(user.id)}
-                showHeartBurst={heartBursts.has(video.id)}
-                realCommentCount={video.id.startsWith('db-') ? commentCounts.get(video.id.replace('db-', '')) : undefined}
-                realLikeCount={video.id.startsWith('db-') ? likeCounts.get(video.id.replace('db-', '')) : undefined}
-              />
+            <div key={video.id}>
+              <div
+                data-index={index}
+                className="h-screen w-screen snap-start snap-always relative"
+              >
+                <VideoPlayer
+                  src={video.videoUrl}
+                  isActive={activeIndex === index}
+                  onDoubleTap={() => triggerHeartBurst(video.id)}
+                />
+                <VideoOverlay
+                  video={video}
+                  user={user}
+                  isLiked={likedVideos.has(video.id.replace('db-', ''))}
+                  isFollowed={followedUsers.has(user.id)}
+                  onLike={() => toggleLike(video.id)}
+                  onFollow={() => toggleFollow(user.id)}
+                  onComment={() => setCommentOpen(true)}
+                  onShare={handleShare}
+                  onProfileClick={() => setSelectedUserId(user.id)}
+                  showHeartBurst={heartBursts.has(video.id)}
+                  realCommentCount={video.id.startsWith('db-') ? commentCounts.get(video.id.replace('db-', '')) : undefined}
+                  realLikeCount={video.id.startsWith('db-') ? likeCounts.get(video.id.replace('db-', '')) : undefined}
+                />
+              </div>
+              {/* Show ad after every 2nd video */}
+              {(index + 1) % 2 === 0 && (
+                <div className="h-screen w-screen snap-start snap-always relative bg-neutral-950 flex items-center justify-center">
+                  <div className="absolute top-2 left-2 z-10 px-2 py-0.5 bg-black/50 rounded text-white/60 text-[10px]">
+                    Sponsored
+                  </div>
+                  <AdBanner
+                    adSlot="7585413024"
+                    adUnitId="ca-app-pub-2230245159991674/7585413024"
+                    className="w-full"
+                  />
+                </div>
+              )}
             </div>
           );
         })}
