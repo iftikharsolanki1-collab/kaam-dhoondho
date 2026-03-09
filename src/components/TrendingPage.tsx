@@ -411,16 +411,8 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-neutral-950">
-      {/* Top Ad Banner */}
-      <div className="absolute top-0 left-0 right-0 z-40">
-        <AdBanner
-          adSlot="7585413024"
-          adUnitId="ca-app-pub-2230245159991674/7585413024"
-        />
-      </div>
-
       {/* Back button */}
-      <div className="absolute top-14 left-3 z-30">
+      <div className="absolute top-3 left-3 z-30">
         <Button
           variant="ghost"
           size="icon"
