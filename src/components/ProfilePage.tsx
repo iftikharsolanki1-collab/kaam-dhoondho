@@ -994,5 +994,59 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
         </CardContent>
       </Card>
     </div>
+    </>
+  );
+};
+
+// Thumbnail component that generates a frame from the video
+const VideoThumbnail = ({ videoUrl }: { videoUrl: string }) => {
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.muted = true;
+    video.preload = 'metadata';
+    video.src = videoUrl;
+
+    video.onloadeddata = () => {
+      video.currentTime = 1; // seek to 1 second for thumbnail
+    };
+
+    video.onseeked = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 320;
+        canvas.height = video.videoHeight || 568;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          setThumbnail(canvas.toDataURL('image/jpeg', 0.7));
+        }
+      } catch {
+        setError(true);
+      }
+    };
+
+    video.onerror = () => setError(true);
+
+    return () => {
+      video.src = '';
+    };
+  }, [videoUrl]);
+
+  if (thumbnail) {
+    return <img src={thumbnail} alt="Video thumbnail" className="w-full h-full object-cover" />;
+  }
+
+  return (
+    <div className="w-full h-full bg-muted flex items-center justify-center">
+      {error ? (
+        <Video className="w-8 h-8 text-muted-foreground" />
+      ) : (
+        <div className="w-6 h-6 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+      )}
+    </div>
   );
 };
