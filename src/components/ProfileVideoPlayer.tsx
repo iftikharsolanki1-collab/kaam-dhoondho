@@ -198,6 +198,14 @@ const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language, vide
             <p className="text-white/90 text-sm leading-snug line-clamp-2">{caption}</p>
           </div>
         )}
+
+        {/* Comment Sheet */}
+        <VideoCommentSheet
+          open={showComments}
+          onOpenChange={setShowComments}
+          videoId={videoId || null}
+          language={language}
+        />
       </motion.div>
     </AnimatePresence>
   );
