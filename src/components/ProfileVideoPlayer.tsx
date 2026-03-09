@@ -21,6 +21,7 @@ const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language, vide
   const [likeCount, setLikeCount] = useState(0);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
   const [showHeartBurst, setShowHeartBurst] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const lastTapRef = useRef(0);
   const { toast } = useToast();
 
