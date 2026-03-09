@@ -510,12 +510,14 @@ const Index = () => {
               language={language}
               onClose={() => setShowPostForm(false)}
               onSubmit={handlePostSubmit}
+              isSubmitting={isSubmittingPost}
             />
           ) : (
             <PostServiceForm
               language={language}
               onClose={() => setShowPostForm(false)}
               onSubmit={handlePostSubmit}
+              isSubmitting={isSubmittingPost}
             />
           )}
         </>
