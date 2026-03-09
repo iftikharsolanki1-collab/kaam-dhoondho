@@ -15,9 +15,10 @@ interface PostJobFormProps {
   language: 'en' | 'hi';
   onClose: () => void;
   onSubmit: (jobData: any) => void;
+  isSubmitting?: boolean;
 }
 
-export const PostJobForm = ({ language, onClose, onSubmit }: PostJobFormProps) => {
+export const PostJobForm = ({ language, onClose, onSubmit, isSubmitting = false }: PostJobFormProps) => {
   const { toast } = useToast();
   const jobCategories = getJobCategories().filter(c => c.id !== '0'); // Exclude "All"
   

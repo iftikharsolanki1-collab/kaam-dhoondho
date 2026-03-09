@@ -14,9 +14,10 @@ interface PostServiceFormProps {
   language: 'en' | 'hi';
   onClose: () => void;
   onSubmit: (serviceData: any) => void;
+  isSubmitting?: boolean;
 }
 
-export const PostServiceForm = ({ language, onClose, onSubmit }: PostServiceFormProps) => {
+export const PostServiceForm = ({ language, onClose, onSubmit, isSubmitting = false }: PostServiceFormProps) => {
   const { toast } = useToast();
   const jobCategories = getJobCategories().filter(c => c.id !== '0');
   
