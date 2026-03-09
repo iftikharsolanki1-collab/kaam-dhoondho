@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, MessageCircle, Share2, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import VideoCommentSheet from './VideoCommentSheet';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileVideoPlayerProps {
   videoUrl: string;
@@ -13,6 +14,8 @@ interface ProfileVideoPlayerProps {
   videoId?: string;
 }
 
+const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
 const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language, videoId }: ProfileVideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [paused, setPaused] = useState(false);
@@ -22,8 +25,35 @@ const ProfileVideoPlayer = ({ videoUrl, caption, isOpen, onClose, language, vide
   const [showPlayIcon, setShowPlayIcon] = useState(false);
   const [showHeartBurst, setShowHeartBurst] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const lastTapRef = useRef(0);
   const { toast } = useToast();
+
+  // Load current user, existing like status, and like count
+  useEffect(() => {
+    if (!isOpen || !videoId || !isValidUUID(videoId)) return;
+
+    const loadLikeData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+        const { data } = await supabase
+          .from('video_likes')
+          .select('id')
+          .eq('video_id', videoId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        setLiked(!!data);
+      }
+
+      const { count } = await supabase
+        .from('video_likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('video_id', videoId);
+      setLikeCount(count || 0);
+    };
+    loadLikeData();
+  }, [isOpen, videoId]);
 
   useEffect(() => {
     if (isOpen && videoRef.current) {
