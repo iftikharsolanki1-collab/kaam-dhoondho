@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Phone, MapPin, Edit, Bookmark, Calendar, Camera, Bell, Palette, HelpCircle, LogOut, MessageSquare, Moon, Sun, Shield, Video, Play, Trash2, Upload, Grid3x3, Loader2 } from 'lucide-react';
+import ProfileVideoPlayer from './ProfileVideoPlayer';
 
 interface ProfilePageProps {
   language: 'en' | 'hi';
@@ -32,7 +33,9 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; caption: string } | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailRefs = useRef<Map<string, string>>(new Map());
   const [profile, setProfile] = useState({
     name: '',
     phone: '',
@@ -510,6 +513,14 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   };
 
   return (
+    <>
+    <ProfileVideoPlayer
+      videoUrl={selectedVideo?.url || ''}
+      caption={selectedVideo?.caption || ''}
+      isOpen={!!selectedVideo}
+      onClose={() => setSelectedVideo(null)}
+      language={language}
+    />
     <div className="space-y-6">
       {/* Profile Header - Instagram Style */}
       <Card className="shadow-card">
@@ -756,19 +767,18 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
           ) : (
             <div className="grid grid-cols-3 gap-1 rounded-lg overflow-hidden">
               {myVideos.map((video) => (
-                <div key={video.id} className="relative aspect-[9/16] group bg-muted">
-                  <video
-                    src={video.video_url}
-                    className="w-full h-full object-cover"
-                    muted
-                    preload="metadata"
-                  />
+                <div 
+                  key={video.id} 
+                  className="relative aspect-[9/16] group bg-muted cursor-pointer"
+                  onClick={() => setSelectedVideo({ url: video.video_url, caption: video.caption || '' })}
+                >
+                  <VideoThumbnail videoUrl={video.video_url} />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
                   <div className="absolute bottom-1 left-1 flex items-center gap-0.5">
-                    <Play className="w-3 h-3 text-white" fill="white" />
+                    <Play className="w-3 h-3 text-white drop-shadow-md" fill="white" />
                   </div>
                   <button
-                    onClick={() => handleDeleteVideo(video.id)}
+                    onClick={(e) => { e.stopPropagation(); handleDeleteVideo(video.id); }}
                     className="absolute top-1 right-1 w-6 h-6 rounded-full bg-destructive/80 text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -983,6 +993,60 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
           </p>
         </CardContent>
       </Card>
+    </div>
+    </>
+  );
+};
+
+// Thumbnail component that generates a frame from the video
+const VideoThumbnail = ({ videoUrl }: { videoUrl: string }) => {
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.muted = true;
+    video.preload = 'metadata';
+    video.src = videoUrl;
+
+    video.onloadeddata = () => {
+      video.currentTime = 1; // seek to 1 second for thumbnail
+    };
+
+    video.onseeked = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 320;
+        canvas.height = video.videoHeight || 568;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          setThumbnail(canvas.toDataURL('image/jpeg', 0.7));
+        }
+      } catch {
+        setError(true);
+      }
+    };
+
+    video.onerror = () => setError(true);
+
+    return () => {
+      video.src = '';
+    };
+  }, [videoUrl]);
+
+  if (thumbnail) {
+    return <img src={thumbnail} alt="Video thumbnail" className="w-full h-full object-cover" />;
+  }
+
+  return (
+    <div className="w-full h-full bg-muted flex items-center justify-center">
+      {error ? (
+        <Video className="w-8 h-8 text-muted-foreground" />
+      ) : (
+        <div className="w-6 h-6 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+      )}
     </div>
   );
 };
