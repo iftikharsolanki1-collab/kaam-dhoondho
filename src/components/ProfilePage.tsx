@@ -33,7 +33,9 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; caption: string } | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailRefs = useRef<Map<string, string>>(new Map());
   const [profile, setProfile] = useState({
     name: '',
     phone: '',
