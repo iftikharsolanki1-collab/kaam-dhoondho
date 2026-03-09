@@ -29,7 +29,9 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   const lastTapRef = useRef<number>(0);
   const { toast } = useToast();
 
-  // Get current user and load their follows
+  const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+  // Get current user and load their follows + likes
   useEffect(() => {
     const loadCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -45,6 +47,17 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
         if (follows) {
           const followedSet = new Set(follows.map(f => `db-${f.following_id}`));
           setFollowedUsers(followedSet);
+        }
+
+        // Load existing video likes
+        const { data: likes } = await supabase
+          .from('video_likes')
+          .select('video_id')
+          .eq('user_id', user.id);
+        
+        if (likes) {
+          const likedSet = new Set(likes.map(l => l.video_id));
+          setLikedVideos(likedSet);
         }
       }
     };
