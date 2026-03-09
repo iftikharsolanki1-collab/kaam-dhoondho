@@ -232,26 +232,36 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   }, [setupObserver, selectedUserId, allVideos.length]);
 
   const toggleLike = async (videoId: string) => {
-    const isCurrentlyLiked = likedVideos.has(videoId);
+    const rawId = videoId.replace('db-', '');
+    const isCurrentlyLiked = likedVideos.has(rawId);
 
     // Optimistic update
     setLikedVideos((prev) => {
       const next = new Set(prev);
-      if (next.has(videoId)) next.delete(videoId);
-      else next.add(videoId);
+      if (next.has(rawId)) next.delete(rawId);
+      else next.add(rawId);
       return next;
     });
 
+    // Update like count optimistically for DB videos
+    if (isValidUUID(rawId)) {
+      setLikeCounts(prev => {
+        const next = new Map(prev);
+        next.set(rawId, (prev.get(rawId) || 0) + (isCurrentlyLiked ? -1 : 1));
+        return next;
+      });
+    }
+
     // Persist to DB for real videos
-    if (isValidUUID(videoId) && currentUserId) {
+    if (isValidUUID(rawId) && currentUserId) {
       try {
         if (isCurrentlyLiked) {
           await supabase.from('video_likes').delete()
-            .eq('video_id', videoId)
+            .eq('video_id', rawId)
             .eq('user_id', currentUserId);
         } else {
           await supabase.from('video_likes').insert({
-            video_id: videoId,
+            video_id: rawId,
             user_id: currentUserId,
           });
         }
@@ -259,8 +269,13 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
         // Revert on error
         setLikedVideos((prev) => {
           const next = new Set(prev);
-          if (isCurrentlyLiked) next.add(videoId);
-          else next.delete(videoId);
+          if (isCurrentlyLiked) next.add(rawId);
+          else next.delete(rawId);
+          return next;
+        });
+        setLikeCounts(prev => {
+          const next = new Map(prev);
+          next.set(rawId, (prev.get(rawId) || 0) + (isCurrentlyLiked ? 1 : -1));
           return next;
         });
       }
