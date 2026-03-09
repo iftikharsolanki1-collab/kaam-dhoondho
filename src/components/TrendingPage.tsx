@@ -209,13 +209,80 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     });
   };
 
-  const toggleFollow = (userId: string) => {
-    setFollowedUsers((prev) => {
-      const next = new Set(prev);
-      if (next.has(userId)) next.delete(userId);
-      else next.add(userId);
-      return next;
-    });
+  const toggleFollow = async (userId: string) => {
+    // For mock users, just toggle local state
+    if (!userId.startsWith('db-')) {
+      setFollowedUsers((prev) => {
+        const next = new Set(prev);
+        if (next.has(userId)) next.delete(userId);
+        else next.add(userId);
+        return next;
+      });
+      return;
+    }
+
+    // For real users, save to database
+    if (!currentUserId) {
+      toast({
+        title: language === 'hi' ? 'लॉगिन करें' : 'Login Required',
+        description: language === 'hi' ? 'फॉलो करने के लिए लॉगिन करें' : 'Please login to follow users',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const realUserId = userId.replace('db-', '');
+    
+    // Don't allow following yourself
+    if (realUserId === currentUserId) {
+      toast({
+        title: language === 'hi' ? 'अमान्य' : 'Invalid',
+        description: language === 'hi' ? 'आप खुद को फॉलो नहीं कर सकते' : "You can't follow yourself",
+      });
+      return;
+    }
+
+    const isCurrentlyFollowing = followedUsers.has(userId);
+
+    if (isCurrentlyFollowing) {
+      // Unfollow
+      const { error } = await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id', currentUserId)
+        .eq('following_id', realUserId);
+
+      if (!error) {
+        setFollowedUsers((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
+        toast({
+          title: language === 'hi' ? 'अनफॉलो किया' : 'Unfollowed',
+          description: language === 'hi' ? 'यूज़र को अनफॉलो कर दिया' : 'User unfollowed',
+        });
+      }
+    } else {
+      // Follow
+      const { error } = await supabase
+        .from('follows')
+        .insert({
+          follower_id: currentUserId,
+          following_id: realUserId
+        });
+
+      if (!error) {
+        setFollowedUsers((prev) => new Set(prev).add(userId));
+        toast({
+          title: language === 'hi' ? 'फॉलो किया!' : 'Followed!',
+          description: language === 'hi' ? 'यूज़र को फॉलो कर दिया' : 'User followed successfully',
+        });
+      } else if (error.code === '23505') {
+        // Already following (unique constraint)
+        setFollowedUsers((prev) => new Set(prev).add(userId));
+      }
+    }
   };
 
   const triggerHeartBurst = (videoId: string) => {
