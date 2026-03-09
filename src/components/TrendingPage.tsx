@@ -187,15 +187,12 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     };
   }, [fetchUserVideos]);
 
-  // Handle double-tap on title to refresh
+  // Handle tap on title to refresh
   const handleTitleTap = useCallback(() => {
-    const now = Date.now();
-    if (now - lastTapRef.current < 300) {
-      // Double tap detected - refresh
+    if (!isRefreshing) {
       fetchUserVideos(true);
     }
-    lastTapRef.current = now;
-  }, [fetchUserVideos]);
+  }, [fetchUserVideos, isRefreshing]);
 
   // Combine mock + real videos
   const allVideos = [...dbVideos, ...mockVideos];
@@ -423,7 +420,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
         </Button>
       </div>
 
-      {/* Title - double tap to refresh */}
+      {/* Title - tap to refresh */}
       <div 
         className="absolute top-3 left-1/2 -translate-x-1/2 z-30 cursor-pointer select-none"
         onClick={handleTitleTap}
@@ -435,7 +432,7 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
           )}
         </h1>
         <p className="text-white/60 text-[10px] text-center">
-          {language === 'hi' ? 'रिफ्रेश के लिए डबल टैप करें' : 'Double tap to refresh'}
+          {language === 'hi' ? 'रिफ्रेश के लिए टैप करें' : 'Tap to refresh'}
         </p>
       </div>
 
