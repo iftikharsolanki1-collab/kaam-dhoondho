@@ -213,13 +213,40 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     return () => observerRef.current?.disconnect();
   }, [setupObserver, selectedUserId, allVideos.length]);
 
-  const toggleLike = (videoId: string) => {
+  const toggleLike = async (videoId: string) => {
+    const isCurrentlyLiked = likedVideos.has(videoId);
+
+    // Optimistic update
     setLikedVideos((prev) => {
       const next = new Set(prev);
       if (next.has(videoId)) next.delete(videoId);
       else next.add(videoId);
       return next;
     });
+
+    // Persist to DB for real videos
+    if (isValidUUID(videoId) && currentUserId) {
+      try {
+        if (isCurrentlyLiked) {
+          await supabase.from('video_likes').delete()
+            .eq('video_id', videoId)
+            .eq('user_id', currentUserId);
+        } else {
+          await supabase.from('video_likes').insert({
+            video_id: videoId,
+            user_id: currentUserId,
+          });
+        }
+      } catch (err) {
+        // Revert on error
+        setLikedVideos((prev) => {
+          const next = new Set(prev);
+          if (isCurrentlyLiked) next.add(videoId);
+          else next.delete(videoId);
+          return next;
+        });
+      }
+    }
   };
 
   const toggleFollow = async (userId: string) => {
