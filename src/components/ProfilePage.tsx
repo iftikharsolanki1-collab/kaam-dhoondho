@@ -27,6 +27,9 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   const [isEditing, setIsEditing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
+  const [myVideos, setMyVideos] = useState<any[]>([]);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState({
     name: '',
     phone: '',
