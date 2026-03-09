@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Header } from '@/components/Header';
 import { TabNavigation } from '@/components/TabNavigation';
 import { SkillChips } from '@/components/SkillChips';
