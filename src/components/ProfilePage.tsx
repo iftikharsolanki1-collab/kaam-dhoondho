@@ -20,11 +20,12 @@ interface ProfilePageProps {
   onLogout?: () => void;
   onProfileUpdate?: () => void;
   onAdminPost?: () => void;
+  onAdminAds?: () => void;
   onModeration?: () => void;
   onSafetyCenter?: () => void;
 }
 
-export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost, onModeration, onSafetyCenter }: ProfilePageProps) => {
+export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost, onAdminAds, onModeration, onSafetyCenter }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
