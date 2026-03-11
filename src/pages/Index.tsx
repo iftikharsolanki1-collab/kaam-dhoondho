@@ -26,7 +26,7 @@ import { useNotificationBadges } from '@/hooks/useNotificationBadges';
 
 import { AuthPage } from '@/components/AuthPage';
 
-const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'trending', 'notifications', 'profile', 'settings', 'auth', 'adminPost', 'moderation', 'safety']);
+const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'trending', 'notifications', 'profile', 'settings', 'auth', 'adminPost', 'adminAds', 'moderation', 'safety']);
 
 const Index = () => {
   const [language, setLanguage] = useState<'en' | 'hi'>('hi');
