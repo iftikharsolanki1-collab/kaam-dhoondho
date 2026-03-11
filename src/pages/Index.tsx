@@ -11,7 +11,7 @@ import { PostDetailPage } from '@/components/PostDetailPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
 
-import { StickyBannerAd } from '@/components/BannerAd';
+import AdminAdManager from '@/components/AdminAdManager';
 import ChatPage from '@/components/ChatPage';
 import TrendingPage from '@/components/TrendingPage';
 import AdminPostForm from '@/components/AdminPostForm';
