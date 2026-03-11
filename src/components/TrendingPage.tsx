@@ -197,9 +197,34 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     }
   }, [fetchUserVideos, isRefreshing]);
 
-  // Combine mock + real videos
+  // DB videos first (newest), then mock videos
   const allVideos = [...dbVideos, ...mockVideos];
   const allUsers = [...dbUsers, ...mockUsers];
+
+  // Pull-to-refresh handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const container = containerRef.current;
+    if (container && container.scrollTop <= 0) {
+      touchStartY.current = e.touches[0].clientY;
+      setIsPulling(true);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isPulling) return;
+    const diff = e.touches[0].clientY - touchStartY.current;
+    if (diff > 0) {
+      setPullDistance(Math.min(diff * 0.5, 100));
+    }
+  }, [isPulling]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (pullDistance > 60 && !isRefreshing) {
+      fetchUserVideos(true);
+    }
+    setPullDistance(0);
+    setIsPulling(false);
+  }, [pullDistance, isRefreshing, fetchUserVideos]);
 
   // Intersection observer for active video detection
   const observerRef = useRef<IntersectionObserver | null>(null);
