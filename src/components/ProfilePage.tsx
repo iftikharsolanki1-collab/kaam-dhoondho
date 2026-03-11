@@ -944,6 +944,16 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
               <Shield className="w-4 h-4 mr-2" />
               {language === 'hi' ? 'एडमिन: कंटेंट भेजें' : 'Admin: Send Content'}
             </Button>
+            {onAdminAds && (
+              <Button 
+                variant="outline" 
+                className="w-full border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
+                onClick={onAdminAds}
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                {language === 'hi' ? '📢 विज्ञापन प्रबंधक (Ad Manager)' : '📢 Ad Manager'}
+              </Button>
+            )}
             <Button 
               variant="outline" 
               className="w-full border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white"

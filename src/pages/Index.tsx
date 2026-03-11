@@ -373,6 +373,7 @@ const Index = () => {
                 onLogout={handleLogout}
                 onProfileUpdate={() => setProfileRefreshKey(k => k + 1)}
                 onAdminPost={() => setCurrentPage('adminPost')}
+                onAdminAds={() => setCurrentPage('adminAds')}
                 onModeration={() => setCurrentPage('moderation')}
                 onSafetyCenter={() => setCurrentPage('safety')}
               />
