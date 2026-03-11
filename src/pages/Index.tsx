@@ -339,6 +339,14 @@ const Index = () => {
           />
         );
 
+      case 'adminAds':
+        return (
+          <AdminAdManager
+            language={language}
+            onBack={() => setCurrentPage('profile')}
+          />
+        );
+
       case 'moderation':
         return (
           <ModerationQueue
