@@ -479,8 +479,6 @@ const Index = () => {
               <Plus className="w-6 h-6" />
             </button>
 
-            {/* Sticky Banner Ad */}
-            <StickyBannerAd />
           </>
         );
     }
