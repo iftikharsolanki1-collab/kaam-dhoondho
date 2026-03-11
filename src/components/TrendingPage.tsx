@@ -28,8 +28,11 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
   const [dbUsers, setDbUsers] = useState<MockUser[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
   const { toast } = useToast();
 
   const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -194,9 +197,34 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     }
   }, [fetchUserVideos, isRefreshing]);
 
-  // Combine mock + real videos
+  // DB videos first (newest), then mock videos
   const allVideos = [...dbVideos, ...mockVideos];
   const allUsers = [...dbUsers, ...mockUsers];
+
+  // Pull-to-refresh handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const container = containerRef.current;
+    if (container && container.scrollTop <= 0) {
+      touchStartY.current = e.touches[0].clientY;
+      setIsPulling(true);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isPulling) return;
+    const diff = e.touches[0].clientY - touchStartY.current;
+    if (diff > 0) {
+      setPullDistance(Math.min(diff * 0.5, 100));
+    }
+  }, [isPulling]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (pullDistance > 60 && !isRefreshing) {
+      fetchUserVideos(true);
+    }
+    setPullDistance(0);
+    setIsPulling(false);
+  }, [pullDistance, isRefreshing, fetchUserVideos]);
 
   // Intersection observer for active video detection
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -436,11 +464,31 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
         </p>
       </div>
 
+      {/* Pull-to-refresh indicator */}
+      {pullDistance > 0 && (
+        <div 
+          className="absolute top-0 left-0 right-0 z-40 flex items-center justify-center transition-all"
+          style={{ height: `${pullDistance}px` }}
+        >
+          <div className={`text-white text-2xl ${pullDistance > 60 ? 'animate-spin' : ''}`}>
+            🔄
+          </div>
+          <p className="text-white/70 text-xs ml-2">
+            {pullDistance > 60 
+              ? (language === 'hi' ? 'छोड़ें' : 'Release') 
+              : (language === 'hi' ? 'खींचें' : 'Pull')}
+          </p>
+        </div>
+      )}
+
       {/* Video feed */}
       <div
         ref={containerRef}
         className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory scrollbar-none"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {allVideos.map((video, index) => {
           const user = allUsers.find((u) => u.id === video.userId)!;

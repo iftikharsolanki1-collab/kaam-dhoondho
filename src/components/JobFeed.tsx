@@ -154,8 +154,8 @@ export const JobFeed = ({ language, selectedSkill, searchQuery, refreshKey = 0, 
                 onChatClick={onChatClick}
                 onCardClick={() => onCardClick?.(job)}
               />
-              {/* Show inline ad after every 5 posts */}
-              {(index + 1) % 5 === 0 && <NativeAdCard />}
+              {/* Show admin ad after every 5 posts */}
+              {(index + 1) % 5 === 0 && <NativeAdCard position="feed_job" />}
             </div>
           ))}
         </>

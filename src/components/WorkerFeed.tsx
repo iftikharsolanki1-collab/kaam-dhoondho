@@ -165,8 +165,8 @@ export const WorkerFeed = ({
                 onChatClick={onChatClick}
                 onCardClick={() => onCardClick?.(worker)}
               />
-              {/* Show inline ad after every 5 posts */}
-              {(index + 1) % 5 === 0 && <NativeAdCard />}
+              {/* Show admin ad after every 5 posts */}
+              {(index + 1) % 5 === 0 && <NativeAdCard position="feed_worker" />}
             </div>
           ))}
         </>

@@ -11,7 +11,7 @@ import { PostDetailPage } from '@/components/PostDetailPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
 
-import { StickyBannerAd } from '@/components/BannerAd';
+import AdminAdManager from '@/components/AdminAdManager';
 import ChatPage from '@/components/ChatPage';
 import TrendingPage from '@/components/TrendingPage';
 import AdminPostForm from '@/components/AdminPostForm';
@@ -26,7 +26,7 @@ import { useNotificationBadges } from '@/hooks/useNotificationBadges';
 
 import { AuthPage } from '@/components/AuthPage';
 
-const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'trending', 'notifications', 'profile', 'settings', 'auth', 'adminPost', 'moderation', 'safety']);
+const ALLOWED_PAGES = new Set(['home', 'postDetail', 'chat', 'trending', 'notifications', 'profile', 'settings', 'auth', 'adminPost', 'adminAds', 'moderation', 'safety']);
 
 const Index = () => {
   const [language, setLanguage] = useState<'en' | 'hi'>('hi');
@@ -339,6 +339,14 @@ const Index = () => {
           />
         );
 
+      case 'adminAds':
+        return (
+          <AdminAdManager
+            language={language}
+            onBack={() => setCurrentPage('profile')}
+          />
+        );
+
       case 'moderation':
         return (
           <ModerationQueue
@@ -365,6 +373,7 @@ const Index = () => {
                 onLogout={handleLogout}
                 onProfileUpdate={() => setProfileRefreshKey(k => k + 1)}
                 onAdminPost={() => setCurrentPage('adminPost')}
+                onAdminAds={() => setCurrentPage('adminAds')}
                 onModeration={() => setCurrentPage('moderation')}
                 onSafetyCenter={() => setCurrentPage('safety')}
               />
@@ -471,8 +480,6 @@ const Index = () => {
               <Plus className="w-6 h-6" />
             </button>
 
-            {/* Sticky Banner Ad */}
-            <StickyBannerAd />
           </>
         );
     }

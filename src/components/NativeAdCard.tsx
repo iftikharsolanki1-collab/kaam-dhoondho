@@ -31,7 +31,11 @@ const NativeAdSkeleton = () => (
   </Card>
 );
 
-export const NativeAdCard = () => {
+interface NativeAdCardProps {
+  position?: string;
+}
+
+export const NativeAdCard = ({ position = 'feed_inline' }: NativeAdCardProps) => {
   const [ad, setAd] = useState<NativeAd | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isVisible, setIsVisible] = useState(true);
@@ -44,7 +48,7 @@ export const NativeAdCard = () => {
         const { data, error } = await supabase
           .from('app_ads' as any)
           .select('id, title, image_url, link_url, priority')
-          .eq('position', 'feed_inline')
+          .eq('position', position)
           .eq('is_active', true)
           .order('priority', { ascending: false })
           .limit(1)
