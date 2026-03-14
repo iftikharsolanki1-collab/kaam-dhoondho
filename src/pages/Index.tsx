@@ -65,6 +65,7 @@ const Index = () => {
   const handleAdminLogin = () => {
     if (adminName.trim() === 'Mohammed Haider' && adminPassword === '786313786') {
       setShowAdminLogin(false);
+      setIsAdminOverride(true);
       toast({ title: '🔓 Admin Access Granted' });
       setCurrentPage('profile');
     } else {
