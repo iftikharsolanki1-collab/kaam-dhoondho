@@ -554,6 +554,37 @@ const Index = () => {
           )}
         </>
       )}
+      {/* Admin Login Dialog */}
+      <Dialog open={showAdminLogin} onOpenChange={setShowAdminLogin}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>🔐 Admin Login</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input
+                value={adminName}
+                onChange={(e) => setAdminName(e.target.value)}
+                placeholder="Enter admin name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Password</Label>
+              <Input
+                type="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="Enter password"
+                onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
+              />
+            </div>
+            <Button onClick={handleAdminLogin} className="w-full">
+              Login
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
