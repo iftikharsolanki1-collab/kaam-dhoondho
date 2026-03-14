@@ -54,6 +54,7 @@ const Index = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminName, setAdminName] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [isAdminOverride, setIsAdminOverride] = useState(false);
 
   const handleAdminGesture = () => {
     setShowAdminLogin(true);
