@@ -6,6 +6,7 @@ import VideoPlayer from './trending/VideoPlayer';
 import VideoOverlay from './trending/VideoOverlay';
 import VideoCommentSheet from './VideoCommentSheet';
 import VideoProfilePage from './trending/VideoProfilePage';
+import NativeAdCard from './NativeAdCard';
 
 import { mockVideos, mockUsers, type MockVideo, type MockUser, formatCount } from './trending/mockData';
 import { supabase } from '@/integrations/supabase/client';
@@ -495,6 +496,14 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
           if (!user) return null;
           return (
             <div key={video.id}>
+              {/* Inject ad every 5 videos */}
+              {index > 0 && index % 5 === 0 && (
+                <div className="h-screen w-screen snap-start snap-always relative flex items-center justify-center bg-neutral-900 p-4">
+                  <div className="w-full max-w-sm">
+                    <NativeAdCard position="feed_trending" />
+                  </div>
+                </div>
+              )}
               <div
                 data-index={index}
                 className="h-screen w-screen snap-start snap-always relative"

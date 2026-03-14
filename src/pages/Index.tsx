@@ -10,6 +10,9 @@ import { PostServiceForm } from '@/components/PostServiceForm';
 import { PostDetailPage } from '@/components/PostDetailPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 import AdminAdManager from '@/components/AdminAdManager';
 import ChatPage from '@/components/ChatPage';
@@ -18,11 +21,11 @@ import AdminPostForm from '@/components/AdminPostForm';
 import ModerationQueue from '@/components/ModerationQueue';
 import SafetyCenter from '@/components/SafetyCenter';
 import { NotificationPage } from '@/components/NotificationPage';
-import { Input } from '@/components/ui/input';
 import { Search, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationBadges } from '@/hooks/useNotificationBadges';
+import { Button } from '@/components/ui/button';
 
 import { AuthPage } from '@/components/AuthPage';
 
@@ -46,6 +49,27 @@ const Index = () => {
   const postSubmitLockRef = useRef(false);
   const { toast } = useToast();
   const { counts: notificationCounts, clearBadge } = useNotificationBadges(user?.id);
+  
+  // Admin login dialog state
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminName, setAdminName] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+
+  const handleAdminGesture = () => {
+    setShowAdminLogin(true);
+    setAdminName('');
+    setAdminPassword('');
+  };
+
+  const handleAdminLogin = () => {
+    if (adminName.trim() === 'Mohammed Haider' && adminPassword === '786313786') {
+      setShowAdminLogin(false);
+      toast({ title: '🔓 Admin Access Granted' });
+      setCurrentPage('profile');
+    } else {
+      toast({ title: 'Invalid credentials', variant: 'destructive' });
+    }
+  };
 
   // Initialize light theme as default
   useEffect(() => {
@@ -496,6 +520,7 @@ const Index = () => {
         isLoggedIn={!!user}
         onLoginClick={() => setCurrentPage('auth')}
         refreshKey={profileRefreshKey}
+        onAdminGesture={handleAdminGesture}
       />
       {renderCurrentPage()}
 
@@ -529,6 +554,37 @@ const Index = () => {
           )}
         </>
       )}
+      {/* Admin Login Dialog */}
+      <Dialog open={showAdminLogin} onOpenChange={setShowAdminLogin}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>🔐 Admin Login</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input
+                value={adminName}
+                onChange={(e) => setAdminName(e.target.value)}
+                placeholder="Enter admin name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Password</Label>
+              <Input
+                type="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="Enter password"
+                onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
+              />
+            </div>
+            <Button onClick={handleAdminLogin} className="w-full">
+              Login
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

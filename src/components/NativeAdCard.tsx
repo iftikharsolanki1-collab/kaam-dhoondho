@@ -46,7 +46,7 @@ export const NativeAdCard = ({ position = 'feed_inline' }: NativeAdCardProps) =>
     const loadAd = async () => {
       try {
         const { data, error } = await supabase
-          .from('app_ads' as any)
+          .from('app_ads')
           .select('id, title, image_url, link_url, priority')
           .eq('position', position)
           .eq('is_active', true)

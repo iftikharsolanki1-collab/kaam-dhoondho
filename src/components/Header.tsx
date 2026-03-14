@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Globe, Bell, User } from 'lucide-react';
@@ -15,12 +15,25 @@ interface HeaderProps {
   isLoggedIn?: boolean;
   onLoginClick?: () => void;
   refreshKey?: number;
+  onAdminGesture?: () => void;
 }
 
-export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick, notificationCount = 0, isLoggedIn = false, onLoginClick, refreshKey = 0 }: HeaderProps) => {
+export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick, notificationCount = 0, isLoggedIn = false, onLoginClick, refreshKey = 0, onAdminGesture }: HeaderProps) => {
   const { toast } = useToast();
   const [profilePhoto, setProfilePhoto] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
+  const tapTimestamps = useRef<number[]>([]);
+
+  const handleLogoTap = useCallback(() => {
+    const now = Date.now();
+    tapTimestamps.current.push(now);
+    // Keep only taps within the last 10 seconds
+    tapTimestamps.current = tapTimestamps.current.filter(t => now - t <= 10000);
+    if (tapTimestamps.current.length >= 7) {
+      tapTimestamps.current = [];
+      onAdminGesture?.();
+    }
+  }, [onAdminGesture]);
 
   // Load user profile data for avatar
   useEffect(() => {
@@ -99,7 +112,10 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center shadow-md overflow-hidden">
+            <div 
+              className="w-10 h-10 bg-background rounded-full flex items-center justify-center shadow-md overflow-hidden cursor-pointer select-none"
+              onClick={handleLogoTap}
+            >
               <img 
                 src={logoImage} 
                 alt="रोज़गार मेला" 
