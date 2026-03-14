@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Globe, Bell, User } from 'lucide-react';
@@ -15,6 +15,7 @@ interface HeaderProps {
   isLoggedIn?: boolean;
   onLoginClick?: () => void;
   refreshKey?: number;
+  onAdminGesture?: () => void;
 }
 
 export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick, notificationCount = 0, isLoggedIn = false, onLoginClick, refreshKey = 0 }: HeaderProps) => {
