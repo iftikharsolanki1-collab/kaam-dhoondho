@@ -101,6 +101,10 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
     };
 
     const checkAdmin = async () => {
+      if (isAdminOverride) {
+        setIsAdmin(true);
+        return;
+      }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data } = await supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
