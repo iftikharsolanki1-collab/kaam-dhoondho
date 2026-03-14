@@ -18,10 +18,22 @@ interface HeaderProps {
   onAdminGesture?: () => void;
 }
 
-export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick, notificationCount = 0, isLoggedIn = false, onLoginClick, refreshKey = 0 }: HeaderProps) => {
+export const Header = ({ language, onLanguageChange, onProfileClick, onNotificationClick, notificationCount = 0, isLoggedIn = false, onLoginClick, refreshKey = 0, onAdminGesture }: HeaderProps) => {
   const { toast } = useToast();
   const [profilePhoto, setProfilePhoto] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
+  const tapTimestamps = useRef<number[]>([]);
+
+  const handleLogoTap = useCallback(() => {
+    const now = Date.now();
+    tapTimestamps.current.push(now);
+    // Keep only taps within the last 10 seconds
+    tapTimestamps.current = tapTimestamps.current.filter(t => now - t <= 10000);
+    if (tapTimestamps.current.length >= 7) {
+      tapTimestamps.current = [];
+      onAdminGesture?.();
+    }
+  }, [onAdminGesture]);
 
   // Load user profile data for avatar
   useEffect(() => {
