@@ -23,9 +23,10 @@ interface ProfilePageProps {
   onAdminAds?: () => void;
   onModeration?: () => void;
   onSafetyCenter?: () => void;
+  isAdminOverride?: boolean;
 }
 
-export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost, onAdminAds, onModeration, onSafetyCenter }: ProfilePageProps) => {
+export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost, onAdminAds, onModeration, onSafetyCenter, isAdminOverride = false }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
