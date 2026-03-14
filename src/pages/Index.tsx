@@ -54,6 +54,7 @@ const Index = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminName, setAdminName] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [isAdminOverride, setIsAdminOverride] = useState(false);
 
   const handleAdminGesture = () => {
     setShowAdminLogin(true);
@@ -64,6 +65,7 @@ const Index = () => {
   const handleAdminLogin = () => {
     if (adminName.trim() === 'Mohammed Haider' && adminPassword === '786313786') {
       setShowAdminLogin(false);
+      setIsAdminOverride(true);
       toast({ title: '🔓 Admin Access Granted' });
       setCurrentPage('profile');
     } else {
@@ -400,6 +402,7 @@ const Index = () => {
                 onAdminAds={() => setCurrentPage('adminAds')}
                 onModeration={() => setCurrentPage('moderation')}
                 onSafetyCenter={() => setCurrentPage('safety')}
+                isAdminOverride={isAdminOverride}
               />
             </div>
           </div>

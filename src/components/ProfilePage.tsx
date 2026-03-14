@@ -23,9 +23,10 @@ interface ProfilePageProps {
   onAdminAds?: () => void;
   onModeration?: () => void;
   onSafetyCenter?: () => void;
+  isAdminOverride?: boolean;
 }
 
-export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost, onAdminAds, onModeration, onSafetyCenter }: ProfilePageProps) => {
+export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost, onAdminAds, onModeration, onSafetyCenter, isAdminOverride = false }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
@@ -100,6 +101,10 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
     };
 
     const checkAdmin = async () => {
+      if (isAdminOverride) {
+        setIsAdmin(true);
+        return;
+      }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data } = await supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
@@ -108,7 +113,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
 
     loadProfile();
     checkAdmin();
-  }, []);
+  }, [isAdminOverride]);
 
   // Load followers/following counts
   useEffect(() => {
