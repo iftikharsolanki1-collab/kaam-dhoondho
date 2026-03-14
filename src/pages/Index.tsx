@@ -10,6 +10,9 @@ import { PostServiceForm } from '@/components/PostServiceForm';
 import { PostDetailPage } from '@/components/PostDetailPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { SettingsPage } from '@/components/SettingsPage';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 import AdminAdManager from '@/components/AdminAdManager';
 import ChatPage from '@/components/ChatPage';
@@ -18,11 +21,11 @@ import AdminPostForm from '@/components/AdminPostForm';
 import ModerationQueue from '@/components/ModerationQueue';
 import SafetyCenter from '@/components/SafetyCenter';
 import { NotificationPage } from '@/components/NotificationPage';
-import { Input } from '@/components/ui/input';
 import { Search, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationBadges } from '@/hooks/useNotificationBadges';
+import { Button } from '@/components/ui/button';
 
 import { AuthPage } from '@/components/AuthPage';
 
