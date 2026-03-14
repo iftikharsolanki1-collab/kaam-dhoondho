@@ -113,7 +113,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
 
     loadProfile();
     checkAdmin();
-  }, []);
+  }, [isAdminOverride]);
 
   // Load followers/following counts
   useEffect(() => {
