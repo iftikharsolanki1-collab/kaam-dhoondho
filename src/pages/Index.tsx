@@ -49,6 +49,27 @@ const Index = () => {
   const postSubmitLockRef = useRef(false);
   const { toast } = useToast();
   const { counts: notificationCounts, clearBadge } = useNotificationBadges(user?.id);
+  
+  // Admin login dialog state
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminName, setAdminName] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+
+  const handleAdminGesture = () => {
+    setShowAdminLogin(true);
+    setAdminName('');
+    setAdminPassword('');
+  };
+
+  const handleAdminLogin = () => {
+    if (adminName.trim() === 'Mohammed Haider' && adminPassword === '786313786') {
+      setShowAdminLogin(false);
+      toast({ title: '🔓 Admin Access Granted' });
+      setCurrentPage('profile');
+    } else {
+      toast({ title: 'Invalid credentials', variant: 'destructive' });
+    }
+  };
 
   // Initialize light theme as default
   useEffect(() => {
