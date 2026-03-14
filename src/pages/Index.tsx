@@ -402,6 +402,7 @@ const Index = () => {
                 onAdminAds={() => setCurrentPage('adminAds')}
                 onModeration={() => setCurrentPage('moderation')}
                 onSafetyCenter={() => setCurrentPage('safety')}
+                isAdminOverride={isAdminOverride}
               />
             </div>
           </div>
