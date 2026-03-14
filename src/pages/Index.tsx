@@ -520,6 +520,7 @@ const Index = () => {
         isLoggedIn={!!user}
         onLoginClick={() => setCurrentPage('auth')}
         refreshKey={profileRefreshKey}
+        onAdminGesture={handleAdminGesture}
       />
       {renderCurrentPage()}
 
