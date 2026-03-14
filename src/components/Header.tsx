@@ -112,7 +112,10 @@ export const Header = ({ language, onLanguageChange, onProfileClick, onNotificat
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center shadow-md overflow-hidden">
+            <div 
+              className="w-10 h-10 bg-background rounded-full flex items-center justify-center shadow-md overflow-hidden cursor-pointer select-none"
+              onClick={handleLogoTap}
+            >
               <img 
                 src={logoImage} 
                 alt="रोज़गार मेला" 
