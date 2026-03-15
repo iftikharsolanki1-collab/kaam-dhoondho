@@ -302,8 +302,8 @@ const Index = () => {
       );
     }
 
-    // Show auth page first for unauthenticated users
-    if (!user) {
+    // Show auth page for unauthenticated users (but allow admin override)
+    if (!user && !isAdminOverride) {
       return <AuthPage language={language} onSuccess={() => setCurrentPage('home')} />;
     }
 

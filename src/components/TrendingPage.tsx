@@ -88,9 +88,9 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     // Get unique user_ids
     const userIds = [...new Set(data.map(v => v.user_id))];
     
-    // Fetch profiles for these users
+    // Fetch profiles using public view (no RLS restriction)
     const { data: profiles } = await supabase
-      .from('profiles')
+      .from('profiles_public')
       .select('user_id, name, avatar_url, location')
       .in('user_id', userIds);
 
