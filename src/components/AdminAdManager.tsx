@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Upload, Loader2, Image as ImageIcon, Trash2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
 
 interface AdminAdManagerProps {
   language: 'en' | 'hi';
@@ -25,10 +23,32 @@ const POSITION_OPTIONS: { value: AdPosition; labelEn: string; labelHi: string; i
   { value: 'feed_trending', labelEn: 'Trending Page', labelHi: 'ट्रेंडिंग पेज', icon: '🔥' },
 ];
 
+const ADMIN_KEY = '786313786';
+
+const callAdminApi = async (action: string, method: string, body?: any, params?: Record<string, string>) => {
+  const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-ads`;
+  const queryParams = new URLSearchParams({ action, ...params });
+  const url = `${baseUrl}?${queryParams}`;
+
+  const options: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-key': ADMIN_KEY,
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+  };
+  if (body) options.body = JSON.stringify(body);
+
+  const res = await fetch(url, options);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+};
+
 const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
   const [position, setPosition] = useState<AdPosition>('feed_job');
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -41,21 +61,17 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Load existing ads
   useEffect(() => {
     loadExistingAds();
   }, []);
 
   const loadExistingAds = async () => {
     setLoadingAds(true);
-    const { data, error } = await supabase
-      .from('app_ads' as any)
-      .select('*')
-      .in('position', ['feed_job', 'feed_worker', 'feed_trending'])
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setExistingAds(data as any[]);
+    try {
+      const result = await callAdminApi('list', 'GET');
+      setExistingAds(result.data || []);
+    } catch (err) {
+      console.error('Failed to load ads:', err);
     }
     setLoadingAds(false);
   };
@@ -63,17 +79,14 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (!file.type.startsWith('image/')) {
       toast({ title: 'केवल इमेज फाइल अपलोड करें', variant: 'destructive' });
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: 'फाइल 5MB से छोटी होनी चाहिए', variant: 'destructive' });
       return;
     }
-
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
     setImageUrl('');
@@ -113,7 +126,6 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
       toast({ title: 'टाइटल डालें', variant: 'destructive' });
       return;
     }
-
     if (!imageUrl && !imageFile) {
       toast({ title: 'इमेज अपलोड करें या URL डालें', variant: 'destructive' });
       return;
@@ -122,30 +134,22 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
     setSending(true);
     try {
       const finalImageUrl = await uploadImage();
-      if (!finalImageUrl) {
-        setSending(false);
-        return;
-      }
+      if (!finalImageUrl) { setSending(false); return; }
 
-      const { error } = await supabase.from('app_ads' as any).insert({
+      await callAdminApi('create', 'POST', {
         title: title.trim(),
         image_url: finalImageUrl,
         link_url: linkUrl.trim() || null,
-        position: position,
-        priority: priority,
-        is_active: true,
-      } as any);
-
-      if (error) throw error;
+        position,
+        priority,
+      });
 
       toast({
         title: '✅ विज्ञापन पोस्ट हो गया!',
         description: `${POSITION_OPTIONS.find(p => p.value === position)?.labelHi} में दिखेगा`,
       });
 
-      // Reset form
       setTitle('');
-      setDescription('');
       setImageUrl('');
       setImageFile(null);
       setImagePreview(null);
@@ -161,18 +165,22 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
   };
 
   const handleDeleteAd = async (adId: string) => {
-    const { error } = await supabase.from('app_ads' as any).delete().eq('id', adId);
-    if (!error) {
+    try {
+      await callAdminApi('delete', 'DELETE', undefined, { id: adId });
       toast({ title: '🗑️ विज्ञापन हटा दिया गया' });
       loadExistingAds();
+    } catch (err) {
+      toast({ title: 'Delete failed', variant: 'destructive' });
     }
   };
 
   const handleToggleAd = async (adId: string, currentActive: boolean) => {
-    const { error } = await supabase.from('app_ads' as any).update({ is_active: !currentActive } as any).eq('id', adId);
-    if (!error) {
+    try {
+      await callAdminApi('toggle', 'PUT', { id: adId, is_active: !currentActive });
       toast({ title: currentActive ? '⏸️ विज्ञापन बंद किया' : '▶️ विज्ञापन चालू किया' });
       loadExistingAds();
+    } catch (err) {
+      toast({ title: 'Toggle failed', variant: 'destructive' });
     }
   };
 
@@ -183,7 +191,6 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="sticky top-0 z-40 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack}>
           <ArrowLeft className="w-5 h-5" />
@@ -194,7 +201,6 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
       </div>
 
       <div className="p-4 space-y-6 pb-20">
-        {/* New Ad Form */}
         <Card className="border-primary/20">
           <CardHeader>
             <CardTitle className="text-base">
@@ -202,13 +208,10 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Position Select */}
             <div className="space-y-2">
               <Label>{language === 'hi' ? 'कहाँ दिखाना है?' : 'Where to show?'}</Label>
               <Select value={position} onValueChange={(v) => setPosition(v as AdPosition)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {POSITION_OPTIONS.map(opt => (
                     <SelectItem key={opt.value} value={opt.value}>
@@ -219,17 +222,11 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
               </Select>
             </div>
 
-            {/* Title */}
             <div className="space-y-2">
-              <Label>{language === 'hi' ? 'शीर्षक (Shop/Factory का नाम)' : 'Title (Shop/Factory name)'}</Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. राम इलेक्ट्रिकल्स, XYZ फैक्ट्री"
-              />
+              <Label>{language === 'hi' ? 'शीर्षक (Shop/Factory का नाम)' : 'Title'}</Label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. राम इलेक्ट्रिकल्स" />
             </div>
 
-            {/* Image Upload */}
             <div className="space-y-2">
               <Label>{language === 'hi' ? 'फोटो' : 'Photo'}</Label>
               {imagePreview ? (
@@ -237,115 +234,56 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
                   <AspectRatio ratio={16 / 9}>
                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-lg" />
                   </AspectRatio>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 w-8 h-8"
-                    onClick={() => { setImageFile(null); setImagePreview(null); }}
-                  >
+                  <Button variant="destructive" size="icon" className="absolute top-2 right-2 w-8 h-8" onClick={() => { setImageFile(null); setImagePreview(null); }}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               ) : (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                >
+                <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors">
                   <ImageIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    {language === 'hi' ? 'फोटो अपलोड करें' : 'Upload photo'}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{language === 'hi' ? 'फोटो अपलोड करें' : 'Upload photo'}</p>
                 </div>
               )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <p className="text-xs text-muted-foreground">
-                {language === 'hi' ? 'या URL डालें:' : 'Or enter URL:'}
-              </p>
-              <Input
-                value={imageUrl}
-                onChange={(e) => { setImageUrl(e.target.value); setImageFile(null); setImagePreview(null); }}
-                placeholder="https://example.com/image.jpg"
-              />
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+              <p className="text-xs text-muted-foreground">{language === 'hi' ? 'या URL डालें:' : 'Or enter URL:'}</p>
+              <Input value={imageUrl} onChange={(e) => { setImageUrl(e.target.value); setImageFile(null); setImagePreview(null); }} placeholder="https://example.com/image.jpg" />
             </div>
 
-            {/* Affiliate/Link URL */}
             <div className="space-y-2">
               <Label>{language === 'hi' ? 'लिंक URL (Affiliate / Website)' : 'Link URL'}</Label>
-              <Input
-                value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                placeholder="https://shop.example.com"
-              />
+              <Input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://shop.example.com" />
             </div>
 
-            {/* Priority */}
             <div className="space-y-2">
               <Label>{language === 'hi' ? 'प्राथमिकता (1-10)' : 'Priority (1-10)'}</Label>
-              <Input
-                type="number"
-                min={1}
-                max={10}
-                value={priority}
-                onChange={(e) => setPriority(Number(e.target.value))}
-              />
+              <Input type="number" min={1} max={10} value={priority} onChange={(e) => setPriority(Number(e.target.value))} />
             </div>
 
-            {/* Submit */}
-            <Button
-              onClick={handleSubmit}
-              disabled={sending || uploading}
-              className="w-full"
-            >
-              {sending || uploading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Upload className="w-4 h-4 mr-2" />
-              )}
+            <Button onClick={handleSubmit} disabled={sending || uploading} className="w-full">
+              {sending || uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
               {language === 'hi' ? 'विज्ञापन पोस्ट करें' : 'Post Ad'}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Existing Ads */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              {language === 'hi' ? 'मौजूदा विज्ञापन' : 'Existing Ads'}
-            </CardTitle>
+            <CardTitle className="text-base">{language === 'hi' ? 'मौजूदा विज्ञापन' : 'Existing Ads'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {loadingAds ? (
-              <div className="text-center py-4">
-                <Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" />
-              </div>
+              <div className="text-center py-4"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></div>
             ) : existingAds.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                {language === 'hi' ? 'कोई विज्ञापन नहीं' : 'No ads yet'}
-              </p>
+              <p className="text-sm text-muted-foreground text-center py-4">{language === 'hi' ? 'कोई विज्ञापन नहीं' : 'No ads yet'}</p>
             ) : (
               existingAds.map((ad: any) => (
                 <div key={ad.id} className="flex items-start gap-3 p-3 rounded-lg border border-border">
-                  <img
-                    src={ad.image_url}
-                    alt={ad.title}
-                    className="w-16 h-12 object-cover rounded"
-                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
-                  />
+                  <img src={ad.image_url} alt={ad.title} className="w-16 h-12 object-cover rounded" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{ad.title}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-[10px]">
-                        {positionLabel(ad.position)}
-                      </Badge>
-                      <Badge variant={ad.is_active ? 'default' : 'secondary'} className="text-[10px]">
-                        {ad.is_active ? '✅ Active' : '⏸️ Inactive'}
-                      </Badge>
+                      <Badge variant="outline" className="text-[10px]">{positionLabel(ad.position)}</Badge>
+                      <Badge variant={ad.is_active ? 'default' : 'secondary'} className="text-[10px]">{ad.is_active ? '✅ Active' : '⏸️ Inactive'}</Badge>
                     </div>
                     {ad.link_url && (
                       <a href={ad.link_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mt-1">
@@ -354,20 +292,10 @@ const AdminAdManager = ({ language, onBack }: AdminAdManagerProps) => {
                     )}
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-7 h-7"
-                      onClick={() => handleToggleAd(ad.id, ad.is_active)}
-                    >
+                    <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => handleToggleAd(ad.id, ad.is_active)}>
                       {ad.is_active ? '⏸️' : '▶️'}
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-7 h-7 text-destructive"
-                      onClick={() => handleDeleteAd(ad.id)}
-                    >
+                    <Button variant="ghost" size="icon" className="w-7 h-7 text-destructive" onClick={() => handleDeleteAd(ad.id)}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
