@@ -131,10 +131,13 @@ const TrendingPage = ({ language, onBack }: TrendingPageProps) => {
     setIsRefreshing(false);
 
     // Scroll to top so DB videos (which are first) are visible
-    if (containerRef.current) {
-      containerRef.current.scrollTo({ top: 0, behavior: showToast ? 'smooth' : 'auto' });
-      setActiveIndex(0);
-    }
+    // Use requestAnimationFrame to wait for DOM update after state change
+    requestAnimationFrame(() => {
+      if (containerRef.current) {
+        containerRef.current.scrollTo({ top: 0, behavior: showToast ? 'smooth' : 'auto' });
+        setActiveIndex(0);
+      }
+    });
 
     // Fetch real comment & like counts for DB videos
     const videoIds = data.map(v => v.id);
