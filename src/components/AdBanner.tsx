@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { ADSENSE_CLIENT, CONSENT_EVENT, getAdConsent, loadAdSense, pushAdSlot } from '@/lib/ads';
 
 interface AdBannerProps {
   adSlot: string;        // AdSense slot for web
@@ -9,7 +10,7 @@ interface AdBannerProps {
 
 /**
  * Cross-platform ad banner:
- * - Web → Google AdSense
+ * - Web → Google AdSense (only after user consent)
  * - Native (Capacitor) → Google AdMob via plugin
  */
 const AdBanner = ({
@@ -20,41 +21,30 @@ const AdBanner = ({
   const adRef = useRef<HTMLDivElement>(null);
   const [dismissed, setDismissed] = useState(false);
   const [isNative, setIsNative] = useState(false);
+  const [consent, setConsent] = useState(getAdConsent());
 
   useEffect(() => {
-    // Detect Capacitor native environment
     const cap = (window as any).Capacitor;
     if (cap?.isNativePlatform?.()) {
       setIsNative(true);
       showAdMob(adUnitId);
-    } else {
-      loadAdSense();
+      return;
     }
-  }, [adUnitId]);
-
-  const loadAdSense = () => {
-    // Ensure AdSense script is loaded once
-    if (!document.querySelector('script[src*="pagead2.googlesyndication"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2230245159991674';
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      document.head.appendChild(script);
+    if (getAdConsent() === 'granted') {
+      loadAdSense().then(() => setTimeout(pushAdSlot, 300));
     }
-
-    // Push ad after small delay to ensure script is ready
-    setTimeout(() => {
-      try {
-        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-      } catch (e) {
-        console.log('[AdBanner] AdSense push error:', e);
+    const onConsent = (e: any) => {
+      setConsent(e.detail);
+      if (e.detail === 'granted') {
+        loadAdSense().then(() => setTimeout(pushAdSlot, 300));
       }
-    }, 500);
-  };
+    };
+    window.addEventListener(CONSENT_EVENT, onConsent);
+    return () => window.removeEventListener(CONSENT_EVENT, onConsent);
+  }, [adUnitId]);
 
   const showAdMob = async (unitId: string) => {
     try {
-      // Dynamic import — only works when @capacitor-community/admob is installed in native build
       const admobModule: any = await (Function('return import("@capacitor-community/admob")')());
       const { AdMob, BannerAdSize, BannerAdPosition } = admobModule;
       await AdMob.initialize({ initializeForTesting: false });
@@ -70,13 +60,10 @@ const AdBanner = ({
   };
 
   if (dismissed) return null;
+  if (isNative) return <div className={`h-14 w-full bg-neutral-900 ${className}`} />;
+  // No web ad until consent granted
+  if (consent !== 'granted') return null;
 
-  // For native, AdMob renders natively above the webview — we just need a spacer
-  if (isNative) {
-    return <div className={`h-14 w-full bg-neutral-900 ${className}`} />;
-  }
-
-  // Web: AdSense banner
   return (
     <div className={`relative w-full bg-neutral-900/80 backdrop-blur-sm ${className}`}>
       <button
@@ -93,7 +80,7 @@ const AdBanner = ({
         <ins
           className="adsbygoogle"
           style={{ display: 'block', width: '100%', height: 'auto' }}
-          data-ad-client="ca-pub-2230245159991674"
+          data-ad-client={ADSENSE_CLIENT}
           data-ad-slot={adSlot}
           data-ad-format="auto"
           data-full-width-responsive="true"
