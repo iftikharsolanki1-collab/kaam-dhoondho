@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 import AdminAdManager from '@/components/AdminAdManager';
+import AdSenseUnit from '@/components/AdSenseUnit';
 import ChatPage from '@/components/ChatPage';
 import TrendingPage from '@/components/TrendingPage';
 import AdminPostForm from '@/components/AdminPostForm';
@@ -473,6 +474,9 @@ const Index = () => {
                 onSkillSelect={setSelectedSkill}
               />
             </div>
+
+            {/* In-feed AdSense unit (consent-gated) */}
+            <AdSenseUnit slot="9922552621" width={360} height={800} />
 
             {/* Content Feed */}
             <div className="px-3 pb-20 pt-3">
