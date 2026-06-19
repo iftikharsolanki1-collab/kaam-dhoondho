@@ -28,9 +28,11 @@
         'analytics_storage': 'denied',
         'wait_for_update': 500
       });
-      // AdSense script is injected dynamically AFTER consent is granted.
-      // See src/lib/ads.ts and src/components/ConsentBanner.tsx
     </script>
+
+    <!-- Google AdSense (site verification + Auto Ads). Consent Mode v2 above gates personalization. -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2230245159991674"
+      crossorigin="anonymous"></script>
   </head>
 
   <body>
