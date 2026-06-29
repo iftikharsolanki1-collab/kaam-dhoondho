@@ -3,9 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MessageCircle, CheckCircle, Briefcase } from 'lucide-react';
+import { MessageCircle, CheckCircle, Briefcase, Bookmark } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useSavedPost } from '@/hooks/useSavedPost';
 
 interface JobCardProps {
   id: string;
@@ -44,6 +45,7 @@ export const JobCard = ({
 }: JobCardProps) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
+  const { saved, toggle: toggleSaved } = useSavedPost(id, language);
 
   useEffect(() => {
     loadCurrentUser();
@@ -148,16 +150,27 @@ export const JobCard = ({
           {details}
         </p>
 
-        {/* Chat button only */}
-        <Button 
-          variant="default" 
-          size="sm" 
-          onClick={handleChat} 
-          className="w-full bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
-        >
-          <MessageCircle className="w-4 h-4 mr-1" />
-          {texts[language].chat}
-        </Button>
+        {/* Chat + Save buttons */}
+        <div className="flex gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleChat}
+            className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
+          >
+            <MessageCircle className="w-4 h-4 mr-1" />
+            {texts[language].chat}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleSaved}
+            aria-label={saved ? 'Unsave' : 'Save'}
+            className="px-3"
+          >
+            <Bookmark className={`w-4 h-4 ${saved ? 'fill-primary text-primary' : ''}`} />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
