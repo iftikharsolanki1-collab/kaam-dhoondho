@@ -145,72 +145,67 @@ const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      let error: any = null;
+      let payload: any = {};
 
       switch (target) {
-        case 'posts': {
-          const res = await supabase.from('posts').insert({
+        case 'posts':
+          payload = {
             user_id: user.id,
             title: title.trim(),
             description: description.trim() || null,
             type: postType,
             is_urgent: isUrgent,
-          });
-          error = res.error;
+          };
           break;
-        }
-        case 'app_ads': {
-          const res = await supabase.from('app_ads').insert({
+        case 'app_ads':
+          payload = {
             title: title.trim(),
             image_url: imageUrl.trim() || 'https://placehold.co/600x200',
             link_url: linkUrl.trim() || null,
-            is_active: true,
-          });
-          error = res.error;
+          };
           break;
-        }
-        case 'govt_schemes': {
-          const res = await supabase.from('govt_schemes').insert({
+        case 'govt_schemes':
+          payload = {
             title: title.trim(),
             description: description.trim() || null,
             link: linkUrl.trim() || null,
             category: category.trim() || null,
-            is_active: true,
-          });
-          error = res.error;
+          };
           break;
-        }
-        case 'notifications': {
-          // Send notification to all — we use the RPC
-          // For now insert directly (admin policy)
-          const res = await supabase.from('notifications').insert({
-            user_id: user.id, // self notification for now
+        case 'notifications':
+          payload = {
             title: title.trim(),
             message: description.trim() || title.trim(),
-            type: 'general',
-          });
-          error = res.error;
+          };
           break;
-        }
         case 'trending_items': {
           setUploading(true);
           const uploadedUrl = await uploadImage();
           setUploading(false);
-          const res = await supabase.from('trending_items').insert({
+          payload = {
             title: title.trim(),
             description: description.trim() || null,
             image_url: uploadedUrl,
             prompt: prompt.trim() || title.trim(),
             category: category.trim() || 'Corporate',
             is_new: isNew,
-            is_active: true,
-          });
-          error = res.error;
+          };
           break;
         }
       }
 
-      if (error) throw error;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-content`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': '786313786',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ target, payload }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
 
       toast({ title: txt.success });
       resetForm();
