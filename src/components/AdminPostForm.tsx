@@ -142,21 +142,28 @@ const AdminPostForm = ({ language, onBack }: AdminPostFormProps) => {
 
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
       let payload: any = {};
 
       switch (target) {
-        case 'posts':
+        case 'posts': {
+          let userId: string | undefined;
+          try {
+            const { data } = await supabase.auth.getUser();
+            userId = data.user?.id;
+          } catch (e) {
+            console.warn('getUser failed, continuing', e);
+          }
+          if (!userId) throw new Error(language === 'hi' ? 'पहले लॉगिन करें' : 'Please login first');
           payload = {
-            user_id: user.id,
+            user_id: userId,
             title: title.trim(),
             description: description.trim() || null,
             type: postType,
             is_urgent: isUrgent,
           };
           break;
+        }
+
         case 'app_ads':
           payload = {
             title: title.trim(),

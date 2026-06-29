@@ -1,1 +1,7 @@
 project_id = "pjhviinrlwrhqtppdktp"
+
+[functions.admin-content]
+verify_jwt = false
+
+[functions.admin-ads]
+verify_jwt = false
