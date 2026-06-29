@@ -163,25 +163,42 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   useEffect(() => {
     const loadSavedPosts = async () => {
       try {
-        const { data, error } = await supabase
-          .from('saved_posts')
-          .select(`
-            id,
-            created_at,
-            posts (
-              id,
-              title,
-              description,
-              location,
-              rate,
-              type,
-              created_at
-            )
-          `)
-          .order('created_at', { ascending: false });
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setSavedJobsList([]); return; }
 
+        const { data: saves, error } = await supabase
+          .from('saved_posts')
+          .select('id, created_at, post_id')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
         if (error) throw error;
-        setSavedJobsList(data || []);
+
+        const ids = (saves || []).map((s: any) => s.post_id);
+        if (ids.length === 0) { setSavedJobsList([]); return; }
+
+        const { data: posts, error: pErr } = await supabase
+          .from('posts_secure' as 'posts')
+          .select('id, name, title, description, location, rate, is_urgent, type')
+          .in('id', ids);
+        if (pErr) throw pErr;
+
+        const map = new Map((posts || []).map((p: any) => [p.id, p]));
+        const merged = (saves || [])
+          .map((s: any) => {
+            const p: any = map.get(s.post_id);
+            if (!p) return null;
+            return {
+              id: s.id,
+              postId: p.id,
+              name: p.name,
+              work: p.title,
+              location: p.location,
+              rate: p.rate,
+              isUrgent: p.is_urgent,
+            };
+          })
+          .filter(Boolean);
+        setSavedJobsList(merged);
       } catch (error) {
         console.error('Error loading saved posts:', error);
         toast({
@@ -193,7 +210,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
     };
 
     loadSavedPosts();
-  }, [toast]);
+  }, [toast, currentUserId]);
 
   // Load user's uploaded videos
   useEffect(() => {
