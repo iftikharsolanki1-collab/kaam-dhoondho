@@ -150,16 +150,27 @@ export const JobCard = ({
           {details}
         </p>
 
-        {/* Chat button only */}
-        <Button 
-          variant="default" 
-          size="sm" 
-          onClick={handleChat} 
-          className="w-full bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
-        >
-          <MessageCircle className="w-4 h-4 mr-1" />
-          {texts[language].chat}
-        </Button>
+        {/* Chat + Save buttons */}
+        <div className="flex gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleChat}
+            className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
+          >
+            <MessageCircle className="w-4 h-4 mr-1" />
+            {texts[language].chat}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleSaved}
+            aria-label={saved ? 'Unsave' : 'Save'}
+            className="px-3"
+          >
+            <Bookmark className={`w-4 h-4 ${saved ? 'fill-primary text-primary' : ''}`} />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
