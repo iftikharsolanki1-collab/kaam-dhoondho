@@ -45,6 +45,7 @@ export const JobCard = ({
 }: JobCardProps) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
+  const { saved, toggle: toggleSaved } = useSavedPost(id, language);
 
   useEffect(() => {
     loadCurrentUser();
