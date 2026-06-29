@@ -3,9 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MessageCircle, CheckCircle, Briefcase } from 'lucide-react';
+import { MessageCircle, CheckCircle, Briefcase, Bookmark } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useSavedPost } from '@/hooks/useSavedPost';
 
 interface JobCardProps {
   id: string;
