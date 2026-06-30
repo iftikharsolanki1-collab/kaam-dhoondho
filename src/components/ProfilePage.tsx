@@ -740,7 +740,19 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
           </div>
         </CardHeader>
         <CardContent>
-          {savedJobsList.length === 0 ? (
+          {savedLoading ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              {language === 'hi' ? 'लोड हो रहा है...' : 'Loading...'}
+            </div>
+          ) : savedError ? (
+            <div className="text-center py-8">
+              <p className="text-destructive mb-3">{language === 'hi' ? 'लोड नहीं हो सका' : 'Could not load'}</p>
+              <Button variant="outline" size="sm" onClick={() => { setSavedLoading(true); loadSavedPosts(); }}>
+                {language === 'hi' ? 'पुनः प्रयास' : 'Retry'}
+              </Button>
+            </div>
+          ) : savedJobsList.length === 0 ? (
             <div className="text-center py-8">
               <Bookmark className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
