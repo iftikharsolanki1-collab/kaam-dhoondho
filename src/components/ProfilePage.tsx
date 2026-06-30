@@ -23,10 +23,11 @@ interface ProfilePageProps {
   onAdminAds?: () => void;
   onModeration?: () => void;
   onSafetyCenter?: () => void;
+  onViewPost?: (post: any) => void;
   isAdminOverride?: boolean;
 }
 
-export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost, onAdminAds, onModeration, onSafetyCenter, isAdminOverride = false }: ProfilePageProps) => {
+export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpdate, onAdminPost, onAdminAds, onModeration, onSafetyCenter, onViewPost, isAdminOverride = false }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [savedJobsList, setSavedJobsList] = useState<any[]>([]);
@@ -180,7 +181,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
 
       const { data: posts, error: pErr } = await supabase
         .from('posts_secure' as 'posts')
-        .select('id, name, title, description, location, rate, is_urgent, type')
+        .select('id, user_id, name, title, description, location, rate, photos, phone, is_urgent, type, created_at')
         .in('id', ids);
       if (pErr) throw pErr;
 
@@ -190,13 +191,21 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
           const p: any = map.get(s.post_id);
           if (!p) return null;
           return {
-            id: s.id,
+            id: p.id,
+            saveId: s.id,
             postId: p.id,
+            userId: p.user_id,
             name: p.name,
             work: p.title,
             location: p.location,
-            rate: p.rate,
+            rate: p.rate || '',
+            details: p.description || '',
+            photo: Array.isArray(p.photos) ? p.photos[0] : '',
+            phone: p.phone || '',
             isUrgent: p.is_urgent,
+            isVerified: false,
+            postType: p.type === 'service' ? 'seeker' : 'giver',
+            createdAt: p.created_at,
           };
         })
         .filter(Boolean);
@@ -762,7 +771,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
           ) : (
             <div className="space-y-3">
               {savedJobsList.map((job, index) => (
-                <div key={job.id}>
+                <div key={job.saveId || job.id}>
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
@@ -778,7 +787,7 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
                         {job.location} • {job.rate}
                       </p>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => onViewPost?.(job)}>
                       View
                     </Button>
                   </div>
