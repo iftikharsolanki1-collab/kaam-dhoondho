@@ -162,57 +162,87 @@ export const ProfilePage = ({ language, onLanguageChange, onLogout, onProfileUpd
   }, [currentUserId]);
 
   // Load saved jobs from Supabase instead of localStorage for security
+  const loadSavedPosts = useCallback(async () => {
+    try {
+      setSavedError(null);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setSavedJobsList([]); setSavedLoading(false); return; }
+
+      const { data: saves, error } = await supabase
+        .from('saved_posts')
+        .select('id, created_at, post_id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+
+      const ids = (saves || []).map((s: any) => s.post_id);
+      if (ids.length === 0) { setSavedJobsList([]); setSavedLoading(false); return; }
+
+      const { data: posts, error: pErr } = await supabase
+        .from('posts_secure' as 'posts')
+        .select('id, name, title, description, location, rate, is_urgent, type')
+        .in('id', ids);
+      if (pErr) throw pErr;
+
+      const map = new Map((posts || []).map((p: any) => [p.id, p]));
+      const merged = (saves || [])
+        .map((s: any) => {
+          const p: any = map.get(s.post_id);
+          if (!p) return null;
+          return {
+            id: s.id,
+            postId: p.id,
+            name: p.name,
+            work: p.title,
+            location: p.location,
+            rate: p.rate,
+            isUrgent: p.is_urgent,
+          };
+        })
+        .filter(Boolean);
+      setSavedJobsList(merged);
+    } catch (error: any) {
+      console.error('Error loading saved posts:', error);
+      setSavedError(error?.message || 'Failed to load');
+      toast({
+        title: 'Error',
+        description: 'Failed to load saved jobs',
+        variant: 'destructive'
+      });
+    } finally {
+      setSavedLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
-    const loadSavedPosts = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setSavedJobsList([]); return; }
-
-        const { data: saves, error } = await supabase
-          .from('saved_posts')
-          .select('id, created_at, post_id')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-        if (error) throw error;
-
-        const ids = (saves || []).map((s: any) => s.post_id);
-        if (ids.length === 0) { setSavedJobsList([]); return; }
-
-        const { data: posts, error: pErr } = await supabase
-          .from('posts_secure' as 'posts')
-          .select('id, name, title, description, location, rate, is_urgent, type')
-          .in('id', ids);
-        if (pErr) throw pErr;
-
-        const map = new Map((posts || []).map((p: any) => [p.id, p]));
-        const merged = (saves || [])
-          .map((s: any) => {
-            const p: any = map.get(s.post_id);
-            if (!p) return null;
-            return {
-              id: s.id,
-              postId: p.id,
-              name: p.name,
-              work: p.title,
-              location: p.location,
-              rate: p.rate,
-              isUrgent: p.is_urgent,
-            };
-          })
-          .filter(Boolean);
-        setSavedJobsList(merged);
-      } catch (error) {
-        console.error('Error loading saved posts:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load saved jobs',
-          variant: 'destructive'
-        });
-      }
-    };
-
+    setSavedLoading(true);
     loadSavedPosts();
-  }, [toast, currentUserId]);
+
+    // Instant updates when user toggles save anywhere in the app
+    const onChange = () => loadSavedPosts();
+    window.addEventListener('saved-posts-changed', onChange);
+
+    // Realtime sync with DB
+    let channel: any;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      channel = supabase
+        .channel(`saved-posts-${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'saved_posts', filter: `user_id=eq.${user.id}` },
+          () => loadSavedPosts()
+        )
+        .subscribe();
+    })();
+
+    return () => {
+      window.removeEventListener('saved-posts-changed', onChange);
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [loadSavedPosts, currentUserId]);
+
 
   // Load user's uploaded videos
   useEffect(() => {
