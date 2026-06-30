@@ -403,6 +403,7 @@ const Index = () => {
                 onAdminAds={() => setCurrentPage('adminAds')}
                 onModeration={() => setCurrentPage('moderation')}
                 onSafetyCenter={() => setCurrentPage('safety')}
+                onViewPost={handleCardClick}
                 isAdminOverride={isAdminOverride}
               />
             </div>
