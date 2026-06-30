@@ -41,10 +41,12 @@ export const useSavedPost = (postId: string, language: 'en' | 'hi' = 'hi') => {
       if (saved) {
         await supabase.from('saved_posts').delete().eq('user_id', userId).eq('post_id', postId);
         setSaved(false);
+        window.dispatchEvent(new CustomEvent('saved-posts-changed', { detail: { postId, saved: false } }));
         toast({ title: language === 'hi' ? 'हटा दिया गया' : 'Removed from saved' });
       } else {
         await supabase.from('saved_posts').insert({ user_id: userId, post_id: postId });
         setSaved(true);
+        window.dispatchEvent(new CustomEvent('saved-posts-changed', { detail: { postId, saved: true } }));
         toast({ title: language === 'hi' ? 'सेव हो गया' : 'Saved' });
       }
     } catch (err: any) {
